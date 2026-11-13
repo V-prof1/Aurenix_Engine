@@ -1,13 +1,42 @@
 <!doctype html>
-<html lang="pt-BR"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no"><meta name="theme-color" content="#0d1322"><title>Aurenix Pixel Studio</title><link rel="icon" href="assets/icon.svg" type="image/svg+xml">
+<html lang="pt-BR"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no"><meta name="theme-color" content="#0d1322"><title>Aurenix Pixel Studio</title><link rel="stylesheet" href="js/theme.css"><link rel="icon" href="assets/icon.svg" type="image/svg+xml">
 <style>
 :root{color-scheme:dark;--bg:#0d1322;--card:#151f34;--border:#2b4057;--ink:#edf6ff;--muted:#9babc4;--accent:#64e3d6;--safe:env(safe-area-inset-top,0px)}
 *{box-sizing:border-box}html,body{margin:0;min-height:100%;background:var(--bg);color:var(--ink);font:14px system-ui,-apple-system,sans-serif;overscroll-behavior:none}button,input,select{font:inherit}button{cursor:pointer;touch-action:manipulation;min-height:42px;border-radius:10px;border:1px solid var(--border);background:#23334b;color:var(--ink);padding:8px 12px;font-weight:600}button[aria-pressed=true],.chosen{border-color:var(--accent);background:#205152;color:#dbffff}button:disabled{opacity:.35;cursor:default}input,select{border:1px solid var(--border);background:#111a2a;color:var(--ink);border-radius:8px;min-height:42px;padding:7px 9px;max-width:100%}input[type=color]{width:50px;padding:4px}.ps-top{position:sticky;top:0;z-index:9;display:flex;align-items:center;gap:9px;flex-wrap:wrap;padding:calc(9px + var(--safe)) max(10px,env(safe-area-inset-right)) 9px max(10px,env(safe-area-inset-left));border-bottom:1px solid var(--border);background:#0f1929}.ps-logo{font-weight:950;letter-spacing:1px;white-space:nowrap}.ps-logo b{color:var(--accent)}#artName{min-width:125px;flex:1 1 170px;max-width:290px}.ps-main{display:grid;grid-template-columns:minmax(145px,205px) minmax(200px,1fr) minmax(150px,232px);gap:10px;padding:10px;max-width:1600px;margin:auto}.ps-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:11px;min-width:0}.ps-card h3{font-size:11px;letter-spacing:1px;color:#9ebad2;margin:0 0 8px}.ps-column{display:flex;flex-direction:column;gap:10px;min-width:0}.ps-tools{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}.ps-tools button{font-size:12px;padding:7px 4px}.ps-row{display:flex;flex-wrap:wrap;gap:5px;align-items:center}.ps-row button{flex:1 0 auto}.ps-swatches{display:grid;grid-template-columns:repeat(6,1fr);gap:5px}.ps-swatches button{padding:0;min-height:32px;aspect-ratio:1;min-width:0;border:2px solid #263447}.ps-swatches button.chosen{border-color:#fff;outline:2px solid var(--accent)}.ps-stage{background:#080d17;border:1px solid #263a55;border-radius:13px;position:relative;min-height:345px;display:flex;align-items:center;justify-content:center;overflow:hidden;touch-action:none}.ps-stage canvas{display:block;width:100%;height:100%;touch-action:none}.ps-workspace{display:flex;flex-direction:column;gap:8px;min-width:0}.ps-canvas-wrap{min-height:350px;height:clamp(350px,65vh,820px)}.ps-stage-hint{position:absolute;bottom:9px;left:50%;transform:translateX(-50%);color:#c7e7e5;background:#0d1f2cdd;padding:5px 10px;border-radius:15px;font-size:11px;pointer-events:none;white-space:nowrap}.ps-layer,.ps-frame,.ps-file{display:flex;align-items:center;gap:5px;margin:5px 0;padding:7px;border:1px solid var(--border);border-radius:9px;background:#18263b;min-width:0}.ps-layer.selected,.ps-frame.selected{border-color:var(--accent);background:#194242}.ps-layer b,.ps-frame b{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px}.ps-layer button,.ps-frame button{min-height:34px;padding:4px 7px}.ps-muted{color:var(--muted);font-size:11px;line-height:1.5}.ps-timeline{display:flex;gap:5px;overflow-x:auto;max-width:100%;padding:5px 0}.ps-frame{min-width:70px;flex-shrink:0}.ps-stats{font-size:12px;color:#a8c8d3}.ps-status{padding:6px;color:#acd9d4;font-size:12px;min-height:27px}.ps-divider{height:1px;background:var(--border);margin:8px 0}.ps-library{max-height:190px;overflow-y:auto}.ps-file{justify-content:space-between}.ps-file b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}.ps-file button{min-width:45px}.ps-row label{font-size:12px;color:var(--muted)}.ps-short{padding:4px 0}.ps-short strong{color:#dff6f4}
 @media(max-width:840px){.ps-main{grid-template-columns:170px minmax(0,1fr)}.ps-right{grid-column:1/-1;display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.ps-canvas-wrap{height:clamp(360px,58vh,650px)}}
 @media(max-width:570px){.ps-main{grid-template-columns:1fr;padding:7px}.ps-left{order:2}.ps-workspace{order:1}.ps-right{order:3;display:flex}.ps-left{display:grid;grid-template-columns:1fr 1fr;gap:7px}.ps-left>.ps-card:first-child{grid-column:1/-1}.ps-tools{grid-template-columns:repeat(4,1fr)}.ps-canvas-wrap{height:min(70vw,62vh);min-height:285px}.ps-stage{min-height:285px}.ps-swatches{grid-template-columns:repeat(7,1fr)}.ps-top button{font-size:12px}.ps-stage-hint{font-size:10px}.ps-logo{font-size:12px}}
+
+/* Alpha 0.5 — canvas nunca cobre os botões inferiores */
+.ps-main{align-items:start}
+.ps-workspace,.ps-left,.ps-right{min-width:0}
+.ps-canvas-wrap{height:clamp(260px,52dvh,650px);min-height:260px;position:relative;overflow:hidden}
+.ps-stage{width:100%;height:100%;min-height:0;display:block;position:relative;overflow:hidden}
+.ps-stage canvas{position:absolute;inset:0;width:100%!important;height:100%!important;display:block}
+.ps-stage-hint{max-width:calc(100% - 18px);white-space:normal;text-align:center}
+.ps-quicknav{display:flex;gap:7px;padding:8px max(9px,env(safe-area-inset-right)) 6px max(9px,env(safe-area-inset-left));overflow-x:auto;background:var(--bg)}
+.ps-quicknav button{white-space:nowrap;min-height:44px;background:#21334b;border:1px solid #3d5670;border-radius:10px;padding:8px 12px}
+#tools,#frames,#layers,#palette{scroll-margin-top:92px}
+.ps-card button{min-height:44px}
+.ps-top{gap:7px;padding-top:max(10px,env(safe-area-inset-top))}
+.ps-top button{min-height:46px}
+.ps-workspace>.ps-card:last-child{position:relative;z-index:1}
+@media (pointer:coarse) and (orientation:landscape){
+ .ps-main{grid-template-columns:minmax(145px,190px) minmax(0,1fr) minmax(150px,215px);gap:7px;padding:8px}
+ .ps-stage{min-height:0}.ps-canvas-wrap{height:clamp(210px,52dvh,440px);min-height:210px}
+ .ps-top{position:relative;padding:9px max(9px,env(safe-area-inset-right)) 8px max(9px,env(safe-area-inset-left))}
+ .ps-top button{min-height:42px}
+ .ps-quicknav{position:sticky;top:0;z-index:8;padding-top:7px;padding-bottom:6px;background:#0d1322ed}
+ .ps-workspace{overflow:visible}.ps-stage-hint{font-size:10px;bottom:5px}
+}
+@media(max-width:840px){.ps-main{grid-template-columns:150px minmax(0,1fr)}.ps-right{grid-column:1/-1}}
+@media(max-width:570px){
+ .ps-main{display:flex;flex-direction:column;align-items:stretch}.ps-workspace{order:0}.ps-left{order:1}.ps-right{order:2}
+ .ps-canvas-wrap{height:min(68dvw,55dvh);min-height:245px}.ps-quicknav{position:sticky;top:0;z-index:8}
+ .ps-tools{grid-template-columns:repeat(4,minmax(0,1fr))}
+}
 </style></head><body>
-<header class="ps-top"><button id="back">← Início</button><span class="ps-logo">AURENIX <b>PIXEL</b></span><input id="artName" value="Novo sprite" maxlength="70" aria-label="Nome do desenho"><button id="save">▣ Salvar no app</button><button id="exportPNG">⬇ PNG</button><button id="exportJSON">⬇ Projeto</button><button id="importBtn">⇧ Abrir</button></header>
-<main class="ps-main">
+<header class="ps-top"><button id="back">← Início</button><button id="psTheme" title="Mudar aparência">🎨 Tema</button><span class="ps-logo">AURENIX <b>PIXEL</b></span><input id="artName" value="Novo sprite" maxlength="70" aria-label="Nome do desenho"><button id="save">▣ Salvar no app</button><button id="exportPNG">⬇ PNG</button><button id="exportJSON">⬇ Projeto</button><button id="importBtn">⇧ Abrir</button></header>
+<nav class="ps-quicknav"><button data-jump="#tools">✎ Ferramentas</button><button data-jump="#frames">▣ Quadros</button><button data-jump="#layers">▤ Camadas</button><button data-jump="#palette">🎨 Cores</button></nav><main class="ps-main">
 <section class="ps-column ps-left">
 <div class="ps-card"><h3>FERRAMENTAS</h3><div class="ps-tools" id="tools">
 <button data-tool="pen" aria-pressed="true">✎ Lápis</button><button data-tool="erase">⌫ Borracha</button><button data-tool="fill">▨ Balde</button><button data-tool="pick">◉ Conta-gotas</button><button data-tool="line">╱ Linha</button><button data-tool="rect">□ Retângulo</button><button data-tool="ellipse">◯ Elipse</button><button data-tool="select">▧ Seleção</button>
@@ -27,7 +56,7 @@
 </section>
 </main>
 <input id="openFile" type="file" accept=".json,.png,.webp,.jpg,.jpeg" hidden>
-<script src="js/android-ui.js"></script><script>
+<script src="js/android-ui.js"></script><script src="js/theme.js"></script><script src="js/back.js"></script><script>
 (function(){
 'use strict';
 const $=id=>document.getElementById(id);
@@ -127,6 +156,7 @@ $('exportPNG').onclick=()=>saveFile(fname('png'),makePNG(),'image/png');$('sheet
 $('exportJSON').onclick=()=>saveFile(fname('aurenixpixel.json'),JSON.stringify(art,null,2),'application/json');
 $('nativePNG').onclick=$('exportPNG').onclick;$('nativeProject').onclick=$('exportJSON').onclick;
 $('importBtn').onclick=()=>$('openFile').click();$('openFile').onchange=e=>{importFile(e.target.files[0]);e.target.value='';};
+$('psTheme').onclick=()=>window.AurenixTheme?.open();document.querySelectorAll('.ps-quicknav [data-jump]').forEach(b=>b.onclick=()=>document.querySelector(b.dataset.jump)?.scrollIntoView({behavior:'smooth',block:'start'}));
 $('back').onclick=()=>{if(dirty&&!confirm('O desenho tem alterações sem salvar. Voltar ao início?'))return;dirty=false;location.href='index.html';};
 window.addEventListener('beforeunload',e=>{if(dirty){e.preventDefault();e.returnValue='';}});
 window.addEventListener('resize',draw);

@@ -1,0 +1,28 @@
+/* Aurenix Audio Studio */
+.ax-audio{padding:10px 8px 30px;overflow-y:auto;height:100%;color:var(--txt)}
+.ax-audio button{min-height:44px;border-radius:9px}
+.ax-audio h3{font-size:18px;margin:6px 0}.ax-audio h4{margin:12px 0 9px;font-size:12px;letter-spacing:.4px}
+.ax-audio small{color:var(--ax-primary);font-size:10px;font-weight:850;letter-spacing:1px}
+.ax-audio p,.ax-aud-help{font-size:12px;line-height:1.45;color:#a9bad1}
+.ax-aud-head{display:flex;flex-direction:column;gap:9px}.ax-aud-head p{margin:0}
+.ax-aud-import{display:flex;align-items:center;justify-content:center;padding:12px;border-radius:10px;background:color-mix(in srgb,var(--ax-primary) 24%,#11243a);border:1px solid var(--ax-primary);font-weight:850;font-size:12px;cursor:pointer;min-height:48px}
+.ax-aud-master,.ax-aud-synth{margin:13px 0;background:#17283d;border:1px solid #304964;border-radius:12px;padding:11px}
+.ax-aud-master>label,.ax-aud-sliders label{display:flex;flex-direction:column;gap:5px;margin-bottom:9px;font-size:12px;color:#b8d2e3}
+.ax-aud-master label span{display:flex;justify-content:space-between}
+.ax-audio input[type=range]{width:100%;accent-color:var(--ax-primary);min-height:31px}
+.ax-aud-checks{display:flex;gap:11px;flex-wrap:wrap}.ax-aud-checks label,.ax-aud-footer label{display:flex;align-items:center;gap:6px;font-size:12px;min-height:40px}
+.ax-aud-help{padding:10px;background:#172d36;border:1px solid #426777;border-radius:11px}.ax-aud-help code{color:#a7f1f0;white-space:normal;overflow-wrap:anywhere}
+.ax-aud-cols{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:6px 0}
+.ax-aud-cols label{min-width:0;display:flex;flex-direction:column;gap:5px;font-size:11px;color:#b3c4da}
+.ax-aud-cols input,.ax-aud-cols select{min-width:0;width:100%;min-height:42px;font-size:12px}
+.ax-aud-synth button{width:100%;border:1px solid var(--ax-primary);background:#1d5156;color:#e9ffff;padding:10px}
+.ax-aud-item{border:1px solid #344d65;background:#17273a;padding:10px;border-radius:12px;margin:10px 0}
+.ax-aud-summary{display:flex;align-items:center;gap:8px}.ax-aud-file{font-size:20px;border-radius:9px;background:#20465b;padding:10px;color:var(--ax-primary)}
+.ax-aud-name{flex:1;min-width:0}.ax-aud-name strong{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:12px}.ax-aud-name small{color:#9bb1c8;font-size:10px;letter-spacing:0}
+.ax-aud-play{padding:8px;background:#294d55;border:1px solid var(--ax-primary);font-size:11px;flex:none}
+.ax-aud-sliders{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.ax-aud-footer{display:flex;align-items:center;gap:6px;flex-wrap:wrap}.ax-aud-footer button{flex:1;padding:5px;font-size:11px;background:#273951;border:1px solid #456580}.ax-aud-footer .danger{color:#ffc1c8}
+.ax-aud-empty,.ax-aud-now{padding:13px;background:#101d2e;border:1px dashed #385b70;border-radius:10px;font-size:11px;color:#bed2df}
+.ax-aud-now{border-style:solid;margin-bottom:9px}
+.ax-aud-status{min-height:20px;color:var(--ax-primary)}
+@media(max-width:420px){.ax-aud-cols{grid-template-columns:1fr}.ax-aud-sliders{grid-template-columns:1fr}.ax-aud-item{padding:8px}}

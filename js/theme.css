@@ -1,0 +1,35 @@
+/* Aurenix Theme Studio 0.5 — focus, cores, controles confortáveis */
+:root{--ax-primary:#5de0d4;--ax-secondary:#9384fa;--ax-touch:48px}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--ax-primary)!important;outline-offset:2px}
+#app button,.ax-home button,.ps-top button{min-height:var(--ax-touch)}
+.brand-mark,.ax-homeglyph{background:linear-gradient(140deg,var(--ax-primary),var(--ax-secondary))!important}
+.topbar .btn.play,.ax-homeactions .ax-primary,.ax-homeempty .ax-primary{background:color-mix(in srgb,var(--ax-primary) 78%,#204145)!important;color:#091c28!important;border-color:var(--ax-primary)!important}
+.navtabs button.active,.mobile-nav button.active,.switcher button.active,.ax-open,.ax-theme-done{border-color:var(--ax-primary)!important;color:var(--ax-primary)!important}
+.ax-theme-overlay{position:fixed;inset:0;background:#020713e9;z-index:600;padding:max(env(safe-area-inset-top),12px) max(env(safe-area-inset-right),12px) max(env(safe-area-inset-bottom),12px) max(env(safe-area-inset-left),12px);display:grid;place-items:center;overflow-y:auto}
+.ax-theme-overlay.ax-theme-hide{display:none!important}
+.ax-theme-modal{width:min(900px,100%);max-height:calc(100dvh - 36px);overflow:auto;background:#101b2e;color:#edf6ff;border:1px solid #354967;border-radius:18px;padding:clamp(12px,2vw,25px);box-shadow:0 20px 90px #0009}
+.ax-theme-modal header{display:flex;align-items:flex-start;justify-content:space-between;gap:14px}
+.ax-theme-modal header h2{font-size:23px;margin:4px 0}.ax-theme-modal header small{font-size:10px;color:var(--ax-primary);letter-spacing:2px;font-weight:800}
+.ax-theme-modal header p,.ax-theme-note{font-size:12px;line-height:1.5;color:#9db0cc}
+.ax-theme-modal button,.ax-theme-modal input,.ax-theme-modal select{min-height:46px;border:1px solid #344d68;border-radius:10px;background:#1b2d45;color:#eaf8fc;padding:8px 10px}
+.ax-theme-modal header button{min-width:48px;font-size:21px}
+.ax-theme-layout{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(205px,.65fr);gap:18px}
+.ax-theme-layout h3{font-size:12px;color:#b0c0d8;letter-spacing:1px}
+.ax-theme-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.ax-theme-card{display:flex;align-items:center;gap:7px;text-align:left;font-size:12px!important;padding:8px!important;min-width:0}
+.ax-theme-card.selected{border-color:var(--ax-primary)!important;background:#28465c!important}
+.ax-theme-card>span:last-child{overflow:hidden;text-overflow:ellipsis}
+.ax-theme-preview{display:flex;gap:3px;padding:3px;background:#091627;border-radius:7px;flex:0 0 48px}
+.ax-theme-preview i{display:block;width:20px;height:29px;border-radius:4px;background:var(--one)}
+.ax-theme-preview i+i{background:var(--two)}
+.ax-theme-options{display:flex;flex-direction:column;gap:11px}
+.ax-theme-options label{font-size:12px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.ax-theme-options label>input[type=color]{width:68px;height:48px;padding:3px;flex:0 0 68px}
+.ax-theme-options label>select{max-width:155px;font-size:12px}
+.ax-theme-modal footer{display:flex;justify-content:flex-end;padding-top:14px;margin-top:13px;border-top:1px solid #263b56}
+.ax-theme-modal footer button{padding:10px 27px;background:var(--ax-primary);color:#0b2230;font-weight:900}
+html[data-ax-touch=large] button{font-size:max(13px,1em)}
+html[data-ax-touch=large] .navtabs button{padding-top:11px;padding-bottom:11px}
+html[data-ax-touch=large] .field input,html[data-ax-touch=large] select{min-height:52px}
+@media(max-width:600px){.ax-theme-layout{grid-template-columns:1fr}.ax-theme-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.ax-theme-modal{padding:13px}.ax-theme-modal header h2{font-size:19px}.ax-theme-overlay{place-items:start center}}
+@media(pointer:coarse) and (orientation:landscape){.ax-theme-modal{max-height:calc(100dvh - 12px)}.ax-theme-layout{grid-template-columns:minmax(0,1.4fr) minmax(180px,.6fr)}}

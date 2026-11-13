@@ -54,3 +54,13 @@ html.ax-native-safe:not(.ax-immersive) .topbar{padding-top:max(26px,var(--ax-saf
 /* Tela inicial acima do editor, caixas de diálogo acima da tela inicial. */
 .modal-layer{z-index:160!important}
 .popover{z-index:150}
+
+/* Alpha 0.5 — som, atalhos e rolagem acessível */
+.ax-quick-audio,.ax-quick-theme{font-size:19px!important;min-width:45px}
+.navtabs{display:flex;flex-wrap:wrap;gap:5px}
+.navtabs button{min-height:44px;padding:8px 9px}
+.mobile-nav button{min-width:0;font-size:18px}
+.mobile-nav button span{font-size:10px}
+#tabAudio.active{display:block;overflow-y:auto;padding:0!important}
+.ax-audio{min-height:100%}
+@media(max-width:680px){.ax-quick-theme,.ax-quick-audio{display:none!important}.top-actions .btn{min-height:44px}}

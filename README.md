@@ -69,3 +69,11 @@ Uma atualização Android precisa ter o mesmo **appId e certificado de assinatur
 
 ### Salvamento e backup no Android
 A partir desta versão, o botão de exportar JSON, ZIP e outros arquivos tenta usar a pasta pública Documents/Aurenix pelo plugin Filesystem. Se o dispositivo não permitir, o aplicativo tenta abrir a folha de compartilhamento do Android para escolher onde salvar. Confirme a existência do arquivo no aplicativo Arquivos antes de desinstalar versões antigas.
+
+## Alpha 0.5 — Pixel Studio, temas, navegação Android e áudio
+- Pixel Studio: o canvas passou a ficar dentro da área visível, sem encobrir os botões; há atalhos para Ferramentas, Quadros, Camadas e Cores, e rolagem quando o celular está em paisagem.
+- Android: o plugin @capacitor/app intercepta Voltar para fechar primeiramente a tela de teste e janelas; o segundo Voltar na tela inicial minimiza o aplicativo, sem fechar acidentalmente. Um botão de sair aparece na própria tela de teste.
+- Aparência: 17 pares de cores primária/secundária, seleção manual e controles em tamanho compacto, confortável ou grande, persistidos no aparelho. Acesse por 🎨 na tela inicial/editor/Pixel Studio.
+- Áudio: aba ♫ Estúdio de áudio; importação MP3/WAV/OGG, prévias, volumes de música/efeitos/geral, loop, velocidade, efeitos WAV gerados localmente, designação de música de fundo e sons de Pulo/Ação, e `api.playSound('nomeDoArquivo')` em JavaScript. No Android, o primeiro toque libera o som para jogos.
+- Sem serviços pagos nem assistente IA. Os arquivos de som devem ser fornecidos pelo criador ou gerados localmente. Não é uma DAW multitrilha, nem possui equalização profissional.
+- **Proteção de dados:** APK 0.5 usa `com.aurenix.engine.alpha05`, e por isso instala ao lado das versões 0.3/0.4. Não é possível atualizar por cima das versões antigas porque as chaves privadas debug anteriores não foram preservadas pelo GitHub Actions. Exporte os projetos JSON e confirme seus backups antes de desinstalar a versão antiga.
