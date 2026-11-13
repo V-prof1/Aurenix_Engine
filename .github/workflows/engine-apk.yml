@@ -19,6 +19,9 @@ permissions:
 jobs:
   build-apk:
     runs-on: ubuntu-latest
+    env:
+      ANDROID_HOME: /usr/local/lib/android/sdk
+      ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -29,7 +32,10 @@ jobs:
           distribution: temurin
           java-version: '21'
       - name: Preparar SDK Android 36
-        run: sdkmanager "platforms;android-36" "build-tools;36.0.0"
+        run: |
+          SDK_BIN="$(find /usr/local/lib/android/sdk/cmdline-tools -name sdkmanager -type f | head -n 1)"
+          test -n "$SDK_BIN"
+          "$SDK_BIN" "platforms;android-36" "build-tools;36.0.0"
       - name: Validar código JavaScript
         run: node --check js/blocks.js && node --check js/editor-patch.js && node --check js/runtime.js && node --check js/editor.js && node --test tests/*.test.cjs
       - name: Instalar Capacitor

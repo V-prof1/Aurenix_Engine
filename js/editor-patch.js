@@ -47,7 +47,7 @@ newProjectModal = function(){
 project.programming='script';
 `;
     change("start().catch(e=>{",init+"start().catch(e=>{","criação de projetos");
-    change('      - name: Configurar Android SDK\n        uses: android-actions/setup-android@v3', '      - name: Configurar Android SDK\n        run: sdkmanager "platforms;android-36" "build-tools;36.0.0"', 'SDK dos APKs exportados');
+    change('      - name: Configurar Android SDK\n        uses: android-actions/setup-android@v3', '      - name: Configurar Android SDK\n        run: |\n          SDK_BIN="$(find /usr/local/lib/android/sdk/cmdline-tools -name sdkmanager -type f | head -n 1)"\n          test -n "$SDK_BIN"\n          "$SDK_BIN" "platforms;android-36" "build-tools;36.0.0"', 'SDK dos APKs exportados');
     return patched;
   };
 })(window);

@@ -83,7 +83,10 @@ jobs:
           distribution: 'temurin'
           java-version: '21'
       - name: Configurar Android SDK
-        run: sdkmanager "platforms;android-36" "build-tools;36.0.0"
+        run: |
+          SDK_BIN="$(find /usr/local/lib/android/sdk/cmdline-tools -name sdkmanager -type f | head -n 1)"
+          test -n "$SDK_BIN"
+          "$SDK_BIN" "platforms;android-36" "build-tools;36.0.0"
       - name: Instalar dependências gratuitas
         run: npm install --no-audit --no-fund
       - name: Criar projeto Android

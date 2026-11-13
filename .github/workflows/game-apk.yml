@@ -6,6 +6,9 @@ permissions:
 jobs:
   build-game:
     runs-on: ubuntu-latest
+    env:
+      ANDROID_HOME: /usr/local/lib/android/sdk
+      ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -16,7 +19,10 @@ jobs:
           distribution: temurin
           java-version: '21'
       - name: SDK Android
-        run: sdkmanager "platforms;android-36" "build-tools;36.0.0"
+        run: |
+          SDK_BIN="$(find /usr/local/lib/android/sdk/cmdline-tools -name sdkmanager -type f | head -n 1)"
+          test -n "$SDK_BIN"
+          "$SDK_BIN" "platforms;android-36" "build-tools;36.0.0"
       - name: Conferir jogo HTML
         run: test -f game-web/index.html
       - name: Preparar jogo
