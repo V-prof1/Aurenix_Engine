@@ -1,0 +1,37 @@
+/* Aurenix 0.2 — controles de programação pensados para toque */
+.ax-blocks{display:block;min-width:0;padding:4px 0 28px;overflow-x:hidden}
+.ax-blocks[hidden],#scriptEditor[hidden],#applyScriptBtn[hidden],#apiHelpBtn[hidden]{display:none!important}
+.ax-heading{display:flex;flex-direction:column;gap:6px;padding:13px 14px;border-radius:13px;background:linear-gradient(125deg,#192a43,#142038);border:1px solid #345675;margin:0 0 10px}
+.ax-heading strong{font-size:15px;color:#ecfaff}
+.ax-heading small,.ax-tip{color:#9aaec5;font-size:12px;line-height:1.5}
+.ax-tip{margin:8px 2px 12px}
+.ax-stack{margin:12px 0 18px;padding:0 0 10px;border:1px solid #3e607b;border-left:4px solid #64c6f6;border-radius:12px;background:#0d1727;overflow:hidden}
+.ax-event{padding:11px;display:flex;align-items:center;gap:7px;flex-wrap:wrap;background:linear-gradient(95deg,#204d78,#1b3961);min-height:55px}
+.ax-field{display:flex;flex:1 1 120px;flex-direction:column;min-width:0}
+.ax-field label,.ax-choice label{font-size:10px;letter-spacing:1px;font-weight:800;color:#c6e8fd;padding-bottom:5px}
+.ax-action{display:flex;align-items:center;flex-wrap:wrap;gap:7px;margin:9px 8px 0;padding:7px 9px;background:#154c4d;border:1px solid #3a8a82;border-radius:9px;min-height:49px}
+.ax-handle{font-weight:900;color:#7ec8bb}
+.ax-action select{flex:1 1 145px;max-width:100%;min-width:115px}
+.ax-action input{flex:1 1 85px;min-width:70px;max-width:145px}
+.ax-action select,.ax-action input,.ax-field select,.ax-field input,.ax-choice select{border:1px solid #557b8a;border-radius:8px;background:#091a2b;color:#f1f8ff;min-height:44px;padding:8px 9px;font-size:13px;outline-offset:2px}
+.ax-action input[type=color]{width:72px;max-width:90px;padding:5px;flex:0 0 72px}
+.ax-rowbuttons{display:flex;gap:4px;margin-left:auto}
+.ax-mini{width:40px;height:44px;border-radius:8px;background:#23435d;color:#e9f8ff;border:1px solid #52748c;font-size:18px}
+.ax-mini.danger{color:#ffc5cd;background:#502736;border-color:#a44f64}
+.ax-add-action{display:block;margin:10px 10px 0;min-height:45px;padding:6px 14px;border:1px dashed #66c6af;border-radius:8px;color:#aef5de;background:#133b36;font-weight:700}
+.ax-add-event{width:100%;min-height:54px;border:1px solid #55b0e7;border-radius:12px;background:#164b77;color:#eff8ff;font-size:14px;font-weight:800;margin:5px 0 10px}
+.ax-choice{margin:0 0 17px;display:flex;flex-direction:column;gap:8px;padding:14px;border:1px solid #527ba3;background:#192d46;border-radius:12px}
+.ax-choice small{font-size:12px;color:#b0c7df;line-height:1.4}
+.ax-choice select{width:100%;font-size:14px}
+@media(max-width:700px){
+ .ax-stack{margin:10px 0 16px}
+ .ax-action{padding:7px;gap:6px}
+ .ax-action select{flex-basis:100%;font-size:14px}
+ .ax-action input{flex:1 1 84px;max-width:none}
+ .ax-rowbuttons{margin-left:auto}
+ .ax-mini{min-width:42px}
+ .ax-heading{padding:12px}
+ #tabCode{padding-bottom:max(30px,env(safe-area-inset-bottom))}
+ .modal-card{max-height:calc(100dvh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 18px)}
+}
+@media (max-width:380px){.ax-event .ax-field{flex-basis:100%}.ax-event .ax-mini{margin-left:auto}}
