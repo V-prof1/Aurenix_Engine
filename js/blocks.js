@@ -26,7 +26,12 @@
     text: ['Escrever texto','Texto','Olá!'],
     spawn: ['Criar objeto (rect/circle/cube/sphere)','Texto','circle'],
     remove: ['Apagar este objeto','Nenhum',''],
-    reset: ['Voltar à origem','Nenhum','']
+    reset: ['Voltar à origem','Nenhum',''],
+    loadScene: ['Abrir cena pelo nome','Texto','Cena 2'],
+    nextScene: ['Ir para próxima cena','Nenhum',''],
+    playAnimation: ['Executar animação','Texto','Animação'],
+    stopAnimation: ['Parar animação','Nenhum',''],
+    playSound: ['Reproduzir áudio do projeto','Texto','Som.wav']
   };
   const eventDefs = {
     always: '♾ A cada quadro',
@@ -61,6 +66,11 @@
       case 'spawn': {const type = ['rect','circle','cube','sphere','cylinder','plane','text'].includes(v) ? v : 'circle';return 'api.spawn('+js(type)+',{x:('+actor+'.x||0),y:('+actor+'.y||0),z:('+actor+'.z||0),w:40,h:40,color:"#ffd26c"});';}
       case 'remove': return 'api.remove('+actor+'.id);';
       case 'reset': return actor+'.x=0;'+actor+'.y=0;'+actor+'.z=0;';
+      case 'loadScene': return 'api.loadScene('+js(v)+');';
+      case 'nextScene': return 'api.nextScene();';
+      case 'playAnimation': return 'api.playAnimation('+actor+','+js(v)+');';
+      case 'stopAnimation': return 'api.stopAnimation('+actor+');';
+      case 'playSound': return 'api.playSound('+js(v)+');';
       default: return '';
     }
   }
@@ -87,6 +97,14 @@
     if(!project || project.programming!=='blocks' || project.mode==='html5') return;
     project.script=compile(project,true);
     for(const obj of project.objects||[]) obj.script=compile(obj,false);
+    if(Array.isArray(project.scenes)){
+      for(const scene of project.scenes){
+        // A cena ativa será sincronizada após compilar o projeto raiz.
+        if(scene.id===project.activeSceneId)continue;
+        scene.script=compile(scene,true);
+        for(const obj of scene.objects||[])obj.script=compile(obj,false);
+      }
+    }
   }
   let context=null,active=false;
   function toggle(isActive,options) {
