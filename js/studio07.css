@@ -1,0 +1,53 @@
+/* Aurenix Studio 0.7 — mobile creation panels */
+.ax-studio-panel{padding:13px 11px 36px;overflow-y:auto;max-height:100%;min-width:0;color:#e5f5fc}
+.ax-studio-heading{padding:12px;border:1px solid #3c556f;border-radius:12px;background:linear-gradient(135deg,#1d3445,#1a243c);margin-bottom:12px}
+.ax-studio-heading h3{font-size:17px;margin:0 0 7px}
+.ax-studio-heading p{color:#acc3d3;font-size:12px;line-height:1.5;margin:0}
+.ax-studio-panel button,.ax-studio-panel select,.ax-studio-panel input{min-height:47px;font-size:13px}
+.ax-studio-panel button{border:1px solid #4b6780;border-radius:10px;background:#23364e;color:#e5f5ff;font-weight:750;padding:8px 12px}
+.ax-studio-panel button:disabled{opacity:.4}
+.ax-studio-buttons{display:flex;gap:7px;flex-wrap:wrap;margin:10px 0}
+.ax-studio-buttons>button{flex:1;min-width:min(130px,45%)}
+.ax-studio-buttons>.chosen{border-color:var(--ax-primary,#60ead1);background:#225154}
+.ax-studio-list{display:flex;flex-direction:column;gap:7px;margin:8px 0}
+.ax-studio-row{display:flex;gap:5px;align-items:center;background:#1b2c3f;border:1px solid #374e6c;border-radius:11px;padding:7px}
+.ax-studio-row.current{border-color:var(--ax-primary,#6bead1);background:#1a3a42}
+.ax-studio-row>div{min-width:0;flex:1}
+.ax-studio-row strong{font-size:12px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ax-studio-row small{font-size:10px;color:#9aabc4}
+.ax-studio-row button{padding:8px;min-width:38px;min-height:43px;font-size:13px}
+.ax-studio-help{background:#142b39;border:1px solid #375367;border-radius:11px;color:#bbd8df;font-size:11px;line-height:1.55;padding:12px;margin:12px 0}
+.ax-studio-help code{color:#a8f5e8;white-space:normal;overflow-wrap:anywhere;font-size:11px}
+.ax-studio-field{display:flex;flex-direction:column;gap:6px;margin:9px 0;font-size:12px;color:#d5e2fa}
+.ax-studio-field label{font-weight:700}
+.ax-studio-field input,.ax-studio-field select{width:100%;min-width:0;border:1px solid #405d7b;background:#101b2d;border-radius:9px;padding:8px;color:white}
+.ax-studio-field input[type=color]{height:49px;padding:4px}
+.ax-studio-check{display:flex;gap:9px;align-items:center;min-height:46px;background:#1a2b42;border-radius:9px;border:1px solid #334f65;padding:6px 11px;margin:8px 0;font-size:12px;color:#d0e4e9}
+.ax-studio-check input{width:19px;height:19px;min-height:19px;accent-color:var(--ax-primary,#61e3d3)}
+.ax-studio-pal{display:grid;grid-template-columns:repeat(auto-fill,minmax(40px,1fr));gap:7px;margin-top:14px}
+.ax-studio-pal button{height:40px;min-height:40px;padding:0;background:var(--swatch)!important;border:2px solid #e7f7ff20}
+.ax-studio-pal button:focus-visible{outline:3px solid var(--ax-primary,#61e3d3)}
+.ax-studio-count{font-size:11px;color:#8ba6c2;text-align:right}
+.ax-studio-frame{display:flex;align-items:center;gap:5px;margin:7px 0;padding:7px;border:1px solid #425473;border-radius:10px;background:#15283d}
+.ax-studio-frame span{font-weight:750;color:#d5e5f6;flex:1;font-size:12px}
+.ax-studio-frame button{min-width:39px;min-height:40px;padding:6px 9px}
+.ax-studio-full{display:block;width:100%;background:#21535b!important;border-color:var(--ax-primary,#64ded5)!important}
+.ax-studio-panel .section-description{padding:10px}
+.ax-mode-3d [data-tool=tile]{display:none!important}
+.ax-studio-shortcut{display:flex;gap:8px;align-items:center;justify-content:space-between;border-radius:11px;padding:8px;background:#1c3144;margin:7px 0}
+.ax-studio-shortcut span{font-size:12px}
+.ax-studio-shortcut button{white-space:nowrap}
+.ax-game-fps{position:fixed;left:8px;top:8px;pointer-events:none;padding:4px 8px;border-radius:8px;background:#081626af;color:#b5f9ce;font:600 11px monospace;z-index:12}
+.ax-tile-cursor{position:absolute;inset:0;pointer-events:none;z-index:6}
+@media(pointer:coarse) and (orientation:landscape){
+ .ax-studio-panel{padding:9px 10px 36px}
+ .ax-studio-buttons button{min-height:46px}
+ .ax-studio-row button{min-width:43px}
+}
+@media(max-width:700px){
+ .mobile-nav{overflow-x:auto;justify-content:flex-start;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+ .mobile-nav button{flex:0 0 auto;min-width:82px;padding:6px 9px!important}
+ .navtabs{overflow-y:auto}
+ .ax-studio-row{flex-wrap:wrap}
+ .ax-studio-row>div{flex:1 0 100%;padding:5px}
+}
