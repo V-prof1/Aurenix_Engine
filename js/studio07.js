@@ -10,13 +10,13 @@ const props=['x','y','z','w','h','d','rotation','rx','ry','rz','opacity'];
 const n=(x,d=0)=>Number.isFinite(Number(x))?Number(x):d;
 const clamp=(x,a,b)=>Math.min(b,Math.max(a,n(x,a)));
 const freshTilemap=()=>({size:32,cells:{}});
-const sceneKeys=['objects','background','grid','gravity','gravity3d','genre','script','tilemap'];
+const sceneKeys=['objects','background','grid','gravity','gravity3d','genre','script','blocks','tilemap'];
 const capture=(project,id,name)=>({
  id:id||uid(),name:name||'Cena 1',mode:project.mode,
  objects:clone(project.objects||[]),background:project.background||'#101c31',
  grid:n(project.grid,32),gravity:n(project.gravity,1100),
  gravity3d:n(project.gravity3d,18),genre:project.genre||'platformer',
- script:project.script||'',tilemap:clone(project.tilemap||freshTilemap())
+ script:project.script||'',blocks:clone(project.blocks||[]),tilemap:clone(project.tilemap||freshTilemap())
 });
 function ensureScenes(p){
  if(!p||p.mode==='html5')return [];
@@ -237,9 +237,9 @@ function onChange(e){
  if(id==='axTileSolid'){paintSolid=e.target.checked;return;}
  if(id==='axTileSize'){history();p.tilemap||=freshTilemap();p.tilemap.size=Number(e.target.value);touch();return;}
  const o=config.getSelected?.(),clip=clipSelected();
- if(!o||!clip)return;
+ if(!o)return;
  if(id==='axClipChoice'){stopPreview();o.activeAnimation=e.target.value;touch();renderAnimations();return;}
- if(!['axClipName','axClipDuration','axClipLoop','axClipAuto'].includes(id))return;
+ if(!clip||!['axClipName','axClipDuration','axClipLoop','axClipAuto'].includes(id))return;
  history();
  if(id==='axClipName')clip.name=e.target.value.trim().slice(0,60)||'Animação';
  if(id==='axClipDuration')clip.duration=clamp(e.target.value,.1,120);
