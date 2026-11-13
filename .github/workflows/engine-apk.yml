@@ -1,0 +1,52 @@
+name: APK da Aurenix Engine
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - index.html
+      - studio.html
+      - style.css
+      - js/**
+      - assets/**
+      - package.json
+      - capacitor.config.json
+      - manifest.webmanifest
+      - sw.js
+      - .github/workflows/engine-apk.yml
+permissions:
+  contents: read
+jobs:
+  build-apk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: android-actions/setup-android@v3
+      - name: Preparar SDK Android 36
+        run: sdkmanager "platforms;android-36" "build-tools;36.0.0"
+      - name: Validar código JavaScript
+        run: node --check js/blocks.js && node --check js/editor-patch.js && node --check js/runtime.js && node --check js/editor.js && node --test tests/*.test.cjs
+      - name: Instalar Capacitor
+        run: npm install --no-audit --no-fund
+      - name: Preparar site da engine
+        run: |
+          mkdir -p www
+          cp index.html studio.html style.css manifest.webmanifest sw.js www/
+          cp -R js assets www/
+      - name: Criar plataforma Android
+        run: npx cap add android && npx cap sync android
+      - name: Compilar APK de testes
+        run: cd android && chmod +x gradlew && ./gradlew assembleDebug --no-daemon
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Aurenix-Engine-APK-debug
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          retention-days: 14

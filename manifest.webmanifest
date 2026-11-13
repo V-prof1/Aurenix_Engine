@@ -1,0 +1,20 @@
+{
+  "name": "Aurenix Engine",
+  "short_name": "Aurenix",
+  "description": "Editor de jogos 2D, 3D e pixel art para celular",
+  "id": "./",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0b0e18",
+  "theme_color": "#0b0e18",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "assets/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

@@ -1,2 +1,49 @@
-# Aurenix_Engine
-Engine Mobile para a criação de jogos 3D, 2D e pixel
+# Aurenix Engine — Alpha 0.2 🕹️
+Engine experimental mobile-first para criar jogos **2D, pixel art e 3D** com editor visual, scripts JS, blocos de eventos, teste HTML5 e exportação para Android. Sem login, IA, mensalidades ou APIs pagas.
+
+## Abra no seu celular
+No GitHub, ative **Settings → Pages → Deploy from a branch → main / (root)** e abra o endereço gerado. O arquivo **index.html** é o editor principal. **studio.html** é a versão modular com o mesmo editor, adequada a desenvolvimento. O site também pode ser instalado como PWA.
+
+## Criando jogos
+1. Toque em **⋮ → Novo projeto** (ou **Projetos → Novo projeto**).
+2. **Escolha Blocos ou Scripts ANTES** de tocar no modelo. A escolha fica salva com o projeto e não pode ser alterada no editor.
+3. Escolha 2D plataforma, RPG top-down, 3D, 2D vazio ou 3D vazio.
+4. Edite objetos no palco/hierarquia, ajuste propriedades no inspetor, desenhe sprites na aba Pixel, importe imagens ou áudio em Arquivos.
+5. Em **Blocos**, escolha um objeto/cena na aba Código (renomeada Blocos), adicione eventos e ações. Em **Scripts**, use o código JavaScript e a API.
+6. Toque em **▶ Testar**. Salve em IndexedDB e use **⋮ → Exportar projeto (.json)** como backup.
+7. Exporte o jogo HTML5 ZIP ou template para gerar APK.
+
+### Blocos disponíveis
+- Eventos: sempre, início, tecla, botão de ação, botão de pular, colisão 2D, temporizador.
+- Ações: movimento e posição X/Y/Z, rotação, largura/altura, velocidade, cores de objetos e cena, gravidade, mostrar/esconder, tocar tom, alterar texto, criar/apagar objeto e voltar à origem.
+- O motor **compila blocos internamente para JavaScript** para executar no runtime HTML5. O editor não expõe a edição desse código em projetos Blocos.
+- Eventos e ações podem ser adicionados, reordenados e excluídos com botões de toque. Esta versão usa pilhas de eventos, não conexões livres tipo Scratch; não há funções, variáveis personalizadas, loops aninhados ou debugger visual.
+- Um projeto escolhido como Scripts **não pode acessar blocos**; se escolher Blocos, não pode editar scripts via interface. JSONs antigos são tratados como projetos Scripts.
+
+## Jogos HTML5 e outras linguagens
+É possível importar **HTML5** (.html/.zip) e editar seus arquivos de texto. Projetos C++, Rust, C#, Lua, Python ou Godot precisam **estar previamente exportados para HTML5/WebAssembly**: a engine não compila essas linguagens nem importa seus formatos originais. Algumas exportações WebAssembly exigem servidor e não rodarão no iframe interno.
+
+## APK da engine
+Em **Actions → APK da Aurenix Engine → Run workflow**, o GitHub Actions instala Node 22, Java 21, Android SDK, Capacitor 8 e compila um **app-debug.apk**. Baixe o artifact **Aurenix-Engine-APK-debug**. O processo precisa de internet no runner e respeita cotas do GitHub Actions. **A compilação ainda deve ser verificada no runner**.
+
+## APK dos jogos
+No editor, **⋮ → Exportar template de APK** cria um ZIP com os arquivos HTML5 e o próprio workflow de APK do jogo. Publique em um repositório GitHub do jogo e rode a action.
+Para usar este mesmo repositório, exporte o ZIP HTML5 do jogo e substitua os arquivos em **game-web/**, então execute **Actions → APK do jogo (game-web)**. Antes de distribuir, altere o appId `com.aurenix.meujogo`.
+
+APKs debug **não são builds release assinados para publicação**. Nunca envie chaves privadas para um repositório público.
+
+## Arquivos
+- `index.html`: HTML standalone da interface + extensão externa de blocos.
+- `studio.html`: editor equivalente com arquivos JS/CSS separados.
+- `js/runtime.js`: Canvas/WebGL, controles e física simples.
+- `js/editor.js`: editor modular com integração de programação.
+- `js/blocks.js`: compilador e UI de blocos, sem libs de terceiros.
+- `js/editor-patch.js`: camada de compatibilidade para `index.html` standalone.
+- `js/zip.js`: criador e leitor ZIP.
+- `game-web/`: demo HTML5 e alvo da action de APK de jogo.
+- `.github/workflows/`: APK da engine, APK de jogo e testes.
+
+## Limites da Alpha 0.2
+**Ainda não é uma substituta do Godot/Unity.** Faltam animações com timeline, multiplayer, sistema complexo de tileset, partículas avançadas, editor de shaders, importação glTF/FBX e exportação release assinada. O motor 3D atual tem geometrias primitivas e física simplificada. Colisões dos blocos são 2D. Edição local depende do armazenamento do navegador; exporte backups. Execute apenas código de projetos confiáveis.
+
+**Licença e custos:** todo o editor é gratuito. Capacitor e GitHub Actions têm licenças e políticas próprias; GitHub Actions pode ter limites de uso conforme sua conta. Não é exigida IA ou API paga.

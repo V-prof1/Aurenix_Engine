@@ -1,0 +1,19 @@
+{
+  "name": "aurenix-engine",
+  "private": true,
+  "version": "0.2.0",
+  "description": "Editor 2D, pixel art e 3D mobile-first, open source",
+  "scripts": {
+    "android:add": "cap add android",
+    "android:sync": "cap sync android",
+    "android:build": "cd android && ./gradlew assembleDebug",
+    "test": "node --test tests/*.test.cjs"
+  },
+  "dependencies": {
+    "@capacitor/core": "8.6.2",
+    "@capacitor/android": "8.6.2"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "8.6.2"
+  }
+}
