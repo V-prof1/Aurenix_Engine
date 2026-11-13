@@ -118,3 +118,10 @@ html.ax-native-safe:not(.ax-immersive) .topbar{padding-top:max(26px,var(--ax-saf
  .axis-gizmo{width:116px;min-width:116px;height:132px;bottom:12px;right:8px;padding:2px}
  .axis-gizmo canvas{width:110px;height:110px;flex-basis:110px}
 }
+
+/* Alpha 0.7 accessibility: mobile navigation remains clickable with side panels open */
+.mobile-nav{position:relative;z-index:56!important}
+@media(pointer:coarse){
+ .mobile-nav{touch-action:pan-x;overscroll-behavior-x:contain}
+ .mobile-nav button{min-height:48px}
+}

@@ -143,7 +143,7 @@ function useScene(id){
 }
 function renderScenes(){
  const box=$('axScenes');if(!box)return;const p=getProject();if(!p)return;
- ensureScenes(p);
+ ensureScenes(p);syncScene(p);
  box.innerHTML='<div class="ax-studio-heading"><h3>🎬 Cenas do jogo</h3><p>Cada cena tem seus próprios objetos e mapa. O modo de programação continua fixo no projeto.</p></div>'+
  '<div class="ax-studio-buttons"><button data-action="newScene">＋ Nova cena</button><button data-action="cloneScene">▣ Duplicar atual</button></div>'+
  '<div class="ax-studio-list">'+p.scenes.map((s,i)=>'<article class="ax-studio-row '+(s.id===p.activeSceneId?'current':'')+'"><div><strong>'+(s.id===p.activeSceneId?'▶ ':'')+esc(s.name)+'</strong><small>'+(i+1)+' · '+s.objects.length+' objetos</small></div><button data-scene="'+esc(s.id)+'">Abrir</button><button data-rename-scene="'+esc(s.id)+'" title="Renomear">✎</button><button data-move-scene="'+esc(s.id)+'" data-dir="-1" title="Subir">↑</button><button data-move-scene="'+esc(s.id)+'" data-dir="1" title="Descer">↓</button><button data-delete-scene="'+esc(s.id)+'" title="Excluir">✕</button></article>').join('')+'</div>'+
@@ -226,7 +226,7 @@ function onClick(e){
   if(action==='captureKey'){const o=config.getSelected?.(),clip=clipSelected();if(!clip)return;stopPreview();history();addKeyframe(o,clip,$('axKeyTime').value);touch();renderAnimations();notify('Keyframe capturada');}
   if(action==='stopPreview'){stopPreview();renderAnimations();}
   if(action==='playPreview'){const clip=clipSelected();if(!clip)return;stopPreview();const start=performance.now();function run(now){if(!preview&&now>start+clip.duration*1000+40)return;previewClip(clip,(now-start)/1000);if(!clip.loop&&(now-start)/1000>=clip.duration){stopPreview();renderAnimations();return;}raf=requestAnimationFrame(run);}raf=requestAnimationFrame(run);}
-  if(el.dataset.preview!==undefined){const clip=clipSelected();if(clip)previewClip(clip,clip.keyframes[Number(el.dataset.preview)].time);}
+  if(el.dataset.preview!==undefined){const clip=clipSelected();if(clip)previewClip({...clip,loop:false},clip.keyframes[Number(el.dataset.preview)].time);}
   if(el.dataset.keyDelete!==undefined){const clip=clipSelected();if(!clip)return;history();clip.keyframes.splice(Number(el.dataset.keyDelete),1);touch();renderAnimations();}
  }catch(err){notify(err.message||'Erro ao executar ação');console.error(err);}
 }

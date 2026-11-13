@@ -47,7 +47,9 @@ function newProjectModal(){openModal('Criar novo projeto','<p>Escolha um modelo 
 function switchMode(mode){if(mode===project.mode)return;if((project.scenes?.length||0)>1){toast('Este projeto contém várias cenas. Crie outro projeto para mudar entre 2D e 3D.');return;}if(mode==='html5'){if(project.external){historyPush();project.mode='html5';syncAll();touchProject();}else toast('Importe um projeto HTML5 primeiro (menu ⋮ → Importar).');return;}if(project.mode==='html5'&&mode!=='html5'){toast('Este projeto é HTML5. Crie um novo projeto visual para 2D/3D.');return;}
  if(mode==='3d'&&project.mode!=='3d'){if(project.objects.length&& !confirm('Trocar de 2D para 3D criará uma cena 3D vazia neste projeto. Deseja continuar?'))return;historyPush();project.objects=R.makeTemplate('empty3d').objects;selectedId=project.objects[0]?.id||'';project.genre='adventure3d';}
  else if(project.mode==='3d'&&mode!=='3d'){if(project.objects.length&& !confirm('Trocar de 3D para 2D criará uma cena 2D vazia neste projeto. Deseja continuar?'))return;historyPush();project.objects=[];selectedId='';project.genre=mode==='pixel'?'topdown':'platformer';}else historyPush();project.mode=mode;project.tilemap={size:project.mode==='pixel'?16:32,cells:{}};project.scenes=[];project.activeSceneId='';S?.ensureScenes(project);syncAll();touchProject();}
-function selectTab(tab){activeTab=tab;if(tab==='audio')window.AurenixAudio?.render();document.querySelectorAll('[data-tab]').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));document.querySelectorAll('.tab-body').forEach(b=>b.classList.toggle('active',b.id===`tab${tab[0].toUpperCase()+tab.slice(1)}`));document.querySelectorAll('[data-mobile]').forEach(b=>b.classList.toggle('active',b.dataset.mobile===tab));if(tab==='pixel')renderPixel();if(tab==='code')updateScriptUI();if(tab==='audio')window.AurenixAudio?.render();}
+function selectTab(tab){activeTab=tab;if(tab==='audio')window.AurenixAudio?.render();document.querySelectorAll('[data-tab]').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));document.querySelectorAll('.tab-body').forEach(b=>b.classList.toggle('active',b.id===`tab${tab[0].toUpperCase()+tab.slice(1)}`));document.querySelectorAll('[data-mobile]').forEach(b=>b.classList.toggle('active',b.dataset.mobile===tab));if(tab==='pixel')renderPixel();if(tab==='code')updateScriptUI();if(tab==='audio')window.AurenixAudio?.render();
+ if(tab==='scenes')S?.renderScenes();if(tab==='tiles')S?.renderTiles();
+ if(tab==='animation')S?.renderAnimations();if(tab==='prefabs')S?.renderPrefabs();}
 function openPanel(which){closePanels();$(which==='right'?'rightPanel':'leftPanel').classList.add('open');$('dimLayer').classList.add('open');}
 function closePanels(){$('leftPanel').classList.remove('open');$('rightPanel').classList.remove('open');$('dimLayer').classList.remove('open');}
 function openModal(title,html,foot=''){$('modalTitle').textContent=title;$('modalContent').innerHTML=html;$('modalFoot').innerHTML=foot;$('modalLayer').classList.remove('hidden');}
@@ -193,6 +195,7 @@ function movePointer(e){const old=pointerMap.get(e.pointerId);if(old)pointerMap.
 function endPointer(e){
  pointerMap.delete(e.pointerId);
  if(pointerMap.size===0){
+  if(drag?.kind==='tile')S?.renderTiles();
   if(drag?.changed)renderObjects();
   else if(drag?.hitId&&drag.wasSelected&&drag.kind==='move'&&Math.hypot(e.clientX-drag.startX,e.clientY-drag.startY)<9){selectObj('');}
   drag=null;

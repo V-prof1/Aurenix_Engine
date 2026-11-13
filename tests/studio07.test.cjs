@@ -74,3 +74,11 @@ test('UI usa novos painéis, runtime tem troca de cena e exportação mobile',()
  assert.ok(runtime.includes('solidTilesNear(player)'));
  assert.ok(runtime.includes('animateObject(o,dt)'));
 });
+
+test('navegação do celular permanece acima do dimmer e painel recarrega tiles',()=>{
+ const css=fs.readFileSync('style.css','utf8');
+ const editor=fs.readFileSync('js/editor.js','utf8');
+ assert.match(css,/\.mobile-nav\{position:relative;z-index:56!important\}/);
+ assert.ok(editor.includes("if(drag?.kind==='tile')S?.renderTiles()"));
+ assert.ok(editor.includes("if(tab==='tiles')S?.renderTiles()"));
+});
