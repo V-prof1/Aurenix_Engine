@@ -83,3 +83,26 @@ A partir desta versão, o botão de exportar JSON, ZIP e outros arquivos tenta u
 - Editor 3D: controles Selecionar, Câmera, Escala, Grade e Encaixar possuem textos visíveis e botões maiores. A fileira de ferramentas rola horizontalmente em telas estreitas.
 - Indicador 3D XYZ: substituído por widget com os três eixos X vermelho, Y verde e Z azul, que acompanha a orientação da câmera. É possível tocar em cada eixo para alinhar a câmera.
 - Esta alpha usa `com.aurenix.engine.alpha06` para instalar separadamente e evitar perder projetos das versões anteriores, pois as assinaturas debug não foram preservadas. Exporte JSON para migrar.
+
+## Alpha 0.7 — Sistema completo de cenas, tiles, animação e prefabs
+
+**Novos sistemas funcionais e gratuitos**
+- **🎬 Cenas:** crie até 50 cenas por projeto, troque, duplique, renomeie, reordene e exclua. Cada uma armazena seus próprios objetos, scripts/blocos, cores de fundo, física e tiles. O tipo 2D/3D e a programação escolhida no projeto são preservados.
+- **🧱 Mapa por tiles (2D e Pixel):** pincel/borracha, 12 cores rápidas, cor personalizada, tamanho 8–128 px, até 10 mil tiles e opção *sólido*. Tiles sólidos bloqueiam o jogador nos modos top-down e plataforma. Os tiles aparecem no editor, no HTML5 e no APK exportado.
+- **🎞️ Animações por keyframes (2D e 3D):** cada objeto pode ter até 24 clipes; capture poses e configure tempo, duração, loop, autoplay e prévia. Anima posição, rotação, escala/tamanho e opacidade, interpolando valores. Execute via `api.playAnimation(self,'Nome')` e `api.stopAnimation(self)`.
+- **▣ Prefabs:** salve objetos reutilizáveis no dispositivo e instancie em outros projetos compatíveis com o mesmo modo Blocos/Scripts.
+- **📊 Contador FPS:** ative no menu ⋮ e teste o desempenho dentro do jogo.
+- **Blocos:** ações para ir à próxima cena, abrir cena pelo nome, iniciar/parar animação e reproduzir som de arquivo.
+- **Script:** `api.loadScene('Cena 2')`, `api.nextScene()`, `api.sceneName`, `api.getTile(x,y)`, `api.setTile(x,y,cor,solido)`, `api.playAnimation(self,'Nome')` e `api.stopAnimation(self)`.
+- **Mobile:** abas de Cenas, Mapa, Animação e Prefabs também na navegação inferior; ferramentas com áreas grandes para toque e painéis adaptados ao celular.
+
+**Como usar**
+1. Abra um projeto e toque em **🎬 Cenas** para criar novos níveis. Os objetos da cena atual são preservados ao trocar.
+2. Em 2D, toque em **Mapa → ▦ Pintar mapa**. Escolha cor e colisão e arraste sobre a cena.
+3. Selecione um objeto, abra **🎞️ Animar**, crie o clipe, ajuste a posição ou tamanho, capture keyframes em tempos diferentes e teste com ▶.
+4. Selecione um objeto e abra **Prefabs → Salvar objeto** para reutilizar o modelo.
+5. No menu ⋮ ative **FPS durante teste** para conferir desempenho.
+
+**Limites desta alpha:** sistema 3D ainda usa geometrias básicas, não há importação glTF/FBX, engine de shaders profissionais, networking multiplayer ou simulação física avançada. Tiles são células coloridas (spritesheet e autotile ainda não implementados). A prévia de animações não é uma timeline multifaixa.
+
+**Instalação:** o pacote 0.7 é `com.aurenix.engine.alpha07`, portanto instala **ao lado da 0.6**, sem apagá-la. Isso é necessário enquanto não existe uma chave privada de assinatura persistente. Transfira projetos por backup JSON antes de remover a versão antiga.

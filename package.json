@@ -1,7 +1,7 @@
 {
   "name": "aurenix-engine",
   "private": true,
-  "version": "0.6.0",
+  "version": "0.7.0",
   "description": "Editor 2D, pixel art e 3D mobile-first, open source",
   "scripts": {
     "android:add": "cap add android",
