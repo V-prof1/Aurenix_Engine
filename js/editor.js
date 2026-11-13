@@ -56,7 +56,7 @@ async function saveProject(){window.AurenixBlocks?.compileAll(project);try{if(!d
 async function renderProjects(){if(!db)return;try{const arr=await requestPromise(store().getAll());arr.sort((a,b)=>(b.updated||0)-(a.updated||0));$('savedProjects').innerHTML=arr.map(p=>`<div class="saved-project"><div class="info"><strong>${esc(p.name||'Projeto')}</strong><small>${esc(p.mode)} • ${p.programming==='blocks'?'Blocos':'Scripts'} • ${new Date(p.updated||Date.now()).toLocaleDateString('pt-BR')}</small></div><button data-loadproject="${esc(p.id)}">Abrir</button><button data-deleteproject="${esc(p.id)}" title="Apagar">✕</button></div>`).join('')||'<div class="section-description">Nenhum projeto salvo ainda.</div>';}catch(e){console.warn(e);}}
 async function loadProject(id){if(!db)db=await openDB();const p=await requestPromise(store().get(id));if(p){setProject(p);closePanels();toast('Projeto carregado');}}
 async function deleteProject(id){if(!confirm('Apagar este projeto salvo? Faça antes um backup se for importante.'))return;await requestPromise(store('readwrite').delete(id));renderProjects();toast('Projeto excluído do armazenamento');}
-function download(blob,name){const a=document.createElement('a'),url=URL.createObjectURL(blob);a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),10000);}
+function download(blob,name){if(window.AurenixFiles){window.AurenixFiles.save(blob,name).then(result=>{if(result?.method==='documents')toast('✓ Arquivo salvo em '+result.path);else if(result?.method==='share')toast('Escolha onde salvar o arquivo');}).catch(e=>toast('Falha ao exportar: '+e.message));return;}const a=document.createElement('a'),url=URL.createObjectURL(blob);a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),30000);}
 const slug=(s)=>String(s).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9-]/g,'-').replace(/--+/g,'-').replace(/^-|-$/g,'').slice(0,35)||'meu-jogo';
 function exportProject(){window.AurenixBlocks?.compileAll(project);download(new Blob([JSON.stringify(project,null,2)],{type:'application/json'}),`${slug(project.name)}.aurenix.json`);toast('Backup do projeto exportado');}
 function runtimeBase(){return new URL('./',location.href).href;}
@@ -234,7 +234,7 @@ function initializeHome(){
  window.AurenixHome?.init({
   list:async()=>db?await requestPromise(store().getAll()):[],
   open:loadProject,create:newProjectModal,import:()=>$('projectPicker').click(),help:showDocs,
-  pixel:()=>{if(projectDirty&&!confirm('Salve seu jogo antes de entrar no Pixel Studio. Continuar?'))return;location.href='pixelstudio.html';},
+  pixel:()=>{if(projectDirty&&(history.length||lastSave)&&!confirm('Seu jogo tem mudanças não salvas. Salve antes de entrar no Pixel Studio. Continuar?'))return;projectDirty=false;location.href='pixelstudio.html';},
   copy:async id=>{const p=await requestPromise(store().get(id));if(!p)return;const n=JSON.parse(JSON.stringify(p));n.id=R.uid();n.name=(p.name||'Projeto')+' (cópia)';n.updated=Date.now();await requestPromise(store('readwrite').put(n));},
   rename:async(id,name)=>{const p=await requestPromise(store().get(id));if(!p)return;p.name=name;p.updated=Date.now();await requestPromise(store('readwrite').put(p));if(project.id===id){project.name=name;$('projectName').value=name;}},
   remove:async id=>{await requestPromise(store('readwrite').delete(id));renderProjects();},

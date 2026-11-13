@@ -66,3 +66,6 @@ APKs debug **não são builds release assinados para publicação**. Nunca envie
 
 ## Assinatura e atualização real
 Uma atualização Android precisa ter o mesmo **appId e certificado de assinatura**. A chave privada do APK 0.3 não foi preservada e não pode ser extraída do APK. A Alpha 0.4 instala lado a lado por segurança. Para lançar atualizações sobre a mesma instalação, configure uma chave de assinatura duradoura e privada nas GitHub Actions Secrets. Nunca publique a chave em commits ou artifacts públicos.
+
+### Salvamento e backup no Android
+A partir desta versão, o botão de exportar JSON, ZIP e outros arquivos tenta usar a pasta pública Documents/Aurenix pelo plugin Filesystem. Se o dispositivo não permitir, o aplicativo tenta abrir a folha de compartilhamento do Android para escolher onde salvar. Confirme a existência do arquivo no aplicativo Arquivos antes de desinstalar versões antigas.
