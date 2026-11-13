@@ -9,6 +9,7 @@ on:
       - pixelstudio.html
       - style.css
       - js/**
+      - tests/**
       - assets/**
       - package.json
       - capacitor.config.json
