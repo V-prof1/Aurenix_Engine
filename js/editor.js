@@ -83,7 +83,7 @@ jobs:
           distribution: 'temurin'
           java-version: '21'
       - name: Configurar Android SDK
-        uses: android-actions/setup-android@v3
+        run: sdkmanager "platforms;android-36" "build-tools;36.0.0"
       - name: Instalar dependências gratuitas
         run: npm install --no-audit --no-fund
       - name: Criar projeto Android

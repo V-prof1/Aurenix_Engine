@@ -47,6 +47,7 @@ newProjectModal = function(){
 project.programming='script';
 `;
     change("start().catch(e=>{",init+"start().catch(e=>{","criação de projetos");
+    change('      - name: Configurar Android SDK\n        uses: android-actions/setup-android@v3', '      - name: Configurar Android SDK\n        run: sdkmanager "platforms;android-36" "build-tools;36.0.0"', 'SDK dos APKs exportados');
     return patched;
   };
 })(window);
