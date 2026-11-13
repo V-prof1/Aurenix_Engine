@@ -143,6 +143,7 @@ function useScene(id){
 }
 function renderScenes(){
  const box=$('axScenes');if(!box)return;const p=getProject();if(!p)return;
+ if(p.mode==='html5'){box.innerHTML='<div class="ax-studio-heading"><h3>⌘ Projeto HTML5 externo</h3><p>Este projeto mantém seus arquivos HTML/CSS/JS originais. O editor visual de cenas não altera a estrutura interna de jogos importados.</p></div>';return;}
  ensureScenes(p);syncScene(p);
  box.innerHTML='<div class="ax-studio-heading"><h3>🎬 Cenas do jogo</h3><p>Cada cena tem seus próprios objetos e mapa. O modo de programação continua fixo no projeto.</p></div>'+
  '<div class="ax-studio-buttons"><button data-action="newScene">＋ Nova cena</button><button data-action="cloneScene">▣ Duplicar atual</button></div>'+

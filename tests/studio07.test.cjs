@@ -82,3 +82,9 @@ test('navegação do celular permanece acima do dimmer e painel recarrega tiles'
  assert.ok(editor.includes("if(drag?.kind==='tile')S?.renderTiles()"));
  assert.ok(editor.includes("if(tab==='tiles')S?.renderTiles()"));
 });
+
+test('projeto HTML5 externo não é convertido em projeto visual',()=>{
+ const {S}=studio(),p={mode:'html5',external:{entry:'index.html',files:{}},objects:[]};
+ assert.deepEqual(Array.from(S.ensureScenes(p)),[]);
+ assert.equal(p.scenes,undefined);
+});
