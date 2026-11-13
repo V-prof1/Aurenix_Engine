@@ -11,6 +11,15 @@ No GitHub, ative **Settings → Pages → Deploy from a branch → main / (root)
 - Em Android, o plugin StatusBar tenta ocultar a barra do sistema para não bloquear os botões. Há fallback de área segura se não conseguir.
 - IMPORTANTE: a assinatura debug do APK Alpha 0.2 foi gerada por um runner descartável do GitHub. Não foi preservada, portanto a Alpha 0.3 provavelmente **não poderá atualizar a 0.2 diretamente**; faça backup dos projetos ANTES de desinstalar. Para atualizações futuras sem desinstalar, configure uma chave de assinatura persistente em GitHub Actions Secrets (nunca publique a chave).
 
+## Atualização Alpha 0.4 — Menu inicial, objetos e Pixel Studio
+- Ao abrir o aplicativo, aparece uma tela inicial com biblioteca de jogos salvos, busca, filtros, duplicar, renomear, excluir, fazer backup e continuar no editor.
+- **Seleção persistente:** toque em um objeto para selecioná-lo. Ele fica selecionado mesmo que toque no vazio. Toque novamente sem arrastar para desmarcar.
+- **🔒 Bloqueio na cena:** um objeto bloqueado não responde a toque de seleção/manipulação na cena. Ainda pode ser selecionado pela hierarquia Objetos e desbloqueado no inspetor/lista.
+- **⚓ Ancoragem:** objetos ancorados não são movidos pelo sistema de física/gravid​ade nem pelos controles de jogador; scripts podem modificar posições explicitamente. Independente de bloquear edição.
+- **Pixel Studio:** `pixelstudio.html` possui desenho por toque, camadas, quadro-a-quadro, onion skin, formas, balde, seleção/cópia/colar, paleta, transparência, espelhamento, zoom, importação PNG e exportação PNG, JSON e spritesheet.
+- Os desenhos ficam salvos em IndexedDB do aplicativo; `Guardar PNG/Projeto` tenta Documents/Aurenix no Android com plugin grátis, e oferece compartilhar/baixar como alternativa.
+- **Assinatura Android:** o APK 0.3 foi assinado com chave de debug temporária do runner. A 0.4 não pode atualizar a 0.3 por cima sem a chave privada original. Exporte backups antes de desinstalar.
+
 ## Criando jogos
 1. Toque em **⋮ → Novo projeto** (ou **Projetos → Novo projeto**).
 2. **Escolha Blocos ou Scripts ANTES** de tocar no modelo. A escolha fica salva com o projeto e não pode ser alterada no editor.

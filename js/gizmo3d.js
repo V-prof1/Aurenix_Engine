@@ -32,7 +32,7 @@
     viewport.appendChild(canvas);
     const ctx=canvas.getContext('2d');
     let spots=[],drag=null;
-    const ready=()=>getProject()?.mode==='3d'&&getRenderer()?.vp&&getSelected()?.visible;
+    const ready=()=>getProject()?.mode==='3d'&&getRenderer()?.vp&&getSelected()?.visible&&!getSelected()?.editorLocked;
     function draw(){
       if(!ready()){spots=[];ctx?.clearRect(0,0,canvas.width,canvas.height);return;}
       const bounds=scene3dCanvas.getBoundingClientRect();

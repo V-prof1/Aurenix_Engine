@@ -6,6 +6,7 @@ on:
     paths:
       - index.html
       - studio.html
+      - pixelstudio.html
       - style.css
       - js/**
       - assets/**
@@ -37,13 +38,13 @@ jobs:
           test -n "$SDK_BIN"
           "$SDK_BIN" "platforms;android-36" "build-tools;36.0.0"
       - name: Validar código JavaScript
-        run: node --check js/blocks.js && node --check js/editor-patch.js && node --check js/runtime.js && node --check js/editor.js && node --test tests/*.test.cjs
+        run: node --check js/blocks.js && node --check js/editor-patch.js && node --check js/runtime.js && node --check js/editor.js && node --check js/home.js && node --check js/gizmo3d.js && node --test tests/*.test.cjs
       - name: Instalar Capacitor
         run: npm install --no-audit --no-fund
       - name: Preparar site da engine
         run: |
           mkdir -p www
-          cp index.html studio.html style.css manifest.webmanifest sw.js www/
+          cp index.html studio.html pixelstudio.html style.css manifest.webmanifest sw.js www/
           cp -R js assets www/
       - name: Criar plataforma Android
         run: npx cap add android && npx cap sync android

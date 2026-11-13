@@ -1,7 +1,7 @@
 {
   "name": "aurenix-engine",
   "private": true,
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Editor 2D, pixel art e 3D mobile-first, open source",
   "scripts": {
     "android:add": "cap add android",
@@ -12,7 +12,9 @@
   "dependencies": {
     "@capacitor/core": "8.6.2",
     "@capacitor/android": "8.6.2",
-    "@capacitor/status-bar": "8.0.4"
+    "@capacitor/status-bar": "8.0.4",
+    "@capacitor/filesystem": "8.1.5",
+    "@capacitor/share": "8.0.3"
   },
   "devDependencies": {
     "@capacitor/cli": "8.6.2"
