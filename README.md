@@ -18,7 +18,7 @@ No GitHub, ative **Settings → Pages → Deploy from a branch → main / (root)
 - **⚓ Ancoragem:** objetos ancorados não são movidos pelo sistema de física/gravid​ade nem pelos controles de jogador; scripts podem modificar posições explicitamente. Independente de bloquear edição.
 - **Pixel Studio:** `pixelstudio.html` possui desenho por toque, camadas, quadro-a-quadro, onion skin, formas, balde, seleção/cópia/colar, paleta, transparência, espelhamento, zoom, importação PNG e exportação PNG, JSON e spritesheet.
 - Os desenhos ficam salvos em IndexedDB do aplicativo; `Guardar PNG/Projeto` tenta Documents/Aurenix no Android com plugin grátis, e oferece compartilhar/baixar como alternativa.
-- **Assinatura Android:** o APK 0.3 foi assinado com chave de debug temporária do runner. A 0.4 não pode atualizar a 0.3 por cima sem a chave privada original. Exporte backups antes de desinstalar.
+- **Assinatura Android:** o APK 0.3 foi assinado com chave de debug temporária do runner. A 0.4 não pode atualizar a 0.3 por cima sem a chave privada original. Este APK usa o identificador `com.aurenix.engine.alpha04` e instala ao lado do 0.3. Exporte os projetos do 0.3 em JSON e importe no 0.4. Não desinstale o 0.3 até confirmar seus backups.
 
 ## Criando jogos
 1. Toque em **⋮ → Novo projeto** (ou **Projetos → Novo projeto**).
@@ -63,3 +63,6 @@ APKs debug **não são builds release assinados para publicação**. Nunca envie
 **Ainda não é uma substituta do Godot/Unity.** Faltam animações com timeline, multiplayer, sistema complexo de tileset, partículas avançadas, editor de shaders, importação glTF/FBX e exportação release assinada. O motor 3D atual tem geometrias primitivas e física simplificada. Colisões dos blocos são 2D. Edição local depende do armazenamento do navegador; exporte backups. Execute apenas código de projetos confiáveis.
 
 **Licença e custos:** todo o editor é gratuito. Capacitor e GitHub Actions têm licenças e políticas próprias; GitHub Actions pode ter limites de uso conforme sua conta. Não é exigida IA ou API paga.
+
+## Assinatura e atualização real
+Uma atualização Android precisa ter o mesmo **appId e certificado de assinatura**. A chave privada do APK 0.3 não foi preservada e não pode ser extraída do APK. A Alpha 0.4 instala lado a lado por segurança. Para lançar atualizações sobre a mesma instalação, configure uma chave de assinatura duradoura e privada nas GitHub Actions Secrets. Nunca publique a chave em commits ou artifacts públicos.

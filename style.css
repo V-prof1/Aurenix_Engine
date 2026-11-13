@@ -50,3 +50,7 @@ html.ax-native-safe:not(.ax-immersive) .topbar{padding-top:max(26px,var(--ax-saf
 .object-row .visibility{min-width:34px}
 .field-check{gap:10px;min-height:45px}
 @media(max-width:660px){.ax-homebutton{min-width:41px;width:41px;height:42px;flex-basis:41px}}
+
+/* Tela inicial acima do editor, caixas de diálogo acima da tela inicial. */
+.modal-layer{z-index:160!important}
+.popover{z-index:150}

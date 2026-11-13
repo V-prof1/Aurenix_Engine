@@ -127,7 +127,7 @@ $('exportPNG').onclick=()=>saveFile(fname('png'),makePNG(),'image/png');$('sheet
 $('exportJSON').onclick=()=>saveFile(fname('aurenixpixel.json'),JSON.stringify(art,null,2),'application/json');
 $('nativePNG').onclick=$('exportPNG').onclick;$('nativeProject').onclick=$('exportJSON').onclick;
 $('importBtn').onclick=()=>$('openFile').click();$('openFile').onchange=e=>{importFile(e.target.files[0]);e.target.value='';};
-$('back').onclick=()=>{if(dirty&&!confirm('O desenho tem alterações sem salvar. Voltar ao início?'))return;location.href='index.html';};
+$('back').onclick=()=>{if(dirty&&!confirm('O desenho tem alterações sem salvar. Voltar ao início?'))return;dirty=false;location.href='index.html';};
 window.addEventListener('beforeunload',e=>{if(dirty){e.preventDefault();e.returnValue='';}});
 window.addEventListener('resize',draw);
 try{initDB().then(library).catch(e=>status('Falha no banco local: '+e.message));}catch(e){status('Salvamento local não disponível');}
