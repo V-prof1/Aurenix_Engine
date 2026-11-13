@@ -1,8 +1,15 @@
-# Aurenix Engine — Alpha 0.2 🕹️
+# Aurenix Engine — Alpha 0.3 🕹️
 Engine experimental mobile-first para criar jogos **2D, pixel art e 3D** com editor visual, scripts JS, blocos de eventos, teste HTML5 e exportação para Android. Sem login, IA, mensalidades ou APIs pagas.
 
 ## Abra no seu celular
 No GitHub, ative **Settings → Pages → Deploy from a branch → main / (root)** e abra o endereço gerado. O arquivo **index.html** é o editor principal. **studio.html** é a versão modular com o mesmo editor, adequada a desenvolvimento. O site também pode ser instalado como PWA.
+
+## Correções da Alpha 0.3
+- Arraste qualquer uma das seis alças (+/- X, +/- Z, +/- Y) de um objeto selecionado para mudar dimensões sem digitar números.
+- A face oposta fica fixa; objetos rotacionados usam seus eixos locais.
+- Interface de celular horizontal usa palco em tela cheia e painéis acessados pela barra inferior.
+- Em Android, o plugin StatusBar tenta ocultar a barra do sistema para não bloquear os botões. Há fallback de área segura se não conseguir.
+- IMPORTANTE: a assinatura debug do APK Alpha 0.2 foi gerada por um runner descartável do GitHub. Não foi preservada, portanto a Alpha 0.3 provavelmente **não poderá atualizar a 0.2 diretamente**; faça backup dos projetos ANTES de desinstalar. Para atualizações futuras sem desinstalar, configure uma chave de assinatura persistente em GitHub Actions Secrets (nunca publique a chave).
 
 ## Criando jogos
 1. Toque em **⋮ → Novo projeto** (ou **Projetos → Novo projeto**).
