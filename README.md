@@ -77,3 +77,9 @@ A partir desta versão, o botão de exportar JSON, ZIP e outros arquivos tenta u
 - Áudio: aba ♫ Estúdio de áudio; importação MP3/WAV/OGG, prévias, volumes de música/efeitos/geral, loop, velocidade, efeitos WAV gerados localmente, designação de música de fundo e sons de Pulo/Ação, e `api.playSound('nomeDoArquivo')` em JavaScript. No Android, o primeiro toque libera o som para jogos.
 - Sem serviços pagos nem assistente IA. Os arquivos de som devem ser fornecidos pelo criador ou gerados localmente. Não é uma DAW multitrilha, nem possui equalização profissional.
 - **Proteção de dados:** APK 0.5 usa `com.aurenix.engine.alpha05`, e por isso instala ao lado das versões 0.3/0.4. Não é possível atualizar por cima das versões antigas porque as chaves privadas debug anteriores não foram preservadas pelo GitHub Actions. Exporte os projetos JSON e confirme seus backups antes de desinstalar a versão antiga.
+
+## Alpha 0.6 — ajustes de usabilidade reportados em Android
+- Painel de paleta do Pixel Studio: grade responsiva com células de tamanho adequado ao toque, sem ultrapassar a coluna.
+- Editor 3D: controles Selecionar, Câmera, Escala, Grade e Encaixar possuem textos visíveis e botões maiores. A fileira de ferramentas rola horizontalmente em telas estreitas.
+- Indicador 3D XYZ: substituído por widget com os três eixos X vermelho, Y verde e Z azul, que acompanha a orientação da câmera. É possível tocar em cada eixo para alinhar a câmera.
+- Esta alpha usa `com.aurenix.engine.alpha06` para instalar separadamente e evitar perder projetos das versões anteriores, pois as assinaturas debug não foram preservadas. Exporte JSON para migrar.

@@ -64,3 +64,57 @@ html.ax-native-safe:not(.ax-immersive) .topbar{padding-top:max(26px,var(--ax-saf
 #tabAudio.active{display:block;overflow-y:auto;padding:0!important}
 .ax-audio{min-height:100%}
 @media(max-width:680px){.ax-quick-theme,.ax-quick-audio{display:none!important}.top-actions .btn{min-height:44px}}
+
+/* ALPHA 0.6 | Controle por toque: rótulos legíveis e rolagem das ferramentas */
+.workspace-toolbar{gap:7px;min-height:61px;height:61px;padding:5px 8px}
+.workspace-toolbar .tools{
+ display:flex;align-items:center;flex:1 1 auto;gap:7px;overflow-x:auto;overflow-y:hidden;
+ min-width:0;max-width:100%;scrollbar-width:thin;overscroll-behavior-x:contain;
+ -webkit-overflow-scrolling:touch;touch-action:pan-x;
+}
+.workspace-toolbar .tools button{
+ display:inline-flex!important;align-items:center;justify-content:center;gap:7px;
+ flex:0 0 auto;min-width:66px!important;min-height:46px!important;
+ padding:9px 13px!important;font-weight:750!important;font-size:13px!important;
+ color:#d8e8f4!important;border:1px solid #3e5571!important;
+ border-radius:10px!important;background:#1c2e45!important;
+}
+.workspace-toolbar .tools button span{display:inline!important;visibility:visible!important;font-size:12px!important}
+.workspace-toolbar .tools button.active{background:#26535d!important;border-color:var(--accent)!important;color:#eaffff!important}
+.workspace-toolbar .tools button.enabled{border-color:#5f8a9c!important;background:#253951!important}
+.workspace-toolbar .tools .ax-resize-tool{display:none!important}
+.ax-mode-3d .workspace-toolbar .tools .ax-resize-tool{display:inline-flex!important}
+.workspace-toolbar .icon-btn{min-width:43px!important;min-height:44px!important;font-size:19px!important;color:#e4eefb!important}
+.workspace-toolbar .switcher{flex:0 0 auto}
+.workspace-toolbar .grow{display:none!important}
+.axis-gizmo{
+ position:absolute;right:14px;bottom:20px;width:142px;min-width:142px;height:158px;
+ padding:5px 5px 9px;border:1px solid #405b76;border-radius:17px;
+ background:linear-gradient(150deg,#111d34e9,#152a43e8);backdrop-filter:blur(5px);
+ display:flex;flex-direction:column;align-items:center;justify-content:center;
+ pointer-events:auto!important;z-index:14;box-shadow:0 8px 30px #0008;
+}
+.axis-gizmo canvas{display:block;width:128px;height:128px;flex:0 0 128px;cursor:pointer;touch-action:manipulation}
+.axis-gizmo .axis-key{display:flex;justify-content:center;align-items:center;gap:13px;min-height:17px;font-size:13px;font-weight:900}
+.axis-gizmo .axis-key b{border:0!important;padding:0!important;margin:0!important;display:inline!important;font-size:13px;color:#dceaf8}
+.axis-gizmo .axis-key b:nth-child(1){color:#ff7f92!important}
+.axis-gizmo .axis-key b:nth-child(2){color:#86ebaf!important}
+.axis-gizmo .axis-key b:nth-child(3){color:#7db8ff!important}
+@media(pointer:coarse) and (orientation:landscape){
+ .workspace-toolbar{min-height:60px;height:60px;padding:5px 9px}
+ .workspace-toolbar .tools{gap:6px}
+ .workspace-toolbar .tools button{min-height:46px!important;padding:8px 12px!important;font-size:13px!important}
+ .workspace-toolbar .tools button span{display:inline!important}
+ .axis-gizmo{width:132px;min-width:132px;height:148px;right:10px;bottom:11px}
+ .axis-gizmo canvas{width:118px;height:118px;flex-basis:118px}
+}
+@media(max-width:700px){
+ .workspace-toolbar{flex-wrap:wrap;height:auto;min-height:101px;max-height:133px;padding:5px 6px;gap:3px}
+ .workspace-toolbar .switcher{flex:1 0 100%;justify-content:space-around}
+ .workspace-toolbar .switcher button{flex:1}
+ .workspace-toolbar .tools{flex:1 1 auto;max-width:100%;gap:5px}
+ .workspace-toolbar .tools button{min-height:43px!important;padding:8px 10px!important}
+ .workspace-toolbar .zoom-label{display:none}
+ .axis-gizmo{width:116px;min-width:116px;height:132px;bottom:12px;right:8px;padding:2px}
+ .axis-gizmo canvas{width:110px;height:110px;flex-basis:110px}
+}

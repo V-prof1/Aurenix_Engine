@@ -34,6 +34,31 @@
  .ps-canvas-wrap{height:min(68dvw,55dvh);min-height:245px}.ps-quicknav{position:sticky;top:0;z-index:8}
  .ps-tools{grid-template-columns:repeat(4,minmax(0,1fr))}
 }
+
+/* Alpha 0.6: paleta encaixada no cartão, sem transbordar em paisagem ou retrato */
+.ps-column,.ps-card,.ps-left{min-width:0;max-width:100%}
+.ps-card{overflow-wrap:anywhere}
+.ps-card .ps-swatches{
+ display:grid!important;
+ grid-template-columns:repeat(auto-fit,minmax(40px,1fr))!important;
+ gap:6px!important;width:100%;max-width:100%;min-width:0;
+ overflow:hidden;
+}
+.ps-card .ps-swatches button{
+ display:block!important;box-sizing:border-box;
+ min-width:0!important;max-width:100%!important;width:100%!important;
+ min-height:0!important;height:auto!important;padding:0!important;
+ aspect-ratio:1 / 1;border-width:2px!important;border-radius:9px;
+}
+.ps-swatches button:focus-visible{outline:3px solid var(--ax-primary)!important;outline-offset:-3px}
+@media(max-width:570px){
+ .ps-left>.ps-card:nth-child(2){grid-column:1 / -1}
+ .ps-card .ps-swatches{grid-template-columns:repeat(auto-fit,minmax(44px,1fr))!important}
+}
+@media(pointer:coarse) and (orientation:landscape){
+ .ps-left>.ps-card:nth-child(2){min-width:0;overflow:hidden}
+ .ps-card .ps-swatches{grid-template-columns:repeat(auto-fit,minmax(39px,1fr))!important}
+}
 </style></head><body>
 <header class="ps-top"><button id="back">← Início</button><button id="psTheme" title="Mudar aparência">🎨 Tema</button><span class="ps-logo">AURENIX <b>PIXEL</b></span><input id="artName" value="Novo sprite" maxlength="70" aria-label="Nome do desenho"><button id="save">▣ Salvar no app</button><button id="exportPNG">⬇ PNG</button><button id="exportJSON">⬇ Projeto</button><button id="importBtn">⇧ Abrir</button></header>
 <nav class="ps-quicknav"><button data-jump="#tools">✎ Ferramentas</button><button data-jump="#frames">▣ Quadros</button><button data-jump="#layers">▤ Camadas</button><button data-jump="#palette">🎨 Cores</button></nav><main class="ps-main">
