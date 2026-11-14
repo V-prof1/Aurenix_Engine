@@ -149,7 +149,7 @@ function startGame(scene){const canvas=document.getElementById('game');if(!canva
  let particles=[],particleAccumulator=new Map(),componentStates=new Map(),hudBox=null,gameMessage=null,hudScore=null,hudHealth=null;
  const isColliding=(a,b)=>a&&b&&(is3d?Math.abs((a.x||0)-(b.x||0))<((a.w||1)+(b.w||1))/2&&Math.abs((a.y||0)-(b.y||0))<((a.h||1)+(b.h||1))/2&&Math.abs((a.z||0)-(b.z||0))<((a.d||1)+(b.d||1))/2:intersect2d(a,b));
  function checkpointAt(){if(player)checkpoint={sceneId:scene.activeSceneId,x:player.x||0,y:player.y||0,z:player.z||0};}
- function setHealth(value){health=clamp(value,0,maxHealth);if(health<=0&&player){health=maxHealth;const fallback=checkpoint?.sceneId===scene.activeSceneId?checkpoint:null;player.x=fallback?.x||0;player.y=fallback?.y||(is3d?3:0);player.z=fallback?.z||0;velocities.delete(player.id);showMessage('Você renasceu!',2);}updateHud();return health;}
+ function setHealth(value){health=clamp(value,0,maxHealth);if(health<=0&&player){health=maxHealth;const fallback=checkpoint?.sceneId===scene.activeSceneId?checkpoint:null;player.x=fallback?.x||0;player.y=fallback?.y??(is3d?3:0);player.z=fallback?.z||0;velocities.delete(player.id);showMessage('Você renasceu!',2);}updateHud();return health;}
  function showMessage(text,duration=2.5){
   if(!gameMessage)return;
   gameMessage.textContent=String(text||'').slice(0,160);
@@ -171,9 +171,10 @@ function startGame(scene){const canvas=document.getElementById('game');if(!canva
  }
  function updateComponents(dt){
   for(const o of objects){
-   if(o===player||!o.visible)continue;
+   if(o===player)continue;
    for(const c of o.components||[]){
     if(!c||c.enabled===false)continue;
+    if(!o.visible&&c.type!=='collectible')continue;
     const key=o.id+':'+c.type;
     let state=componentStates.get(key);
     if(!state){state={t:0,x:o.x||0,y:o.y||0,z:o.z||0,cooldown:0,hit:false,acc:0,collected:false};componentStates.set(key,state);}
@@ -193,7 +194,7 @@ function startGame(scene){const canvas=document.getElementById('game');if(!canva
      const count=Math.min(12,Math.floor(state.acc));state.acc-=count;
      if(count)spawnParticles(o.x||0,o.y||0,count,o.color||'#73e2ce',Number(c.speed)||65,Number(c.life)||1,Number(c.size)||4);
     }
-    const hit=!!(player&&isColliding(o,player));
+    const hit=!!(o.visible&&player&&isColliding(o,player));
     if(c.type==='collectible'&&hit&&!state.collected){
      state.collected=true;o.visible=false;state.respawnAt=Number(c.respawn)||0;addScore(c.score);showMessage('+'+(Number(c.score)||0)+' pontos');
      spawnParticles(o.x,o.y,14,o.color||'#ffe082',100,.7,4);
@@ -316,6 +317,7 @@ function startGame(scene){const canvas=document.getElementById('game');if(!canva
  gameMessage.style.cssText='position:fixed;z-index:20;top:15%;left:50%;transform:translateX(-50%);max-width:80vw;border:1px solid #9af4dd;padding:12px 17px;border-radius:14px;background:#122c41e9;color:white;font:800 14px system-ui;text-align:center;pointer-events:none;display:none';
  document.body.appendChild(gameMessage);
  if(settings.showGameTips&&player){showMessage('Use o analógico ou WASD para mover',2);}
+ checkpointAt();
  const audioConfig=scene.audio||{},audioAssets=(scene.assets||[]).filter(a=>String(a.type||'').startsWith('audio/')),audioPlaying=new Set();
  let bgMusic=null,lastJump=false,lastAction=false;
  function playAsset(key,opts={}){
