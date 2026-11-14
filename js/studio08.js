@@ -112,7 +112,7 @@ function renderArt(){
  '<p class="ax08-note">O novo sprite será adicionado aos Arquivos e você poderá usá-lo na cena 2D.</p>';
 }
 function scriptDiagnostics(){
- const box=$('axCodeCheck');if(!box)return;
+ const box=$('ax08Check');if(!box)return;
  const p=get();if(!p)return;
  if(p.programming==='blocks'){box.innerHTML='<p class="ax08-note">Projeto de Blocos: o JavaScript é compilado automaticamente. Use a aba Código para editar seus eventos visuais.</p>';return;}
  const source=$('scriptEditor')?.value||'',file=p.mode==='html5';
