@@ -315,12 +315,12 @@ function startGame(scene){const canvas=document.getElementById('game');if(!canva
   if(!Array.isArray(scene.scenes)||!scene.scenes.length)return false;
   const found=scene.scenes.find(s=>s.id===name||s.name===name);
   if(!found)return false;
-  if(found.mode!==scene.mode) return false;
+  if(found.mode!==scene.mode||found.id===scene.activeSceneId)return false;
   pendingScene=found.id;return true;
  }
  function nextScene(){
   const arr=scene.scenes||[],idx=arr.findIndex(x=>x.id===scene.activeSceneId);
-  if(!arr.length)return false;
+  if(arr.length<2)return false;
   pendingScene=arr[(idx+1)%arr.length].id;return true;
  }
  function changeSceneNow(){
@@ -371,11 +371,14 @@ function startGame(scene){const canvas=document.getElementById('game');if(!canva
  document.body.appendChild(gameMessage);
  if(settings.showGameTips&&player){showMessage('Use o analógico ou WASD para mover',2);}
  checkpointAt();
- const audioConfig=scene.audio||{},audioAssets=(scene.assets||[]).filter(a=>String(a.type||'').startsWith('audio/')),audioPlaying=new Set();
+ const audioConfig=scene.audio||{},audioAssets=(scene.assets||[]).filter(a=>String(a.type||'').startsWith('audio/')),audioPlaying=new Set(),soundCooldown=new Map();
  let bgMusic=null,lastJump=false,lastAction=false;
  function playAsset(key,opts={}){
   const asset=audioAssets.find(a=>a.id===key||a.name===key);
   if(!asset||audioConfig.mute)return null;
+  const now=performance.now(),last=soundCooldown.get(asset.id)||-Infinity;
+  if(now-last<70)return null;
+  soundCooldown.set(asset.id,now);
   try{
    const snd=new Audio(asset.data),isMusic=opts.group==='music'||asset.id===audioConfig.musicAssetId;
    snd.volume=clamp((asset.volume??1)*(opts.volume??1)*(audioConfig.master??1)*(isMusic?(audioConfig.music??.7):(audioConfig.sfx??.85)),0,1);
@@ -409,7 +412,7 @@ function startGame(scene){const canvas=document.getElementById('game');if(!canva
  loadScene:name=>requestScene(name),nextScene:()=>nextScene(),
  getTile:(x,y)=>scene.tilemap?.cells?.[Math.floor(x)+','+Math.floor(y)]||null,
  setTile:(x,y,color='#5aa78b',solid=false)=>{scene.tilemap||={size:32,cells:{}};scene.tilemap.cells[Math.floor(x)+','+Math.floor(y)]={color,solid:!!solid};},
- playAnimation:(o,name)=>{const target=typeof o==='string'?objects.find(x=>x.id===o||x.name===o):o;if(!target)return false;const clip=(target.animations||[]).find(c=>c.id===name||c.name===name);if(!clip)return false;target.activeAnimation=clip.id;animClocks.set(target.id,{clipId:clip.id,time:0,playing:true});return true;},
+ playAnimation:(o,name)=>{const target=typeof o==='string'?objects.find(x=>x.id===o||x.name===o):o;if(!target)return false;const clip=(target.animations||[]).find(c=>c.id===name||c.name===name);if(!clip)return false;const current=animClocks.get(target.id);if(current?.playing&&current.clipId===clip.id)return true;target.activeAnimation=clip.id;animClocks.set(target.id,{clipId:clip.id,time:0,playing:true});return true;},
  stopAnimation:o=>{const target=typeof o==='string'?objects.find(x=>x.id===o||x.name===o):o;if(!target)return false;const st=animClocks.get(target.id);if(st)st.playing=false;return true;},
  playSound:(name,options={})=>playAsset(name,options),stopMusic:()=>{bgMusic?.pause();bgMusic=null;},sound:(freq=440,duration=.1)=>{try{const ac=api.audio||(api.audio=new (window.AudioContext||window.webkitAudioContext)());const osc=ac.createOscillator(),gain=ac.createGain();osc.frequency.value=Number(freq)||440;osc.connect(gain);gain.connect(ac.destination);gain.gain.setValueAtTime(.06,ac.currentTime);gain.gain.exponentialRampToValueAtTime(.001,ac.currentTime+Math.max(.03,duration));osc.start();osc.stop(ac.currentTime+Math.max(.03,duration));}catch(e){}}};
  function scriptTick(o,dt){if(!o.script)return;let entry=playscript.get(o.id);if(!entry||entry.code!==o.script){try{entry={code:o.script,fn:new Function('self','scene','api','dt',`'use strict';\n${o.script}`)};playscript.set(o.id,entry);}catch(e){showError(`${o.name}: ${e.message}`);return;}}try{entry.fn(o,scene,api,dt);}catch(e){if(!scriptErrors.has(o.id)){showError(`${o.name}: ${e.message}`);scriptErrors.add(o.id);}}}

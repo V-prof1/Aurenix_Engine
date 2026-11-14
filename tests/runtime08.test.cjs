@@ -58,3 +58,11 @@ test('componentes flutuação e rotação evoluem no loop e portal troca de cena
  assert.ok(scene.objects[1].rotation>0,'Componente deve girar');
  h.stop();
 });
+
+test('mecanismos de cena e animação evitam reiniciar indefinidamente',()=>{
+ const src=fs.readFileSync('js/runtime.js','utf8');
+ assert.match(src,/found\.id===scene\.activeSceneId/);
+ assert.match(src,/arr\.length<2/);
+ assert.match(src,/current\?\.playing&&current\.clipId===clip\.id/);
+ assert.match(src,/soundCooldown\.set\(asset\.id,now\)/);
+});
