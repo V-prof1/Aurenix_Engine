@@ -10,6 +10,7 @@ function toast(msg){
 }
 async function back(){
  try{
+  if(global.AurenixToolbox?.isOpen?.()){global.AurenixToolbox.close();return 'toolbox';}
   if(global.AurenixTheme?.isOpen?.()){global.AurenixTheme.close();return 'theme';}
   const play=document.getElementById('playOverlay');
   if(shown(play)){

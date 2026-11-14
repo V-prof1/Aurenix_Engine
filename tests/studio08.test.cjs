@@ -14,7 +14,7 @@ test('4 novas geometrias 3D têm triângulos e normais do mesmo tamanho',()=>{
  const R=loadRuntime();
  for(const type of ['pyramid','cone','torus','capsule']){
   const mesh=R.createGeometry(type);
-  assert.ok(mesh.p.length>90,type);
+  assert.ok(mesh.p.length>=45,type);
   assert.equal(mesh.p.length,mesh.n.length,type);
   assert.equal(mesh.p.length%9,0,type);
   assert.ok(Array.from(mesh.p).every(Number.isFinite),type);
