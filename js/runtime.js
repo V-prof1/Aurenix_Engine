@@ -5,7 +5,7 @@ const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const colorRGBA=(hex,alpha=1)=>{if(!hex)return `rgba(130,160,220,${alpha})`;if(hex.startsWith('#')){let c=hex.slice(1);if(c.length===3)c=c.split('').map(s=>s+s).join('');if(c.length===6){const n=parseInt(c,16);return `rgba(${n>>16&255},${n>>8&255},${n&255},${alpha})`;}}return hex;};
 const uid=()=> 'o'+Math.random().toString(36).slice(2,9);
 const defaults={mode:'2d',genre:'platformer',name:'Meu primeiro jogo',background:'#101c31',gravity:1100,gravity3d:18,grid:32,grid3d:1,objects:[],assets:[],script:'',pixelData:null};
-function makeObj(type,props={}){const o={id:uid(),type,name:({rect:'Retângulo',circle:'Círculo',text:'Texto',sprite:'Sprite',player2d:'Jogador',cube:'Cubo',sphere:'Esfera',cylinder:'Cilindro',plane:'Plataforma',player3d:'Jogador 3D',pyramid:'Pirâmide',cone:'Cone',torus:'Toro',capsule:'Cápsula'})[type]||type,x:0,y:0,z:0,w:type==='plane'?6:60,h:type==='plane'?.3:60,d:1,rotation:0,rx:0,ry:0,rz:0,color:'#64cad5',opacity:1,layer:0,visible:true,solid:false,physics:false,anchored:false,editorLocked:false,tags:'',components:[],health:100,maxHealth:100,speed:230,jump:430,text:'Texto',fontSize:22,assetId:'',script:'',...props};return o;}
+function makeObj(type,props={}){const o={id:uid(),type,name:({rect:'Retângulo',circle:'Círculo',text:'Texto',sprite:'Sprite',player2d:'Jogador',cube:'Cubo',sphere:'Esfera',cylinder:'Cilindro',plane:'Plataforma',player3d:'Jogador 3D',model3d:'Modelo OBJ',pyramid:'Pirâmide',cone:'Cone',torus:'Toro',capsule:'Cápsula'})[type]||type,x:0,y:0,z:0,w:type==='plane'?6:60,h:type==='plane'?.3:60,d:1,rotation:0,rx:0,ry:0,rz:0,color:'#64cad5',opacity:1,layer:0,visible:true,solid:false,physics:false,anchored:false,editorLocked:false,tags:'',components:[],health:100,maxHealth:100,speed:230,jump:430,text:'Texto',fontSize:22,assetId:'',script:'',...props};return o;}
 function makeTemplate(kind='platformer'){
  const base={...JSON.parse(JSON.stringify(defaults)),id:uid(),updated:Date.now()};
  if(kind==='platformer')return {...base,name:'Aventura 2D',objects:[makeObj('rect',{name:'Solo',x:0,y:328,w:1200,h:76,color:'#3a786f',solid:true}),makeObj('rect',{name:'Plataforma 1',x:-170,y:185,w:160,h:22,color:'#6975b2',solid:true}),makeObj('rect',{name:'Plataforma 2',x:115,y:107,w:180,h:22,color:'#6975b2',solid:true}),makeObj('player2d',{name:'Herói',x:-330,y:248,w:35,h:53,color:'#68ebd7',speed:270,jump:515}),makeObj('circle',{name:'Cristal',x:152,y:64,w:24,h:24,color:'#ffcd73',script:'self.rotation += dt * 65;'})]};
@@ -102,15 +102,62 @@ function createGeometry(type){const p=[],norm=[];function tri(a,b,c,n){for(const
  }
  else if(type==='cylinder'){for(let i=0;i<20;i++){const a=i*Math.PI/10,b=(i+1)*Math.PI/10,c=[Math.cos(a)*.5,0,Math.sin(a)*.5],d=[Math.cos(b)*.5,0,Math.sin(b)*.5],n=vnorm([c[0]+d[0],0,c[2]+d[2]]);tri([c[0],-.5,c[2]],[d[0],-.5,d[2]],[d[0],.5,d[2]],n);tri([c[0],-.5,c[2]],[d[0],.5,d[2]],[c[0],.5,c[2]],n);tri([0,.5,0],[c[0],.5,c[2]],[d[0],.5,d[2]],[0,1,0]);tri([0,-.5,0],[d[0],-.5,d[2]],[c[0],-.5,c[2]],[0,-1,0]);}}
  return {p:new Float32Array(p),n:new Float32Array(norm)};}
+function parseOBJ(text,limit=12000){
+ const vertices=[],coords=[],normals=[];const rows=String(text||'').split(/\r?\n/).slice(0,160000);let faces=0;
+ for(const line of rows){
+  const cols=line.trim().split(/\s+/);const op=cols[0];
+  if(op==='v'&&cols.length>=4&&vertices.length<20000){
+   const xyz=cols.slice(1,4).map(Number);if(xyz.every(Number.isFinite))vertices.push(xyz);
+  }else if(op==='f'&&cols.length>=4&&faces<limit){
+   const indices=cols.slice(1).map(x=>{
+    const token=parseInt(x.split('/')[0],10);
+    return token>0?token-1:vertices.length+token;
+   });
+   if(indices.length>32||indices.some(i=>!Number.isInteger(i)||i<0||i>=vertices.length))continue;
+   for(let j=1;j<indices.length-1&&faces<limit;j++){
+    const a=vertices[indices[0]],b=vertices[indices[j]],c=vertices[indices[j+1]];
+    const ab=vsub(b,a),ac=vsub(c,a),normal=vnorm(vcross(ab,ac));
+    for(const v of [a,b,c]){coords.push(...v);normals.push(...normal);}
+    faces++;
+   }
+  }
+ }
+ if(!faces)throw Error('OBJ sem triângulos válidos');
+ let min=[Infinity,Infinity,Infinity],max=[-Infinity,-Infinity,-Infinity];
+ for(let i=0;i<coords.length;i+=3)for(let j=0;j<3;j++){min[j]=Math.min(min[j],coords[i+j]);max[j]=Math.max(max[j],coords[i+j]);}
+ const center=min.map((x,i)=>(x+max[i])/2),scale=1/Math.max(.000001,...min.map((x,i)=>max[i]-x));
+ for(let i=0;i<coords.length;i+=3)for(let j=0;j<3;j++)coords[i+j]=(coords[i+j]-center[j])*scale;
+ return {p:new Float32Array(coords),n:new Float32Array(normals),triangles:faces};
+}
+function objFromAsset(asset){
+ if(!asset||!/\.obj$/i.test(asset.name||''))return null;
+ if(asset.data?.length>2900000)return null;
+ try{const raw=asset.data?.startsWith('data:')?atob(asset.data.split(',')[1]||''):asset.data;
+  return parseOBJ(raw);
+ }catch(e){console.warn('OBJ inválido',e.message);return null;}
+}
 class Renderer3D{
- constructor(canvas){this.canvas=canvas;this.gl=canvas.getContext('webgl',{antialias:true,alpha:false,preserveDrawingBuffer:false})||canvas.getContext('experimental-webgl');if(!this.gl){this.fallback=canvas.getContext('2d');this.cpuMeshes={};for(const t of ['cube','plane','player3d','sphere','cylinder','pyramid','cone','torus','capsule'])this.cpuMeshes[t]=createGeometry(t);return;}const gl=this.gl;
+ constructor(canvas){this.canvas=canvas;this.gl=canvas.getContext('webgl',{antialias:true,alpha:false,preserveDrawingBuffer:false})||canvas.getContext('experimental-webgl');if(!this.gl){this.fallback=canvas.getContext('2d');this.cpuMeshes={};this.customMeshes=new Map();for(const t of ['cube','plane','player3d','sphere','cylinder','pyramid','cone','torus','capsule'])this.cpuMeshes[t]=createGeometry(t);return;}const gl=this.gl;
  const vs=`attribute vec3 aPosition;attribute vec3 aNormal;uniform mat4 uMVP;uniform mat4 uModel;varying vec3 vNormal;void main(){gl_Position=uMVP*vec4(aPosition,1.0);vNormal=mat3(uModel)*aNormal;}`;
  const fs=`precision mediump float;uniform vec3 uColor;uniform float uUnlit;varying vec3 vNormal;void main(){float light=0.42+max(dot(normalize(vNormal),normalize(vec3(-0.55,0.85,0.45))),0.0)*0.58;gl_FragColor=vec4(uColor*mix(light,1.0,uUnlit),1.0);}`;
- const makeShader=(type,src)=>{const s=gl.createShader(type);gl.shaderSource(s,src);gl.compileShader(s);if(!gl.getShaderParameter(s,gl.COMPILE_STATUS))throw Error(gl.getShaderInfoLog(s));return s;};const prog=gl.createProgram();gl.attachShader(prog,makeShader(gl.VERTEX_SHADER,vs));gl.attachShader(prog,makeShader(gl.FRAGMENT_SHADER,fs));gl.linkProgram(prog);if(!gl.getProgramParameter(prog,gl.LINK_STATUS))throw Error('Falha ao conectar shaders');this.program=prog;this.loc={p:gl.getAttribLocation(prog,'aPosition'),n:gl.getAttribLocation(prog,'aNormal'),mvp:gl.getUniformLocation(prog,'uMVP'),model:gl.getUniformLocation(prog,'uModel'),color:gl.getUniformLocation(prog,'uColor'),unlit:gl.getUniformLocation(prog,'uUnlit')};this.meshes={};for(const t of ['cube','plane','player3d','sphere','cylinder','pyramid','cone','torus','capsule']){const g=createGeometry(t),vb=gl.createBuffer(),nb=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,vb);gl.bufferData(gl.ARRAY_BUFFER,g.p,gl.STATIC_DRAW);gl.bindBuffer(gl.ARRAY_BUFFER,nb);gl.bufferData(gl.ARRAY_BUFFER,g.n,gl.STATIC_DRAW);this.meshes[t]={vb,nb,count:g.p.length/3};}gl.enable(gl.DEPTH_TEST);gl.depthFunc(gl.LEQUAL);gl.disable(gl.CULL_FACE);}
+ const makeShader=(type,src)=>{const s=gl.createShader(type);gl.shaderSource(s,src);gl.compileShader(s);if(!gl.getShaderParameter(s,gl.COMPILE_STATUS))throw Error(gl.getShaderInfoLog(s));return s;};const prog=gl.createProgram();gl.attachShader(prog,makeShader(gl.VERTEX_SHADER,vs));gl.attachShader(prog,makeShader(gl.FRAGMENT_SHADER,fs));gl.linkProgram(prog);if(!gl.getProgramParameter(prog,gl.LINK_STATUS))throw Error('Falha ao conectar shaders');this.program=prog;this.loc={p:gl.getAttribLocation(prog,'aPosition'),n:gl.getAttribLocation(prog,'aNormal'),mvp:gl.getUniformLocation(prog,'uMVP'),model:gl.getUniformLocation(prog,'uModel'),color:gl.getUniformLocation(prog,'uColor'),unlit:gl.getUniformLocation(prog,'uUnlit')};this.meshes={};this.customMeshes=new Map();for(const t of ['cube','plane','player3d','sphere','cylinder','pyramid','cone','torus','capsule']){const g=createGeometry(t),vb=gl.createBuffer(),nb=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,vb);gl.bufferData(gl.ARRAY_BUFFER,g.p,gl.STATIC_DRAW);gl.bindBuffer(gl.ARRAY_BUFFER,nb);gl.bufferData(gl.ARRAY_BUFFER,g.n,gl.STATIC_DRAW);this.meshes[t]={vb,nb,count:g.p.length/3};}gl.enable(gl.DEPTH_TEST);gl.depthFunc(gl.LEQUAL);gl.disable(gl.CULL_FACE);}
  render(scene,camera={},opts={}){const gl=this.gl;if(!gl){this.renderFallback(scene,camera,opts);return;}const canvas=this.canvas,W=canvas.clientWidth||canvas.width||1,H=canvas.clientHeight||canvas.height||1,dpr=Math.min(devicePixelRatio||1,2);if(canvas.width!==Math.round(W*dpr)||canvas.height!==Math.round(H*dpr)){canvas.width=Math.round(W*dpr);canvas.height=Math.round(H*dpr);}gl.viewport(0,0,canvas.width,canvas.height);const clr=rgbaNorm(scene.background||'#101c31');gl.clearColor(...clr,1);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);gl.useProgram(this.program);gl.enableVertexAttribArray(this.loc.p);gl.enableVertexAttribArray(this.loc.n);const eye=orbitPosition(camera);const view=lookAt(eye,camera.target||[0,0,0]),proj=perspective(Math.PI/3,W/H,.1,500),vp=matMul(proj,view);this.vp=vp;this.canvasW=W;this.canvasH=H;
  const draw=(mesh,model,color,unlit=0,mode=gl.TRIANGLES)=>{gl.bindBuffer(gl.ARRAY_BUFFER,mesh.vb);gl.vertexAttribPointer(this.loc.p,3,gl.FLOAT,false,0,0);gl.bindBuffer(gl.ARRAY_BUFFER,mesh.nb);gl.vertexAttribPointer(this.loc.n,3,gl.FLOAT,false,0,0);gl.uniformMatrix4fv(this.loc.mvp,false,matMul(vp,model));gl.uniformMatrix4fv(this.loc.model,false,model);gl.uniform3fv(this.loc.color,color);gl.uniform1f(this.loc.unlit,unlit);gl.drawArrays(mode,0,mesh.count);};
  if(opts.grid){if(!this.gridBuffer){const a=[],b=[];for(let i=-50;i<=50;i++){a.push(-50,0,i,50,0,i,i,0,-50,i,0,50);for(let k=0;k<4;k++)b.push(0,1,0);}const vb=gl.createBuffer(),nb=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,vb);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(a),gl.STATIC_DRAW);gl.bindBuffer(gl.ARRAY_BUFFER,nb);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(b),gl.STATIC_DRAW);this.gridBuffer={vb,nb,count:a.length/3};}draw(this.gridBuffer,matIdentity(),[.19,.27,.33],1,gl.LINES);}
- for(const o of (scene.objects||[]).slice().sort((a,b)=>(a.y||0)-(b.y||0))){if(!o.visible)continue;const mesh=this.meshes[o.type]||this.meshes.cube;let model=matMove(o.x||0,o.y||0,o.z||0);model=matMul(model,matRotY((o.ry||0)*Math.PI/180));model=matMul(model,matRotX((o.rx||0)*Math.PI/180));model=matMul(model,matRotZ((o.rz||o.rotation||0)*Math.PI/180));model=matMul(model,matScale(o.w||1,o.h||1,o.d||1));draw(mesh,model,rgbaNorm(o.color));if(o.id===opts.selectedId){const border=matMul(model,matScale(1.055,1.055,1.055));gl.enable(gl.BLEND);gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);gl.depthFunc(gl.ALWAYS);draw(mesh,border,[.24,1,.88],1,gl.LINE_LOOP);gl.depthFunc(gl.LEQUAL);gl.disable(gl.BLEND);}}
+ for(const o of (scene.objects||[]).slice().sort((a,b)=>(a.y||0)-(b.y||0))){if(!o.visible)continue;let mesh=this.meshes[o.type]||this.meshes.cube;
+ if(o.type==='model3d'&&o.assetId){
+  if(!this.customMeshes.has(o.assetId)){
+   const asset=(scene.assets||[]).find(a=>a.id===o.assetId),geo=objFromAsset(asset);
+   if(geo){
+    const vb=gl.createBuffer(),nb=gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER,vb);gl.bufferData(gl.ARRAY_BUFFER,geo.p,gl.STATIC_DRAW);
+    gl.bindBuffer(gl.ARRAY_BUFFER,nb);gl.bufferData(gl.ARRAY_BUFFER,geo.n,gl.STATIC_DRAW);
+    this.customMeshes.set(o.assetId,{vb,nb,count:geo.p.length/3});
+   }else this.customMeshes.set(o.assetId,null);
+  }
+  mesh=this.customMeshes.get(o.assetId)||this.meshes.cube;
+ }
+ let model=matMove(o.x||0,o.y||0,o.z||0);model=matMul(model,matRotY((o.ry||0)*Math.PI/180));model=matMul(model,matRotX((o.rx||0)*Math.PI/180));model=matMul(model,matRotZ((o.rz||o.rotation||0)*Math.PI/180));model=matMul(model,matScale(o.w||1,o.h||1,o.d||1));draw(mesh,model,rgbaNorm(o.color));if(o.id===opts.selectedId){const border=matMul(model,matScale(1.055,1.055,1.055));gl.enable(gl.BLEND);gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);gl.depthFunc(gl.ALWAYS);draw(mesh,border,[.24,1,.88],1,gl.LINE_LOOP);gl.depthFunc(gl.LEQUAL);gl.disable(gl.BLEND);}}
  this.lastCamera=camera;}
  renderFallback(scene,camera={},opts={}){
  const ctx=this.fallback;if(!ctx)return;
@@ -122,7 +169,13 @@ class Renderer3D{
  const projectPoint=(x,y,z)=>{const w=vp[3]*x+vp[7]*y+vp[11]*z+vp[15];if(w<=0.08)return null;return {x:(1+(vp[0]*x+vp[4]*y+vp[8]*z+vp[12])/w)*W/2,y:(1-(vp[1]*x+vp[5]*y+vp[9]*z+vp[13])/w)*H/2,w};};
  if(opts.grid){ctx.lineWidth=1;ctx.strokeStyle='#ffffff18';ctx.beginPath();for(let i=-20;i<=20;i++){const a=projectPoint(-20,0,i),b=projectPoint(20,0,i),c=projectPoint(i,0,-20),d=projectPoint(i,0,20);for(const pair of [[a,b],[c,d]])if(pair[0]&&pair[1]){ctx.moveTo(pair[0].x,pair[0].y);ctx.lineTo(pair[1].x,pair[1].y);}}ctx.stroke();}
  const faces=[];
- for(const o of scene.objects||[]){if(!o.visible)continue;const mesh=this.cpuMeshes[o.type]||this.cpuMeshes.cube;
+ for(const o of scene.objects||[]){if(!o.visible)continue;let mesh=this.cpuMeshes[o.type]||this.cpuMeshes.cube;
+ if(o.type==='model3d'&&o.assetId){
+  if(!this.customMeshes.has(o.assetId)){
+   this.customMeshes.set(o.assetId,objFromAsset((scene.assets||[]).find(a=>a.id===o.assetId)));
+  }
+  mesh=this.customMeshes.get(o.assetId)||this.cpuMeshes.cube;
+ }
  let model=matMove(o.x||0,o.y||0,o.z||0);model=matMul(model,matRotY((o.ry||0)*Math.PI/180));model=matMul(model,matRotX((o.rx||0)*Math.PI/180));model=matMul(model,matRotZ((o.rz||o.rotation||0)*Math.PI/180));model=matMul(model,matScale(o.w||1,o.h||1,o.d||1));
  const base=rgbaNorm(o.color);
  for(let i=0;i<mesh.p.length;i+=9){const points=[];
@@ -387,5 +440,5 @@ function startGame(scene){const canvas=document.getElementById('game');if(!canva
  requestAnimationFrame(tick);}
  if(renderer?.error){showError(renderer.error);return;}requestAnimationFrame(tick);return ()=>{dead=true;for(const snd of audioPlaying)snd.pause();audioPlaying.clear();clearTimeout(messageTimeout);hudBox?.remove();gameMessage?.remove();};
 }
-const Runtime={makeTemplate,makeObj,draw2D,Renderer3D,gameHTML,startGame,imgMap,clamp,uid};global.AurenixRuntime=Runtime;if(global.__AURENIX_GAME__)document.addEventListener('DOMContentLoaded',()=>startGame(global.__AURENIX_GAME__));
+const Runtime={makeTemplate,makeObj,draw2D,Renderer3D,parseOBJ,createGeometry,gameHTML,startGame,imgMap,clamp,uid};global.AurenixRuntime=Runtime;if(global.__AURENIX_GAME__)document.addEventListener('DOMContentLoaded',()=>startGame(global.__AURENIX_GAME__));
 })(window);
