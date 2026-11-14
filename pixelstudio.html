@@ -59,6 +59,26 @@
  .ps-left>.ps-card:nth-child(2){min-width:0;overflow:hidden}
  .ps-card .ps-swatches{grid-template-columns:repeat(auto-fit,minmax(39px,1fr))!important}
 }
+
+/* Alpha 0.8 — stable Pixel Studio layout on Android with system bars and mobile keyboards */
+html,body{overflow-x:hidden;min-width:0}
+.ps-card{min-width:0;max-width:100%}
+.ps-row{max-width:100%;min-width:0}
+.ps-row>*{min-width:0}
+.ps-swatches{max-width:100%;width:100%;overflow:hidden}
+.ps-swatches button{min-width:0!important;max-width:100%!important}
+.ps-top{padding-left:max(9px,env(safe-area-inset-left));padding-right:max(9px,env(safe-area-inset-right))}
+.ps-quicknav{scrollbar-width:thin}
+.ps-workspace{min-width:0}
+.ps-workspace>.ps-card{position:relative;z-index:1}
+@media(pointer:coarse) and (orientation:landscape){
+ .ps-top{gap:5px;flex-wrap:wrap}
+ .ps-top button{min-height:44px}
+ .ps-quicknav{top:0;max-width:100%}
+ .ps-main{max-width:100%;overflow-x:hidden}
+ .ps-canvas-wrap{max-width:100%;min-width:0}
+ .ps-stage{overflow:hidden;position:relative}
+}
 </style></head><body>
 <header class="ps-top"><button id="back">← Início</button><button id="psTheme" title="Mudar aparência">🎨 Tema</button><span class="ps-logo">AURENIX <b>PIXEL</b></span><input id="artName" value="Novo sprite" maxlength="70" aria-label="Nome do desenho"><button id="save">▣ Salvar no app</button><button id="exportPNG">⬇ PNG</button><button id="exportJSON">⬇ Projeto</button><button id="importBtn">⇧ Abrir</button></header>
 <nav class="ps-quicknav"><button data-jump="#tools">✎ Ferramentas</button><button data-jump="#frames">▣ Quadros</button><button data-jump="#layers">▤ Camadas</button><button data-jump="#palette">🎨 Cores</button></nav><main class="ps-main">

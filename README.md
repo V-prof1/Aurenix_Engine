@@ -106,3 +106,31 @@ A partir desta versão, o botão de exportar JSON, ZIP e outros arquivos tenta u
 **Limites desta alpha:** sistema 3D ainda usa geometrias básicas, não há importação glTF/FBX, engine de shaders profissionais, networking multiplayer ou simulação física avançada. Tiles são células coloridas (spritesheet e autotile ainda não implementados). A prévia de animações não é uma timeline multifaixa.
 
 **Instalação:** o pacote 0.7 é `com.aurenix.engine.alpha07`, portanto instala **ao lado da 0.6**, sem apagá-la. Isso é necessário enquanto não existe uma chave privada de assinatura persistente. Transfira projetos por backup JSON antes de remover a versão antiga.
+
+## Alpha 0.8 — Componentes, 3D, gameplay e experiência mobile
+
+Atualização focada no editor móvel, em recursos que funcionam offline e em mecânicas que antes exigiam escrever código.
+
+### Novidades
+- **Componentes sem script:** girar, flutuar, patrulhar, perseguir o jogador, coletável com pontuação/respawn, dano, portal entre cenas, impulso, partículas 2D e checkpoints. Compatível com projetos de Blocos e Scripts.
+- **Vida e HUD:** barra de vida, pontos, mensagens de jogo, renascimento e checkpoint. Configure em 🎮 Jogo. Suporte a zoom inicial, suavização da câmera, nitidez pixel, tamanho e transparência dos botões mobile.
+- **Script API:** `api.addScore(n)`, `api.score()`, `api.getHealth()`, `api.setHealth(n)`, `api.damage(n)`, `api.heal(n)`, `api.message(t)`, `api.cameraShake(n)`, `api.getByTag(t)`, `api.getAll(t)`, `api.distance(a,b)`, `api.overlap(a,b)`, `api.saveData(k,v)`, `api.loadData(k,padrão)`, `api.emitParticles(x,y,n,cor)`, `api.respawn()`. O armazenamento `saveData/loadData` depende de permissões da WebView e pode não persistir em prévias isoladas.
+- **Modelagem 3D:** mais primitivas — pirâmide, cone, toro e cápsula. Importação de arquivos OBJ leves, renderização WebGL com fallback por canvas quando suportado. Triângulos limitados para proteger celulares. Materiais PBR, glTF, rigging, skeletal animation e FBX ainda não estão implementados.
+- **Mapas 2D:** tiles podem utilizar imagens locais importadas em vez de somente cores.
+- **Pixel Studio:** desenhos salvos na instalação atual podem ser convertidos em PNG e importados diretamente nos Arquivos da engine.
+- **Usabilidade:** central 🧰 Ferramentas com busca e botões grandes; pesquisa na lista de objetos e arquivos; atalhos para focar, duplicar e criar; inspector com tags/vida/opacidade, opções renomear/exportar arquivo, diagnóstico de sintaxe e melhor rolagem mobile.
+- **Proteção de projetos:** troca de modo 2D ↔ Pixel preserva objetos e cenas existentes. Ainda há limitações ao trocar 2D ↔ 3D; exporte backups antes de fazer conversões.
+- **Sem IA paga**, sem assinaturas e sem necessidade de conta.
+
+### Como usar
+1. Abra 🧰 **Ferramentas** na navegação inferior e procure qualquer função por nome.
+2. Selecione um objeto → ⚡ **Componentes** → escolha um comportamento e toque em Adicionar.
+3. Configure vida, pontuação e controles em **🎮 Jogo**.
+4. Para um modelo 3D, importe um arquivo **.OBJ** em Arquivos e toque em ⬟ para colocá-lo na cena.
+5. No Mapa 2D, use **Imagem do tile** e escolha uma imagem do projeto.
+6. Em **Sprites salvos**, escolha um desenho previamente salvo no Pixel Studio.
+
+### Limites / segurança
+- A engine continua uma **Alpha** e não substitui Godot/Unity. A física e colisões ainda são simplificadas, e não há PBR, rigging, multiplayer ou compilação nativa de Python/C#/Lua.
+- Projetos importados HTML5 seguem sendo executados isoladamente; código HTML5 externo não é transformado em nós editáveis.
+- **A versão 0.8 instala ao lado da 0.7** porque as versões debug antigas não possuem uma chave de assinatura persistente. Exportar JSON e importar na nova instalação é o caminho seguro para migrar jogos; não desinstale versões antigas antes de verificar os backups.

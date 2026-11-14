@@ -125,3 +125,41 @@ html.ax-native-safe:not(.ax-immersive) .topbar{padding-top:max(26px,var(--ax-saf
  .mobile-nav{touch-action:pan-x;overscroll-behavior-x:contain}
  .mobile-nav button{min-height:48px}
 }
+
+/* Alpha 0.8 — mobile accessibility and overflow prevention */
+#menuPopover{max-height:min(76dvh,680px);overflow-y:auto;overscroll-behavior:contain;padding-bottom:max(8px,env(safe-area-inset-bottom))}
+#menuPopover button{min-height:46px;font-size:12px}
+#leftPanel,#rightPanel{min-height:0}
+#leftPanel .tab-body,#rightPanel .inspector-scroll{min-height:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior-y:contain;-webkit-overflow-scrolling:touch}
+#leftPanel .navtabs{flex-shrink:0;scrollbar-width:thin}
+#leftPanel .navtabs button{min-height:43px}
+#tabObjects,#tabAssets,#tabCode{max-height:100%;overflow-x:hidden;overflow-y:auto}
+.object-row,.asset-row{min-width:0}
+.object-row .name,.asset-row .info{min-width:0;overflow:hidden;text-overflow:ellipsis}
+.object-row .name{overflow-wrap:anywhere}
+.asset-row{flex-wrap:wrap;gap:5px}
+.asset-row button{min-width:42px;min-height:43px}
+.inspector-group{min-width:0}
+.inspector-group .field,.inspector-group .field-row{min-width:0}
+.inspector-group input:not([type=checkbox]),.inspector-group select{width:100%;min-width:0;max-width:100%}
+#toolboxNavBtn{background:color-mix(in srgb,var(--ax-primary,#71e7d5) 20%,#1a2b42);border-color:var(--ax-primary,#71e7d5);color:#d9fff9}
+#tabCode #scriptEditor{min-height:40dvh;font-size:13px;line-height:1.5;white-space:pre;overflow:auto;tab-size:2}
+#ax08Check{min-height:25px}
+#tabPixel canvas{display:block;max-width:100%;height:auto;touch-action:none}
+#pixelPalette{display:grid;grid-template-columns:repeat(auto-fit,minmax(35px,1fr));gap:5px}
+#pixelPalette button{min-width:0;width:100%;max-width:100%;aspect-ratio:1/1;height:auto}
+@media(pointer:coarse) and (orientation:landscape){
+ #leftPanel{width:min(360px,90vw)}
+ #rightPanel{width:min(370px,91vw)}
+ #leftPanel .navtabs{max-height:110px;overflow-y:auto}
+ .sidebar .tab-body.active{overflow-x:hidden;overflow-y:auto}
+ .mobile-nav{min-height:52px}
+ .mobile-nav button{min-height:50px}
+ #menuPopover{max-height:calc(100dvh - 86px);right:max(5px,env(safe-area-inset-right))}
+}
+@media(max-width:560px){
+ .field-row.tri{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px}
+ .field-row.tri .field input{font-size:12px;padding:8px 5px}
+ .top-actions{flex:0 0 auto;gap:4px}
+ .top-actions button{min-width:41px}
+}
