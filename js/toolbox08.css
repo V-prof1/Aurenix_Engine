@@ -1,0 +1,22 @@
+/* Mobile toolbox 0.8 — large touch targets and accessible feature search */
+.ax-toolbox-overlay{position:fixed;inset:0;z-index:680;background:#06101de8;display:flex;align-items:center;justify-content:center;padding:max(10px,env(safe-area-inset-top)) max(10px,env(safe-area-inset-right)) max(10px,env(safe-area-inset-bottom)) max(10px,env(safe-area-inset-left))}
+.ax-toolbox-overlay.hidden{display:none!important}
+.ax-toolbox-shell{display:flex;flex-direction:column;max-height:calc(100dvh - 24px);width:min(790px,100%);border-radius:18px;border:1px solid #45647d;background:#101e33;box-shadow:0 14px 70px #0008;overflow:hidden}
+.ax-toolbox-shell header{padding:16px 17px 8px;display:flex;gap:12px;align-items:flex-start;justify-content:space-between}
+.ax-toolbox-shell header h2{font-size:clamp(18px,3vw,26px);margin:4px 0}
+.ax-toolbox-shell header small{color:var(--ax-primary,#60e6d6);font-size:10px;font-weight:850;letter-spacing:2px}
+.ax-toolbox-shell header p{font-size:12px;color:#afc4d9;line-height:1.45;margin:5px 0 0}
+.ax-toolbox-shell button{cursor:pointer}
+#axToolboxClose{min-height:48px;min-width:48px;flex:0 0 48px;border:1px solid #52657d;border-radius:11px;background:#25374b;color:#eef9ff;font-size:20px}
+#axToolboxSearch{margin:10px 16px;padding:12px;min-height:51px;border:1px solid #4b6b85;border-radius:11px;background:#0c1829;color:#f0ffff;font:14px system-ui}
+.ax-toolbox-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;padding:10px 15px 19px;overflow-y:auto;min-height:0;overscroll-behavior:contain}
+.ax-toolbox-list button{display:flex;align-items:center;gap:10px;min-height:69px;text-align:left;border-radius:12px;border:1px solid #304b61;background:#182c42;color:#e4f6fa;padding:10px}
+.ax-toolbox-list button:active,.ax-toolbox-list button:focus-visible{outline:2px solid var(--ax-primary,#6ae2d3)}
+.ax-toolbox-ico{display:grid;place-items:center;flex:0 0 42px;width:42px;height:42px;background:#284b55;color:#e8fffc;border-radius:10px;font-size:21px}
+.ax-toolbox-list button>span:nth-child(2){flex:1;min-width:0}
+.ax-toolbox-list strong{display:block;font-size:13px;white-space:normal;line-height:1.25}
+.ax-toolbox-list small{display:block;color:#9ebad0;font-size:10px;line-height:1.35;margin-top:3px}
+.ax-toolbox-list button>b{font-size:22px;color:var(--ax-primary,#69e5d5)}
+.ax-toolbox-empty{color:#a8bbc9;font-size:12px;padding:18px;text-align:center;grid-column:1/-1}
+@media(max-width:590px){.ax-toolbox-list{grid-template-columns:1fr;gap:6px}.ax-toolbox-list button{min-height:62px}.ax-toolbox-shell header{padding:13px}.ax-toolbox-shell header p{font-size:11px}.ax-toolbox-list{padding:8px 11px 18px}}
+@media(pointer:coarse) and (orientation:landscape){.ax-toolbox-list{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}.ax-toolbox-shell header{padding:9px 15px 5px}.ax-toolbox-shell header h2{font-size:18px}.ax-toolbox-list button{min-height:57px;padding:6px 8px}.ax-toolbox-ico{flex-basis:37px;width:37px;height:37px}.ax-toolbox-shell{max-height:calc(100dvh - 12px)}}
