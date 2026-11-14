@@ -69,11 +69,11 @@ function moveScene(p,id,delta){
  [p.scenes[a],p.scenes[b]]=[p.scenes[b],p.scenes[a]];return true;
 }
 function tileAt(p,x,y){const t=p.tilemap||freshTilemap();return t.cells[x+','+y]||null;}
-function setTile(p,x,y,{color='#639c72',solid=false,erase=false}={}){
+function setTile(p,x,y,{color='#639c72',solid=false,erase=false,assetId=''}={}){
  p.tilemap||=freshTilemap();const t=p.tilemap,key=Math.floor(x)+','+Math.floor(y);
  if(erase){if(t.cells[key]){delete t.cells[key];return true;}return false;}
  if(!/^#[0-9a-fA-F]{6}$/.test(color))throw Error('Cor de tile inválida');
- const next={color,solid:!!solid};if(t.cells[key]?.color===color&&t.cells[key]?.solid===next.solid)return false;
+ const next={color,solid:!!solid};if(assetId)next.assetId=String(assetId).slice(0,80);if(t.cells[key]?.color===color&&t.cells[key]?.solid===next.solid&&t.cells[key]?.assetId===(next.assetId||undefined))return false;
  if(Object.keys(t.cells).length>10000&&!t.cells[key])throw Error('Limite de 10 mil tiles por cena');
  t.cells[key]=next;return true;
 }
@@ -131,7 +131,7 @@ function createFromPrefab(p,id,newId=uid){
  p.objects.push(o);return o;
 }
 function removePrefab(id){localStorage.setItem(PREFAB_KEY,JSON.stringify(prefabs().filter(x=>x.id!==id)));}
-let ui=null,config={},tool='brush',paintColor='#62c99a',paintSolid=true,preview=null,raf=0,activeTab='scenes',dragPaint=false;
+let ui=null,config={},tool='brush',paintColor='#62c99a',paintSolid=true,paintAssetId='',preview=null,raf=0,activeTab='scenes',dragPaint=false;
 function getProject(){return config.getProject?.();}
 function touch(){config.onChange?.();}
 function history(){config.onHistory?.();}
@@ -158,6 +158,7 @@ function renderTiles(){
  (is3d?'<div class="ax-studio-help">O pintor de tiles é exclusivo dos projetos 2D e pixel. Para cenários 3D, use os objetos do editor.</div>':
  '<div class="ax-studio-buttons"><button data-tilestool="brush" class="'+(tool==='brush'?'chosen':'')+'">✎ Pincel</button><button data-tilestool="erase" class="'+(tool==='erase'?'chosen':'')+'">⌫ Borracha</button></div>'+
  '<div class="ax-studio-field"><label>Cor do tile</label><input type="color" id="axTileColor" value="'+paintColor+'"></div>'+
+ '<div class="ax-studio-field"><label>Imagem do tile (opcional)</label><select id="axTileAsset"><option value="">Cor sólida</option>'+(p.assets||[]).filter(a=>String(a.type||'').startsWith('image/')).map(a=>'<option value="'+esc(a.id)+'" '+(paintAssetId===a.id?'selected':'')+'>'+esc(a.name)+'</option>').join('')+'</select></div>'+
  '<div class="ax-studio-field"><label>Tamanho da célula (px)</label><select id="axTileSize">'+[8,16,24,32,48,64,96,128].map(s=>'<option value="'+s+'" '+(t.size===s?'selected':'')+'>'+s+' × '+s+'</option>').join('')+'</select></div>'+
  '<label class="ax-studio-check"><input type="checkbox" id="axTileSolid" '+(paintSolid?'checked':'')+'> ⬛ Tile sólido (colisão)</label>'+
  '<div class="ax-studio-pal">'+['#3d8e67','#5caa78','#3173a8','#b1a268','#8c6649','#7c86a6','#c48472','#2b4251','#171e36','#d0b979','#e9f5fa','#534557'].map(c=>'<button data-tilecolor="'+c+'" style="--swatch:'+c+'" title="'+c+'"></button>').join('')+'</div>'+
@@ -235,6 +236,7 @@ function onChange(e){
  const p=getProject();if(!p)return;
  const id=e.target.id;
  if(id==='axTileColor'){paintColor=e.target.value;return;}
+ if(id==='axTileAsset'){paintAssetId=e.target.value;return;}
  if(id==='axTileSolid'){paintSolid=e.target.checked;return;}
  if(id==='axTileSize'){history();p.tilemap||=freshTilemap();p.tilemap.size=Number(e.target.value);touch();return;}
  const o=config.getSelected?.(),clip=clipSelected();
@@ -251,7 +253,7 @@ function onChange(e){
 function paintPointer(worldX,worldY,{erase=false}={}){
  const p=getProject();if(!p||p.mode==='3d'||p.mode==='html5')return false;
  const {x,y}=snapCell(p,worldX,worldY);
- try{const changed=setTile(p,x,y,{color:paintColor,solid:paintSolid,erase:erase||tool==='erase'});if(changed){touch();return true;}}catch(e){notify(e.message);}return false;
+ try{const changed=setTile(p,x,y,{color:paintColor,solid:paintSolid,assetId:paintAssetId,erase:erase||tool==='erase'});if(changed){touch();return true;}}catch(e){notify(e.message);}return false;
 }
 function initialize(opts){
  config=opts;for(const id of ['tabScenes','tabTiles','tabAnimation','tabPrefabs'])if(!$(id))console.warn('[Aurenix Studio] Painel ausente:',id);
