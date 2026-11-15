@@ -333,7 +333,7 @@ global.AurenixStudio07={
  freshTilemap,tileAt,setTile,snapCell,keyPose,ensureAnimations,addClip,addKeyframe,interpolate,
  savePrefab,createFromPrefab,prefabs,removePrefab,
  initialize,renderAll,renderScenes,renderTiles,renderAnimations,renderPrefabs,
- easeProgress,scrubTo,pausePreview,isPreviewing,
+ easeProgress,scrubTo,playPreview,pausePreview,isPreviewing,
  paintPointer,stopPreview,get paintColor(){return paintColor;},get paintSolid(){return paintSolid;}
 };
 })(window);
