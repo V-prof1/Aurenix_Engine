@@ -11,6 +11,7 @@ function toast(msg){
 async function back(){
  try{
   if(global.AurenixToolbox?.isOpen?.()){global.AurenixToolbox.close();return 'toolbox';}
+  if(global.AurenixStudio07?.isPreviewing?.()){global.AurenixStudio07.stopPreview();return 'animation';}
   if(global.AurenixTheme?.isOpen?.()){global.AurenixTheme.close();return 'theme';}
   const play=document.getElementById('playOverlay');
   if(shown(play)){
