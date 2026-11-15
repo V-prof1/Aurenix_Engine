@@ -9,6 +9,14 @@ const uid=()=> 'ax'+Math.random().toString(36).slice(2,10);
 const props=['x','y','z','w','h','d','rotation','rx','ry','rz','opacity'];
 const n=(x,d=0)=>Number.isFinite(Number(x))?Number(x):d;
 const clamp=(x,a,b)=>Math.min(b,Math.max(a,n(x,a)));
+function easeProgress(t,mode='linear'){
+ t=clamp(t,0,1);
+ if(mode==='in')return t*t;
+ if(mode==='out')return 1-(1-t)*(1-t);
+ if(mode==='smooth')return t*t*(3-2*t);
+ if(mode==='step')return t<1?0:1;
+ return t;
+}
 const freshTilemap=()=>({size:32,cells:{}});
 const sceneKeys=['objects','background','grid','gravity','gravity3d','genre','script','blocks','tilemap'];
 const capture=(project,id,name)=>({
@@ -85,7 +93,7 @@ function keyPose(o){const r={};for(const key of props)r[key]=n(o[key],key==='opa
 function ensureAnimations(o){if(!Array.isArray(o.animations))o.animations=[];return o.animations;}
 function addClip(o,name='Animação'){
  const list=ensureAnimations(o);if(list.length>=24)throw Error('Máximo de 24 animações por objeto');
- const clip={id:uid(),name:String(name).slice(0,50),duration:1,loop:true,autoplay:true,
+ const clip={id:uid(),name:String(name).slice(0,50),duration:1,loop:true,autoplay:true,ease:'linear',speed:1,
  keyframes:[{time:0,...keyPose(o)},{time:1,...keyPose(o)}]};
  list.push(clip);o.activeAnimation=clip.id;return clip;
 }
@@ -109,7 +117,7 @@ function interpolate(clip,seconds){
  if(t>=end.time)return Object.fromEntries(props.map(p=>[p,n(end[p],0)]));
  let prev=start,next=end;
  for(let i=1;i<keys.length;i++)if(keys[i].time>=t){prev=keys[i-1];next=keys[i];break;}
- const a=clamp((t-prev.time)/Math.max(.0001,next.time-prev.time),0,1),result={};
+ const a=easeProgress((t-prev.time)/Math.max(.0001,next.time-prev.time),clip.ease),result={};
  for(const prop of props)result[prop]=n(prev[prop])+(n(next[prop])-n(prev[prop]))*a;
  return result;
 }
@@ -131,7 +139,7 @@ function createFromPrefab(p,id,newId=uid){
  p.objects.push(o);return o;
 }
 function removePrefab(id){localStorage.setItem(PREFAB_KEY,JSON.stringify(prefabs().filter(x=>x.id!==id)));}
-let ui=null,config={},tool='brush',paintColor='#62c99a',paintSolid=true,paintAssetId='',preview=null,raf=0,activeTab='scenes',dragPaint=false;
+let ui=null,config={},tool='brush',paintColor='#62c99a',paintSolid=true,paintAssetId='',preview=null,raf=0,activeTab='scenes',dragPaint=false,scrubTime=0,playing=false,previewToken=0;
 function getProject(){return config.getProject?.();}
 function touch(){config.onChange?.();}
 function history(){config.onHistory?.();}
@@ -178,11 +186,17 @@ function renderAnimations(){
  '<div class="ax-studio-field"><label>Duração (segundos)</label><input id="axClipDuration" type="number" min=".1" max="120" step=".1" value="'+clip.duration+'"></div>'+
  '<label class="ax-studio-check"><input id="axClipLoop" type="checkbox" '+(clip.loop?'checked':'')+'> Repetir em loop</label>'+
  '<label class="ax-studio-check"><input id="axClipAuto" type="checkbox" '+(clip.autoplay?'checked':'')+'> Começar automaticamente</label>'+
+ '<div class="ax-studio-field"><label>Interpolação entre keyframes</label><select id="axClipEase">'+[['linear','Linear'],['smooth','Suave'],['in','Acelerar'],['out','Desacelerar'],['step','Quadros discretos']].map(([value,name])=>'<option value="'+value+'" '+(clip.ease===value?'selected':'')+'>'+name+'</option>').join('')+'</select></div>'+
+ '<div class="ax-studio-field"><label>Velocidade da animação</label><select id="axClipSpeed">'+[[.25,'0,25×'],[.5,'0,5×'],[1,'1× Normal'],[1.5,'1,5×'],[2,'2×'],[3,'3×']].map(([value,name])=>'<option value="'+value+'" '+((clip.speed||1)===value?'selected':'')+'>'+name+'</option>').join('')+'</select></div>'+
+ '<div class="ax09-timeline" aria-label="Linha do tempo da animação"><div class="ax09-timeline-head"><b>LINHA DO TEMPO</b><output id="ax09TimeLabel">'+scrubTime.toFixed(2)+'s / '+Number(clip.duration).toFixed(2)+'s</output></div>'+
+ '<div class="ax09-timeline-track">'+(clip.keyframes||[]).map((k,i)=>'<button title="Ir para '+Number(k.time).toFixed(2)+' segundos" data-preview="'+i+'" class="ax09-key" style="left:'+clamp(100*k.time/Math.max(.1,clip.duration),0,100)+'%" aria-label="Keyframe '+(i+1)+'"></button>').join('')+'</div>'+
+ '<input id="ax09Scrub" type="range" min="0" max="'+clip.duration+'" step="0.01" value="'+clamp(scrubTime,0,clip.duration)+'" aria-label="Percorrer animação com o dedo">'+
+ '<div class="ax09-playback"><button data-action="playPreview">▶ Reproduzir</button><button data-action="pausePreview">⏸ Pausar</button><button data-action="stopPreview">■ Restaurar</button></div></div>'+
  '<div class="ax-studio-field"><label>Tempo da keyframe</label><input id="axKeyTime" type="number" min="0" max="'+clip.duration+'" step=".1" value="'+Math.round(clip.duration/2*10)/10+'"></div>'+
  '<div class="ax-studio-buttons"><button data-action="captureKey">◆ Capturar pose atual</button><button data-action="deleteClip">✕ Excluir animação</button></div>'+
  '<p class="ax-studio-help">Mova ou redimensione o objeto no Inspetor. Depois capture a pose no tempo escolhido. Os valores mudam suavemente entre as keyframes.</p>'+
  '<div class="ax-studio-frames">'+(clip.keyframes||[]).map((k,i)=>'<div class="ax-studio-frame"><span>◆ '+Number(k.time).toFixed(2)+' s</span><button data-preview="'+i+'">👁 Ver pose</button><button data-key-delete="'+i+'">✕</button></div>').join('')+'</div>'+
- '<div class="ax-studio-buttons"><button data-action="playPreview">▶ Prévia</button><button data-action="stopPreview">■ Restaurar pose</button></div>':
+ '<p class="ax-studio-help">Toque nos marcadores ◆ ou arraste a linha do tempo para ver cada pose. Use Capturar pose para inserir ou substituir o quadro no tempo escolhido.</p>':
  '<div class="ax-studio-help">Adicione a primeira animação. Você poderá criar várias para o mesmo objeto.</div>')+
  '<div class="ax-studio-help">Em Scripts: <code>api.playAnimation(self,"Nome")</code> e <code>api.stopAnimation(self)</code>. Em Blocos: use as ações de animação.</div>';
 }
@@ -194,15 +208,53 @@ function renderPrefabs(){
  '<p class="ax-studio-help">Armazenados no próprio aplicativo. Para usar prefabs de outro modo de programação, crie um prefab compatível.</p>';
 }
 function renderAll(){renderScenes();renderTiles();renderAnimations();renderPrefabs();}
+function pausePreview(){
+ playing=false;previewToken++;
+ if(raf){cancelAnimationFrame(raf);raf=0;}
+}
 function stopPreview(){
- if(raf)cancelAnimationFrame(raf);raf=0;
- if(preview){const obj=config.getSelected?.();if(obj&&obj.id===preview.id)Object.assign(obj,preview.pose);preview=null;}
+ pausePreview();
+ if(preview){
+  const o=config.getSelected?.();
+  if(o?.id===preview.id)Object.assign(o,preview.pose);
+  preview=null;config.onVisualUpdate?.();
+ }
+}
+function isPreviewing(){return !!preview||playing;}
+function updateScrubUI(){
+ const bar=$('ax09Scrub'),label=$('ax09TimeLabel'),clip=clipSelected();
+ if(bar)bar.value=String(clamp(scrubTime,0,clip?.duration||1));
+ if(label)label.textContent=scrubTime.toFixed(2)+'s / '+Number(clip?.duration||1).toFixed(2)+'s';
 }
 function previewClip(clip,time){
  const o=config.getSelected?.();if(!o)return;
  if(!preview||preview.id!==o.id){stopPreview();preview={id:o.id,pose:keyPose(o)};}
- const pose=interpolate(clip,time);if(pose)Object.assign(o,pose);
+ const pose=interpolate({...clip,loop:false},time);
+ if(pose)Object.assign(o,pose);
  config.onVisualUpdate?.();
+}
+function playPreview(){
+ const clip=clipSelected();if(!clip)return;
+ pausePreview();playing=true;
+ const token=previewToken,start=performance.now(),from=scrubTime;
+ const tick=now=>{
+  if(!playing||token!==previewToken)return;
+  const elapsed=(now-start)*.001*clamp(clip.speed??1,.1,5);
+  const max=clamp(clip.duration,.1,120);
+  const time=from+elapsed;
+  if(!clip.loop&&time>=max){
+   scrubTime=max;previewClip(clip,scrubTime);updateScrubUI();pausePreview();return;
+  }
+  scrubTime=clip.loop?time%max:time;
+  previewClip(clip,scrubTime);updateScrubUI();
+  raf=requestAnimationFrame(tick);
+ };
+ raf=requestAnimationFrame(tick);
+}
+function scrubTo(time){
+ const clip=clipSelected();if(!clip)return;
+ pausePreview();scrubTime=clamp(time,0,Math.max(.1,clip.duration));
+ previewClip(clip,scrubTime);updateScrubUI();
 }
 function onClick(e){
  const p=getProject();if(!p||!e.target.closest('#tabScenes,#tabTiles,#tabAnimation,#tabPrefabs'))return;
@@ -216,6 +268,16 @@ function onClick(e){
   if(el.dataset.tilestool){tool=el.dataset.tilestool;renderTiles();return;}
   if(el.dataset.placePrefab){history();const obj=createFromPrefab(p,el.dataset.placePrefab);config.selectObject?.(obj.id);touch();renderAll();notify('Objeto reutilizável adicionado');return;}
   if(el.dataset.removePrefab){if(confirm('Excluir este prefab salvo?')){removePrefab(el.dataset.removePrefab);renderPrefabs();}return;}
+  if(el.dataset.preview!==undefined){
+   const clip=clipSelected(),key=clip?.keyframes?.[Number(el.dataset.preview)];
+   if(key){scrubTo(key.time);const t=$('axKeyTime');if(t)t.value=String(key.time);}
+   return;
+  }
+  if(el.dataset.keyDelete!==undefined){
+   const clip=clipSelected(),index=Number(el.dataset.keyDelete);
+   if(!clip||!clip.keyframes?.[index])return;
+   stopPreview();history();clip.keyframes.splice(index,1);touch();renderAnimations();return;
+  }
   const action=el.dataset.action;
   if(!action)return;
   if(action==='newScene'||action==='cloneScene'){history();const created=createScene(p,{duplicate:action==='cloneScene'});config.onSceneChanged?.();touch();renderAll();notify('Cena '+created.name+' criada');}
@@ -225,11 +287,12 @@ function onClick(e){
   if(action==='addClip'){const o=config.getSelected?.();if(!o)return;history();addClip(o);touch();renderAnimations();}
   if(action==='cloneClip'){const o=config.getSelected?.(),clip=clipSelected();if(!clip)return;history();const next=clone(clip);next.id=uid();next.name+=' cópia';o.animations.push(next);o.activeAnimation=next.id;touch();renderAnimations();}
   if(action==='deleteClip'){const o=config.getSelected?.(),clip=clipSelected();if(!clip||!confirm('Excluir esta animação?'))return;stopPreview();history();o.animations=o.animations.filter(c=>c.id!==clip.id);o.activeAnimation=o.animations[0]?.id||'';touch();renderAnimations();}
-  if(action==='captureKey'){const o=config.getSelected?.(),clip=clipSelected();if(!clip)return;stopPreview();history();addKeyframe(o,clip,$('axKeyTime').value);touch();renderAnimations();notify('Keyframe capturada');}
+  if(action==='captureKey'){const o=config.getSelected?.(),clip=clipSelected();if(!clip)return;stopPreview();history();const t=$('axKeyTime').value;addKeyframe(o,clip,t);scrubTime=clamp(t,0,clip.duration);touch();renderAnimations();notify('Keyframe capturada');}
   if(action==='stopPreview'){stopPreview();renderAnimations();}
-  if(action==='playPreview'){const clip=clipSelected();if(!clip)return;stopPreview();const start=performance.now();function run(now){if(!preview&&now>start+clip.duration*1000+40)return;previewClip(clip,(now-start)/1000);if(!clip.loop&&(now-start)/1000>=clip.duration){stopPreview();renderAnimations();return;}raf=requestAnimationFrame(run);}raf=requestAnimationFrame(run);}
-  if(el.dataset.preview!==undefined){const clip=clipSelected();if(clip)previewClip({...clip,loop:false},clip.keyframes[Number(el.dataset.preview)].time);}
-  if(el.dataset.keyDelete!==undefined){const clip=clipSelected();if(!clip)return;history();clip.keyframes.splice(Number(el.dataset.keyDelete),1);touch();renderAnimations();}
+  if(action==='pausePreview'){pausePreview();}
+
+  if(action==='playPreview')playPreview();
+
  }catch(err){notify(err.message||'Erro ao executar ação');console.error(err);}
 }
 function onChange(e){
@@ -242,13 +305,18 @@ function onChange(e){
  const o=config.getSelected?.(),clip=clipSelected();
  if(!o)return;
  if(id==='axClipChoice'){stopPreview();o.activeAnimation=e.target.value;touch();renderAnimations();return;}
- if(!clip||!['axClipName','axClipDuration','axClipLoop','axClipAuto'].includes(id))return;
+ if(!clip||!['axClipName','axClipDuration','axClipLoop','axClipAuto','axClipEase','axClipSpeed'].includes(id))return;
  history();
  if(id==='axClipName')clip.name=e.target.value.trim().slice(0,60)||'Animação';
  if(id==='axClipDuration')clip.duration=clamp(e.target.value,.1,120);
  if(id==='axClipLoop')clip.loop=e.target.checked;
  if(id==='axClipAuto')clip.autoplay=e.target.checked;
+ if(id==='axClipEase')clip.ease=['linear','smooth','in','out','step'].includes(e.target.value)?e.target.value:'linear';
+ if(id==='axClipSpeed')clip.speed=clamp(e.target.value,.1,5);
  touch();renderAnimations();
+}
+function onInput(e){
+ if(e.target.id==='ax09Scrub')scrubTo(e.target.value);
 }
 function paintPointer(worldX,worldY,{erase=false}={}){
  const p=getProject();if(!p||p.mode==='3d'||p.mode==='html5')return false;
@@ -257,7 +325,7 @@ function paintPointer(worldX,worldY,{erase=false}={}){
 }
 function initialize(opts){
  config=opts;for(const id of ['tabScenes','tabTiles','tabAnimation','tabPrefabs'])if(!$(id))console.warn('[Aurenix Studio] Painel ausente:',id);
- document.addEventListener('click',onClick);document.addEventListener('change',onChange);
+ document.addEventListener('click',onClick);document.addEventListener('change',onChange);document.addEventListener('input',onInput);
  renderAll();
 }
 global.AurenixStudio07={
@@ -265,6 +333,7 @@ global.AurenixStudio07={
  freshTilemap,tileAt,setTile,snapCell,keyPose,ensureAnimations,addClip,addKeyframe,interpolate,
  savePrefab,createFromPrefab,prefabs,removePrefab,
  initialize,renderAll,renderScenes,renderTiles,renderAnimations,renderPrefabs,
+ easeProgress,scrubTo,pausePreview,isPreviewing,
  paintPointer,stopPreview,get paintColor(){return paintColor;},get paintSolid(){return paintSolid;}
 };
 })(window);
