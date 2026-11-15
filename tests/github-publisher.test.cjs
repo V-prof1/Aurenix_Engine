@@ -81,6 +81,8 @@ test('Autenticacao, criacao de repositorio e commit atomic funcionam com API sim
  G.forget();assert.equal(G.state().connected,false);
 });
 test('UI fornece acesso no celular e encerra usando o botao Voltar',()=>{
+ assert.match(source('index.html'),/ALPHA 0\.10/);
+ assert.match(source('js/home.js'),/ALPHA 0\.10/);
  const html=source('index.html'),editor=source('js/editor.js'),back=source('js/back.js'),tb=source('js/toolbox08.js');
  for(const file of ['github-build.js','github-account.js','github-publisher-ui.js','github-oauth-config.js','github-publisher.css'])assert.ok(html.includes(file),file);
  assert.ok(html.includes('menuGithubAPK'));
