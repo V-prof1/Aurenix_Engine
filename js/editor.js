@@ -14,7 +14,7 @@ const axis3d=window.AurenixAxis3D?.create($('axisCanvas'),({axis,yaw,pitch})=>{
 });
 
 const gizmo3d=window.AurenixGizmo?.create({
- viewport,scene3dCanvas,getProject:()=>project,getSelected:selected,getRenderer:()=>webgl,
+ viewport,scene3dCanvas,getProject:()=>project,getSelected:selected,getRenderer:()=>webgl,getCamera:()=>camera3,
  onStart:historyPush,onChange:markDirty,onEnd:()=>{renderInspector();renderObjects();S?.renderAnimations();},getSnap:()=>snap,getTool:()=>tool
 });
 const validColor=s=>/^#[a-f\d]{6}$/i.test(s||'')?s:'#6fcddd';
@@ -24,7 +24,7 @@ function historyPush(){history.push(JSON.stringify(project));if(history.length>3
 function undo(){gizmo3d?.cancel?.();S?.stopPreview?.();if(!history.length)return;future.push(JSON.stringify(project));project=JSON.parse(history.pop());syncAll();markDirty();}
 function redo(){gizmo3d?.cancel?.();S?.stopPreview?.();if(!future.length)return;history.push(JSON.stringify(project));project=JSON.parse(future.pop());syncAll();markDirty();}
 function touchProject(){markDirty();renderObjects();renderInspector();renderSummary();S?.renderAnimations();S?.renderPrefabs();E?.renderComponents();}
-function setProject(p){gizmo3d?.cancel?.();pointerMap.clear();drag=null;S?.stopPreview();project=p;tool='select';window.AurenixHome?.close();project.programming=project.programming==='blocks'?'blocks':'script';if(project.programming==='blocks')window.AurenixBlocks?.compileAll(project);project.id||=R.uid();project.assets||=[];project.objects||=[];project.mode||='2d';project.background||='#101c31';project.grid||=32;project.gravity??=1100;project.genre||='platformer';E?.loadDefaults(project);S?.ensureScenes(project);selectedId=project.objects.find(o=>o.type==='player2d'||o.type==='player3d')?.id||project.objects[0]?.id||'';history=[];future=[];camera2=initialCamera2(project);camera3={target:[0,0,0],yaw:.7,pitch:.63,distance:17};externalHash='';ensurePixel();syncAll();markDirty();}
+function setProject(p){gizmo3d?.cancel?.();pointerMap.clear();drag=null;S?.stopPreview();project=p;tool='select';document.querySelectorAll('[data-tool]').forEach(b=>b.classList.toggle('active',b.dataset.tool==='select'));window.AurenixHome?.close();project.programming=project.programming==='blocks'?'blocks':'script';if(project.programming==='blocks')window.AurenixBlocks?.compileAll(project);project.id||=R.uid();project.assets||=[];project.objects||=[];project.mode||='2d';project.background||='#101c31';project.grid||=32;project.gravity??=1100;project.genre||='platformer';E?.loadDefaults(project);S?.ensureScenes(project);selectedId=project.objects.find(o=>o.type==='player2d'||o.type==='player3d')?.id||project.objects[0]?.id||'';history=[];future=[];camera2=initialCamera2(project);camera3={target:[0,0,0],yaw:.7,pitch:.63,distance:17};externalHash='';ensurePixel();syncAll();markDirty();}
 function initialCamera2(p){const player=p.objects?.find(o=>o.type==='player2d');if(window.innerWidth<=650&&player)return {x:player.x+50,y:player.y-100,zoom:1};return {x:0,y:50,zoom:1};}
 function syncAll(){$('projectName').value=project.name||'Projeto';images=R.imgMap(project);renderObjects();renderAssets();renderInspector();renderSummary();renderProjects();syncMode();updateScriptUI();window.AurenixAudio?.render();S?.renderAll();E?.renderAll();}
 function syncMode(){const is3d=project.mode==='3d',isHTML=project.mode==='html5';document.body.classList.toggle('ax-mode-3d',is3d);sceneCanvas.classList.toggle('hidden',is3d||isHTML);scene3dCanvas.classList.toggle('hidden',!is3d);externalView.classList.toggle('hidden',!isHTML);document.querySelectorAll('[data-mode]').forEach(b=>b.classList.toggle('active',b.dataset.mode===project.mode));$('viewTag').innerHTML=(is3d?'⬡ EDITOR 3D':isHTML?'⌘ PROJETO HTML5':project.mode==='pixel'?'▦ PIXEL ART':'◇ EDITOR 2D')+' <span>• '+esc((project.scenes||[]).find(x=>x.id===project.activeSceneId)?.name||'Cena 1')+'</span>';$('viewHint').textContent=is3d?'Selecione e use Mover XYZ, Girar ou Escalar • 2 dedos para zoom':isHTML?'Prévia HTML5 isolada • Edite o HTML na aba Código':'Toque para selecionar • Arraste para mover • Pinça para zoom';$('axisGizmo').style.display=is3d?'flex':'none';if(isHTML)refreshExternal();}
@@ -191,7 +191,7 @@ function startPointer(e){
  if(project.mode==='html5')return;
  if(e.button===2)e.preventDefault();
  pointerMap.set(e.pointerId,{x:e.clientX,y:e.clientY});
- if(pointerMap.size>=2){drag={kind:'pinch',dist:getPinchDist(),zoom:project.mode==='3d'?camera3.distance:camera2.zoom};return;}
+ if(pointerMap.size>=2){drag={kind:'pinch',...getPinchState(),zoom:project.mode==='3d'?camera3.distance:camera2.zoom,cam2:{...camera2},cam3:{...camera3,target:[...camera3.target]}};return;}
  viewport.setPointerCapture(e.pointerId);
  const p=project.mode==='3d'?null:screenToWorld(e),hit=project.mode==='3d'?detect3d(e):detect2d(p);
  const pan=tool==='pan'||e.button===1||e.button===2;
@@ -206,9 +206,23 @@ function startPointer(e){
   orig:hit?{x:hit.x,y:hit.y,z:hit.z}:null,cam2:{...camera2},cam3:{...camera3,target:[...camera3.target]},
   hitId:hit?.id,wasSelected,changed:false};
 }
-function getPinchDist(){const vals=[...pointerMap.values()];return vals.length<2?0:Math.hypot(vals[0].x-vals[1].x,vals[0].y-vals[1].y);}
+function getPinchState(){const vals=[...pointerMap.values()];return vals.length<2?{dist:0,x:0,y:0}:{dist:Math.hypot(vals[0].x-vals[1].x,vals[0].y-vals[1].y),x:(vals[0].x+vals[1].x)/2,y:(vals[0].y+vals[1].y)/2};}
 function movePointer(e){const old=pointerMap.get(e.pointerId);if(old)pointerMap.set(e.pointerId,{x:e.clientX,y:e.clientY});if(project.mode==='html5')return;const p=project.mode==='3d'?null:screenToWorld(e);if(p)$('statusCoords').textContent=`X: ${round(p.x)} • Y: ${round(p.y)}`;
- if(!drag)return;if(drag.kind==='pinch'){const len=getPinchDist();if(!len||!drag.dist)return;const ratio=len/drag.dist;if(project.mode==='3d')camera3.distance=R.clamp(drag.zoom/ratio,2,100);else camera2.zoom=R.clamp(drag.zoom*ratio,.2,5);return;}if(e.pointerId!==drag.pointer)return;if(drag.kind==='tile'){if(p)S?.paintPointer(p.x,p.y);return;}if(drag.kind==='hold')return;const dx=e.clientX-drag.startX,dy=e.clientY-drag.startY;
+ if(!drag)return;if(drag.kind==='pinch'){
+ const state=getPinchState();if(!state.dist||!drag.dist)return;
+ const ratio=state.dist/drag.dist,dx=state.x-drag.x,dy=state.y-drag.y;
+ if(project.mode==='3d'){
+  camera3.distance=R.clamp(drag.zoom/ratio,2,100);
+  const yaw=drag.cam3.yaw,unit=drag.cam3.distance/Math.max(240,viewport.clientHeight)*1.65;
+  camera3.target[0]=drag.cam3.target[0]-dx*unit*Math.cos(yaw)-dy*unit*Math.sin(yaw);
+  camera3.target[2]=drag.cam3.target[2]+dx*unit*Math.sin(yaw)-dy*unit*Math.cos(yaw);
+ }else{
+  camera2.zoom=R.clamp(drag.zoom*ratio,.2,5);
+  camera2.x=drag.cam2.x-dx/drag.cam2.zoom;
+  camera2.y=drag.cam2.y-dy/drag.cam2.zoom;
+ }
+ return;
+}if(e.pointerId!==drag.pointer)return;if(drag.kind==='tile'){if(p)S?.paintPointer(p.x,p.y);return;}if(drag.kind==='hold')return;const dx=e.clientX-drag.startX,dy=e.clientY-drag.startY;
  if(drag.kind==='pan'||!drag.hitId){if(project.mode==='3d'){camera3.yaw=drag.cam3.yaw-dx*.008;camera3.pitch=R.clamp(drag.cam3.pitch+dy*.007,-.3,1.4);}else{camera2.x=drag.cam2.x-dx/camera2.zoom;camera2.y=drag.cam2.y-dy/camera2.zoom;}return;}
  const o=project.objects.find(o=>o.id===drag.hitId);if(!o)return;if(Math.hypot(dx,dy)<7)return;if(!drag.changed){historyPush();drag.changed=true;}if(project.mode==='3d'){const size=camera3.distance/viewport.clientHeight*1.7,tx=dx*size,ty=dy*size,yaw=camera3.yaw;o.x=drag.orig.x+tx*Math.cos(yaw)+ty*Math.sin(yaw);o.z=drag.orig.z-tx*Math.sin(yaw)+ty*Math.cos(yaw);if(snap){o.x=Math.round(o.x*4)/4;o.z=Math.round(o.z*4)/4;}}else{o.x=drag.orig.x+dx/camera2.zoom;o.y=drag.orig.y+dy/camera2.zoom;if(snap){const grid=project.mode==='pixel'?Math.min(16,project.grid||16):(project.grid||32);o.x=Math.round(o.x/grid)*grid;o.y=Math.round(o.y/grid)*grid;}}renderInspector();markDirty();}
 function endPointer(e){
@@ -221,7 +235,7 @@ function endPointer(e){
  }else if(drag?.kind==='pinch'){drag=null;}
 }
 function zoom(sign){if(project.mode==='3d')camera3.distance=R.clamp(camera3.distance*(sign>0?.82:1.2),2,100);else camera2.zoom=R.clamp(camera2.zoom*(sign>0?1.2:.82),.2,5);}
-function drawLoop(){requestAnimationFrame(drawLoop);if(project.mode==='html5'){refreshExternal();return;}if(project.mode==='3d'){if(!webgl||webgl.canvas!==scene3dCanvas){try{webgl=new R.Renderer3D(scene3dCanvas);}catch(e){console.error(e);return;}}if(webgl.error)return;webgl.render(project,camera3,{grid:showGrid,selectedId});gizmo3d?.draw();axis3d?.draw(camera3,true);$('zoomLabel').textContent=Math.round(170/camera3.distance*100)/10+'×';}else{R.draw2D(sceneCanvas,project,camera2,{grid:showGrid,selectedId,images,showTileCollision:tool==='tile'});$('zoomLabel').textContent=Math.round(camera2.zoom*100)+'%';}}
+function drawLoop(){requestAnimationFrame(drawLoop);if(project.mode==='html5'){refreshExternal();return;}if(project.mode==='3d'){if(!webgl||webgl.canvas!==scene3dCanvas){try{webgl=new R.Renderer3D(scene3dCanvas);}catch(e){console.error(e);return;}}if(webgl.error)return;webgl.render(project,camera3,{grid:showGrid,selectedId});gizmo3d?.draw();axis3d?.draw(camera3,true);if(selected()){const o=selected(),coords=`X: ${round(o.x||0)} • Y: ${round(o.y||0)} • Z: ${round(o.z||0)}`;if($('statusCoords').textContent!==coords)$('statusCoords').textContent=coords;}$('zoomLabel').textContent=Math.round(170/camera3.distance*100)/10+'×';}else{R.draw2D(sceneCanvas,project,camera2,{grid:showGrid,selectedId,images,showTileCollision:tool==='tile'});$('zoomLabel').textContent=Math.round(camera2.zoom*100)+'%';}}
 async function handleFile(file){try{await importProjectFile(file);$('projectPicker').value='';closeModal();closePanels();}catch(e){console.error(e);toast('Erro ao importar: '+e.message);}}
 function wireEvents(){
  $('toolboxNavBtn').onclick=()=>T?.open();$('homeBtn').onclick=()=>window.AurenixHome?.open();$('saveBtn').onclick=saveProject;$('topThemeBtn').onclick=()=>window.AurenixTheme?.open();$('topAudioBtn').onclick=()=>{selectTab('audio');openPanel('left');};$('undoBtn').onclick=undo;$('redoBtn').onclick=redo;$('playBtn').onclick=play;$('stopBtn').onclick=stop;$('playFullscreen').onclick=()=>($('playFrame').requestFullscreen?.()||toast('Use o modo tela cheia do navegador'));
