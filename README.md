@@ -155,3 +155,23 @@ Atualização focada no editor móvel, em recursos que funcionam offline e em me
 - Telas e projetos antigos permanecem compatíveis. Backups JSON continuam recomendados.
 
 **Limitações e instalação:** não inclui rigging ou editor de esqueleto 3D, cinemática inversa ou física de corpos rígidos. O pacote `com.aurenix.engine.alpha09` instala ao lado das alphas anteriores porque a assinatura debug antiga não foi preservada. Exporte projetos antes de desinstalar qualquer versão.
+
+## Alpha 0.10 — Publicação GitHub → APK diretamente do celular
+
+Acesse **⋮ → 🐙 Publicar no GitHub e gerar APK** ou **🧰 Ferramentas → Gerar APK no GitHub**.
+
+1. **Conecte seu GitHub**. A conexão por token já funciona: use um personal access token (preferencialmente fine-grained) com acesso apenas aos repositórios necessários. O token é mantido **somente na memória** da sessão; nunca é salvo em localStorage, IndexedDB, projetos, ZIP ou commits. Ao fechar o aplicativo, conecte-se novamente.
+2. **Selecione repositório** da própria conta ou crie outro automaticamente, privado por padrão.
+3. Escolha **nome, versão (1.0.0), orientação (auto/horizontal/vertical)** e ícone opcional de uma imagem do projeto.
+4. Leia a confirmação e toque **Publicar e gerar APK**. Os arquivos do jogo são enviados a `www/`, com configuração Capacitor, workflow do GitHub Actions e scripts de compilação. O envio cria um commit na branch padrão do repositório.
+5. Toque em **Verificar compilação**. Quando o GitHub Actions terminar, use o link do **APK direto (Releases)** ou o **ZIP de artefatos** (Actions), se a publicação em Releases não estiver disponível.
+
+### Conexão GitHub e permissões
+- **Modo pronto nesta Alpha:** token de acesso GitHub. Token clássico requer escopos `repo` e `workflow`; tokens fine-grained podem requerer `Contents: write`, `Workflows: write`, `Actions: read` e permissão de criação de repositórios. Token com seleção restrita a repositórios pode não conseguir criar repositórios novos.
+- **OAuth Device Flow para login simplificado:** o código está preparado, mas a Aurenix precisa de **um OAuth App GitHub registrado pelo mantenedor**, com Device Flow ativado e seu **Client ID público** configurado em `js/github-oauth-config.js`. Não coloque Client Secret nesse arquivo. Sem isso, o botão de login GitHub fica desativado, mas a conexão por token permanece utilizável.
+- Repositórios privados e GitHub Actions têm cotas/regras de acesso definidas pelo próprio GitHub. A Aurenix não cobra pelo serviço, mas não garante compilações ilimitadas.
+- Na exportação para um repositório existente, os arquivos do jogo em `www/`, `package.json`, `capacitor.config.json`, `aurenix-export.json`, `scripts/configure_android.py`, `README-AURENIX.md` e `.github/workflows/aurenix-apk.yml` são atualizados. Prefira um repositório exclusivo.
+- O workflow gera **APK debug** sem chave de assinatura permanente. Atualizações por cima da instalação antiga podem exigir uma configuração posterior de assinatura Android estável. Nunca envie keystores privados ao repositório.
+- Para jogos HTML5 externos, arquivos e dependências remotas ou recursos que exijam servidor podem precisar de adaptações para funcionar offline no Android.
+
+**Segurança:** toda autenticação usa HTTPS no GitHub. Os tokens nunca são escritos no Git do usuário. O fluxo de envio inclui confirmação e validação de caminhos. Se a publicação falhar, a cópia local do projeto Aurenix não é apagada. GitHub OAuth Client ID não é uma credencial secreta, mas precisa de registro oficial antes do login por dispositivo ficar ativo.

@@ -21,7 +21,8 @@ const links=[
  ['pixelStudio','✎','Pixel Studio completo','Desenhar sprites, quadros e camadas'],
  ['play','▶','Testar jogo','Executar a cena atual'],
  ['save','▣','Salvar projeto','Guardar no aplicativo'],
- ['export','⬇','Exportar jogo','HTML5 e template para APK']
+ ['export','⬇','Exportar jogo','HTML5 e template para APK'],
+ ['githubAPK','🐙','Gerar APK no GitHub','Conectar conta, criar repositório e compilar APK']
 ];
 let overlay=null,search=null,handler=()=>{};
 function render(query=''){

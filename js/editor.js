@@ -252,7 +252,7 @@ function wireEvents(){
   if(id==='pixelStudio'){if(projectDirty&&!confirm('Há mudanças não salvas. Salve seu projeto antes de sair. Continuar?'))return;location.href='pixelstudio.html';return;}
   if(id==='play'){play();return;}
   if(id==='save'){saveProject();return;}
-  if(id==='export'){exportGame();return;}
+  if(id==='export'){exportGame();return;}if(id==='githubAPK'){window.AurenixGithubUI?.open();return;}
   selectTab(id);openPanel('left');
  });
  $('axAssetPixel').onclick=()=>{selectTab('pixelBridge');openPanel('left');};
@@ -272,7 +272,7 @@ function wireEvents(){
  'menuAnimations':()=>{selectTab('animation');openPanel('left');},
  'menuPrefabs':()=>{selectTab('prefabs');openPanel('left');},
  'menuDebug':()=>{project.debugFps=!project.debugFps;markDirty();$('menuDebug').textContent=project.debugFps?'◉ FPS durante teste: ligado':'◉ FPS durante teste: desligado';toast('Exibição FPS '+(project.debugFps?'ativada':'desativada'));},
- 'menuHome':()=>window.AurenixHome?.open(),'menuTheme':()=>window.AurenixTheme?.open(),'menuAudio':()=>{selectTab('audio');openPanel('left');},'menuPixelStudio':()=>location.href='pixelstudio.html','menuNew':newProjectModal,'menuImport':()=>$('projectPicker').click(),'menuExportJson':exportProject,'menuExportGame':exportGame,'menuExportApk':exportAPK,'menuSettings':openSceneSettings,'menuDocs':showDocs};for(const [id,fn] of Object.entries(menus))$(id).onclick=()=>{$('menuPopover').classList.add('hidden');fn();};
+ 'menuHome':()=>window.AurenixHome?.open(),'menuTheme':()=>window.AurenixTheme?.open(),'menuAudio':()=>{selectTab('audio');openPanel('left');},'menuPixelStudio':()=>location.href='pixelstudio.html','menuNew':newProjectModal,'menuImport':()=>$('projectPicker').click(),'menuExportJson':exportProject,'menuExportGame':exportGame,'menuExportApk':exportAPK,'menuGithubAPK':()=>window.AurenixGithubUI?.open(),'menuSettings':openSceneSettings,'menuDocs':showDocs};for(const [id,fn] of Object.entries(menus))$(id).onclick=()=>{$('menuPopover').classList.add('hidden');fn();};
  document.addEventListener('click',e=>{if(!e.target.closest('#menuPopover')&&!e.target.closest('#topMoreBtn'))$('menuPopover').classList.add('hidden');});
  $('modalClose').onclick=closeModal;$('modalLayer').addEventListener('click',e=>{if(e.target===$('modalLayer'))closeModal();});
  $('modalLayer').addEventListener('click',e=>{const add=e.target.closest('[data-newobject]'),tem=e.target.closest('[data-template]');if(add){createObj(add.dataset.newobject);return;}if(tem){const p=R.makeTemplate(tem.dataset.template);p.programming=$('newProgrammingChoice')?.value==='blocks'?'blocks':'script';if(p.programming==='blocks'){p.script='';for(const o of p.objects){o.script='';o.blocks=[];}window.AurenixBlocks?.compileAll(p);}setProject(p);ensurePixel();closeModal();toast('Cena criada');return;}if(e.target.id==='applySceneSettings'){historyPush();project.name=$('sceneName').value.trim()||'Meu jogo';project.background=$('sceneBg').value;project.grid=R.clamp(Number($('sceneGrid').value)||32,4,256);project.gravity=Number($('sceneGravity').value)||1100;project.gravity3d=Number($('sceneGravity3d').value)||18;project.script=$('globalScript').value;$('projectName').value=project.name;markDirty();renderSummary();closeModal();toast('Cena configurada');}});
@@ -331,6 +331,10 @@ function initializeHome(){
  window.AurenixHome?.open();
 }
 async function start(){
+ window.AurenixGithubUI?.init({
+   getProject:()=>project,
+   getFiles:()=>{requireRuntime();return gameFiles();}
+ });
  E?.loadDefaults(project);
  E?.init({
   getProject:()=>project,getSelected:selected,history:historyPush,changed:()=>{markDirty();renderSummary();},toast,uid:R.uid,
