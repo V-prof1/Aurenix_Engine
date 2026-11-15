@@ -99,7 +99,7 @@ async function publish(){
  const iconAsset=(project.assets||[]).find(a=>a.id===$('axGhIcon')?.value);
  status('Preparando jogo e ícone…');const icon=await imageToIcon(iconAsset);
  const repoSlug=newRepo?repoName:repoFullName?.split('/').pop();
- const plan=B().plan({gameFiles:options.getFiles(),gameName:$('axGhAppName').value,repoName:repoSlug,version:$('axGhVersion').value,orientation:$('axGhOrientation').value,icon});
+ const plan=B().plan({gameFiles:options.getFiles(),gameName:$('axGhAppName').value,repoName:repoSlug,ownerName:state().user.login,version:$('axGhVersion').value,orientation:$('axGhOrientation').value,icon});
  const result=await G().sendPlan({repoFullName,createNew:newRepo,newRepoName:repoName,privateRepo:$('axGhPrivate')?.checked,plan,onProgress:p=>{
   status(p.message||('Enviando '+p.current+'/'+p.total+': '+p.path));
  }});

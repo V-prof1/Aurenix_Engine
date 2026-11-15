@@ -13,6 +13,8 @@ test('Gerador inclui workflow GitHub, assets, versao, orientacao e nao precisa d
  const names=Array.from(p.files,p=>p.path);
  for(const file of ['www/index.html','www/js/runtime.js','package.json','capacitor.config.json','aurenix-export.json','scripts/configure_android.py','.github/workflows/aurenix-apk.yml','README-AURENIX.md'])assert.ok(names.includes(file),file);
  assert.equal(p.version,'2.1.3');assert.equal(p.appId,'com.aurenix.games.meugame');
+ const owned=B.plan({gameFiles:[{name:'index.html',data:'OK'}],repoName:'meu-game',ownerName:'outro-usuario'});
+ assert.equal(owned.appId,'com.aurenix.games.outrousuariomeugame');
  const config=JSON.parse(p.files.find(f=>f.path==='aurenix-export.json').data);
  assert.equal(config.orientation,'landscape');assert.equal(config.versionCode,20103);
  const workflow=p.files.find(f=>f.path.includes('/workflows/')).data;

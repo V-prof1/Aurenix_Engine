@@ -22,12 +22,12 @@ const versionOf=s=>{
  if(code<1)throw Error('A versão deve ser maior que 0.0.0');
  return {name:m[0],code};
 };
-function plan({gameFiles,gameName,version='1.0.0',orientation='auto',repoName,icon=null}){
+function plan({gameFiles,gameName,version='1.0.0',orientation='auto',repoName,ownerName='',icon=null}){
  if(!Array.isArray(gameFiles)||!gameFiles.length||gameFiles.length>120)throw Error('Jogo vazio ou com mais de 120 arquivos');
  if(!['auto','portrait','landscape'].includes(orientation))throw Error('Orientação inválida');
  const name=String(gameName||'Meu Jogo').replace(/[\n\r<>]/g,'').trim().slice(0,55)||'Meu Jogo';
  const ver=versionOf(version),repo=slug(repoName||name);
- const id='com.aurenix.games.'+(repo.replaceAll('-','').slice(0,42)||'meujogo');
+ const id='com.aurenix.games.'+((ownerName?slug(ownerName).replaceAll('-',''):'')+repo.replaceAll('-','')).slice(0,42);
  const filenames=new Set(),files=[];
  for(const f of gameFiles){
   const path='www/'+normalizePath(f.name);
