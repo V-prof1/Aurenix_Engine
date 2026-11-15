@@ -13,7 +13,7 @@ test('Paleta responsiva possui grid auto-fit e swatches sem largura mínima',()=
 });
 test('Ferramentas de cena e XYZ são legíveis e visíveis no mobile',()=>{
  const html=fs.readFileSync('index.html','utf8'),css=fs.readFileSync('style.css','utf8');
- for(const label of ['Selecionar','Câmera','Escala','Grade','Encaixar'])assert.ok(html.includes('<span>'+label+'</span>'));
+ for(const label of ['Selecionar','Câmera','Escalar','Mover XYZ','Girar','Grade','Encaixar'])assert.ok(html.includes('<span>'+label+'</span>'));
  assert.match(html,/id="axisCanvas"/);assert.match(html,/aria-label="Indicador dos eixos X Y Z/);
  assert.match(css,/\.workspace-toolbar \.tools button span\{display:inline!important/);
  assert.match(css,/\.axis-gizmo canvas\{/);
