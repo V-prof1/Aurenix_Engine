@@ -42,7 +42,7 @@ function gestureValue(origin,axis,sign,mode,delta,snap){
  return next;
 }
 function create(options){
- const {viewport,scene3dCanvas,getProject,getSelected,getRenderer,getTool,onStart,onChange,onEnd,getSnap}=options;
+ const {viewport,scene3dCanvas,getProject,getSelected,getRenderer,getCamera,getTool,onStart,onChange,onEnd,getSnap}=options;
  if(!viewport||!scene3dCanvas)return {draw(){},start(){return false},move(){return false},end(){return false},cancel(){},isDragging(){return false}};
  const canvas=document.createElement('canvas');canvas.id='ax3dHandles';canvas.setAttribute('aria-hidden','true');
  canvas.style.cssText='position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:8;';
@@ -160,8 +160,8 @@ function create(options){
   const snap=!!getSnap?.(),raw=delta(drag,dx,dy);
   let next;
   if(drag.axis==='plane'){
-   const factor=Math.max(.002,(getRenderer()?.cameraDistance||15)/Math.max(240,scene3dCanvas.clientHeight))*.9;
-   const yaw=getRenderer()?.cameraYaw??.7,wx=(dx*Math.cos(yaw)+dy*Math.sin(yaw))*factor,wz=(-dx*Math.sin(yaw)+dy*Math.cos(yaw))*factor;
+   const factor=Math.max(.002,(getCamera?.()?.distance||15)/Math.max(240,scene3dCanvas.clientHeight))*.9;
+   const yaw=getCamera?.()?.yaw??.7,wx=(dx*Math.cos(yaw)+dy*Math.sin(yaw))*factor,wz=(-dx*Math.sin(yaw)+dy*Math.cos(yaw))*factor;
    next={...drag.origin,x:num(drag.origin.x)+wx,z:num(drag.origin.z)+wz};
    if(snap){next.x=Math.round(next.x*4)/4;next.z=Math.round(next.z*4)/4;}
   }else next=gestureValue(drag.origin,drag.axis,drag.sign,drag.mode,raw,snap);
