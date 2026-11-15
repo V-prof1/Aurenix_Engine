@@ -99,6 +99,12 @@ test('UI Android usa espaço seguro e controles 3D por toque',()=>{
  assert.match(editor,/pointerMap\.clear\(\)/);
  assert.match(editor,/function prepareProject\(\)\{S\?\.stopPreview/);
 });
+test('Tela inicial 0.9 e panorâmica com dois dedos continuam disponíveis',()=>{
+ assert.ok(read('js/home.js').includes('ALPHA 0.9'));
+ assert.ok(read('js/editor.js').includes('function getPinchState()'));
+ assert.ok(read('js/editor.js').includes('camera3.target[0]=drag.cam3.target[0]'));
+ assert.ok(read('js/gizmo3d.js').includes('getCamera?.()?.yaw'));
+});
 test('Javascript de todos os novos módulos compila sem erros',()=>{
  for(const file of ['js/gizmo3d.js','js/mobile09.js','js/studio07.js','js/runtime.js','js/editor.js']){
   assert.doesNotThrow(()=>new vm.Script(read(file),{filename:file}),file);
