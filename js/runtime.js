@@ -289,7 +289,12 @@ function startGame(scene){const canvas=document.getElementById('game');if(!canva
   const t=clip.loop?(clock%duration):Math.min(duration,clock);
   let a=keys[0],b=keys[keys.length-1];
   if(t<=a.time)b=a;else if(t>=b.time)a=b;else for(let i=1;i<keys.length;i++)if(keys[i].time>=t){a=keys[i-1];b=keys[i];break;}
-  const ratio=Math.max(0,Math.min(1,(t-a.time)/Math.max(.0001,b.time-a.time))),pose={};
+  let ratio=Math.max(0,Math.min(1,(t-a.time)/Math.max(.0001,b.time-a.time)));
+  if(clip.ease==='smooth')ratio=ratio*ratio*(3-2*ratio);
+  else if(clip.ease==='in')ratio=ratio*ratio;
+  else if(clip.ease==='out')ratio=1-(1-ratio)*(1-ratio);
+  else if(clip.ease==='step')ratio=ratio<1?0:1;
+  const pose={};
   for(const key of animationProps)pose[key]=(Number(a[key])||0)+((Number(b[key])||0)-(Number(a[key])||0))*ratio;
   return pose;
  }
@@ -298,7 +303,7 @@ function startGame(scene){const canvas=document.getElementById('game');if(!canva
   if(!clip)return;let state=animClocks.get(o.id);
   if(!state||state.clipId!==clip.id){state={clipId:clip.id,time:0,playing:clip.autoplay!==false};animClocks.set(o.id,state);}
   if(!state.playing)return;
-  state.time+=dt;const pose=sampleAnimation(clip,state.time);if(pose)Object.assign(o,pose);
+  state.time+=dt*Math.min(5,Math.max(.1,Number(clip.speed)||1));const pose=sampleAnimation(clip,state.time);if(pose)Object.assign(o,pose);
   if(!clip.loop&&state.time>=Math.max(.1,clip.duration||1))state.playing=false;
  }
  function solidTilesNear(o){
