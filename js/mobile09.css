@@ -1,0 +1,49 @@
+/* Aurenix 0.9 — toque, timeline e barras de sistema Android */
+.ax-3d-tool{display:none!important}
+.ax-mode-3d .workspace-toolbar .tools .ax-3d-tool{display:inline-flex!important}
+.ax-mode-3d .workspace-toolbar .tools [data-tool="tile"]{display:none!important}
+#viewport{touch-action:none;overscroll-behavior:none;min-height:0;min-width:0}
+#viewport canvas{touch-action:none;user-select:none;-webkit-user-select:none}
+#ax3dHandles{touch-action:none;pointer-events:none}
+.workspace-toolbar .tools{min-width:0;overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;scrollbar-width:thin}
+.workspace-toolbar .tools button{min-width:76px!important;min-height:46px!important}
+.workspace-toolbar .tools button.active{outline:2px solid var(--ax-primary,#5de0d4);outline-offset:-2px}
+.ax09-timeline{background:linear-gradient(145deg,#142a3d,#101d31);border:1px solid #426078;border-radius:13px;margin:10px 0;padding:12px 10px}
+.ax09-timeline-head{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:11px;color:#b7d4e4;margin-bottom:8px}
+.ax09-timeline-head output{color:#9ef2e1;font-family:ui-monospace,monospace;font-size:11px;white-space:nowrap}
+.ax09-timeline-track{height:27px;position:relative;margin:7px 10px 0;background:linear-gradient(90deg,#293b53,#243d50);border-radius:6px;border:1px solid #50667d}
+.ax09-timeline-track::before,.ax09-timeline-track::after{content:'';position:absolute;left:25%;top:0;height:100%;border-left:1px solid #5b769855}
+.ax09-timeline-track::after{left:75%}
+.ax09-timeline-track .ax09-key{position:absolute;top:3px;transform:translateX(-50%) rotate(45deg);height:18px!important;width:18px!important;min-height:18px!important;min-width:18px!important;border-radius:4px;border:2px solid #c3ffee;background:#4a9e99;box-shadow:0 0 12px #7dfce566;padding:0}
+#ax09Scrub{display:block;width:100%;margin:11px 0;min-height:38px;accent-color:var(--ax-primary,#5de0d4);touch-action:pan-y}
+.ax09-playback{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px}
+.ax09-playback button{min-width:0;min-height:48px!important;padding:6px 4px!important;font-size:12px!important;white-space:normal;border-radius:9px}
+.ax09-playback button:first-child{border-color:var(--ax-primary,#5de0d4);color:#a2ffeb}
+#axKeyTime{min-width:0}
+#tabAnimation .ax-studio-frames{max-height:240px;overflow-y:auto;overscroll-behavior:contain}
+#tabAnimation .ax-studio-frame{min-width:0}
+#tabAnimation .ax-studio-frame button{min-height:44px;min-width:44px}
+.ax-native-safe #app{min-height:0}
+.ax09-keyboard-open #app{height:var(--ax09-visible-height,100dvh)!important;max-height:var(--ax09-visible-height,100dvh)}
+.ax09-keyboard-open .workspace-toolbar{max-height:110px;overflow-y:auto}
+.ax09-keyboard-open .mobile-nav{min-height:44px}
+.ax09-keyboard-open .sidebar.open{max-height:var(--ax09-visible-height,100dvh)}
+.sidebar .tab-body{overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+.inspector-scroll{overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+#main,.workspace,.sidebar,.viewport{min-height:0}
+input,select,textarea{scroll-margin-bottom:12px}
+@media(pointer:coarse) and (orientation:landscape){
+ .workspace-toolbar .tools button{min-height:47px!important;min-width:84px!important;font-size:13px!important}
+ .workspace-toolbar{max-height:90px;overflow:hidden}
+ .workspace-toolbar .tools{touch-action:pan-x}
+ .ax09-playback button{min-height:50px!important}
+ .ax-studio-panel,.ax08-panel{padding-bottom:max(85px,env(safe-area-inset-bottom))}
+ .tab-body.active{padding-bottom:calc(45px + env(safe-area-inset-bottom))}
+ .modal-layer{max-height:100dvh}
+}
+@media(max-width:600px){
+ .workspace-toolbar{overflow:visible;max-height:155px}
+ .workspace-toolbar .tools button{min-width:76px!important}
+ .ax09-timeline{padding:9px}
+ .ax09-timeline-head{flex-wrap:wrap}
+}

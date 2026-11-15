@@ -134,3 +134,24 @@ Atualização focada no editor móvel, em recursos que funcionam offline e em me
 - A engine continua uma **Alpha** e não substitui Godot/Unity. A física e colisões ainda são simplificadas, e não há PBR, rigging, multiplayer ou compilação nativa de Python/C#/Lua.
 - Projetos importados HTML5 seguem sendo executados isoladamente; código HTML5 externo não é transformado em nós editáveis.
 - **A versão 0.8 instala ao lado da 0.7** porque as versões debug antigas não possuem uma chave de assinatura persistente. Exportar JSON e importar na nova instalação é o caminho seguro para migrar jogos; não desinstale versões antigas antes de verificar os backups.
+
+## Alpha 0.9 — Edição 3D, timeline de animação e estabilidade Android
+
+### Edição 3D por toque
+- Novas ferramentas **Mover XYZ**, **Girar** e **Escalar** com alças coloridas e áreas de toque de 70px (35px de raio). A ferramenta Selecionar mantém as alças de escala para quem usava a interface anterior.
+- Manipulação pelo eixo local, mantendo a face oposta fixa ao redimensionar. A opção Encaixar oferece incrementos de 0,25 unidades para tamanho e movimento e de 5° para rotação.
+- O centro amarelo **XZ** permite deslocar objetos pelo chão. A opção Câmera permite orbitar a visão, e o gesto de pinça continua ajustando o zoom.
+- Operações de manipulação são registradas uma única vez no histórico e podem ser desfeitas ou refeitas. Ponteiros presos são limpos ao sair da tela ou trocar de aplicativo.
+
+### Animação por keyframes
+- Timeline com controle de tempo por toque, marcadores de keyframes e ações **Reproduzir**, **Pausar** e **Restaurar**.
+- Modos de interpolação: linear, suave, acelerar, desacelerar e quadros discretos; velocidade de reprodução de 0,25× a 3×.
+- O motor de jogo HTML5 e o teste incorporado reproduzem velocidade e interpolação. Alterações temporárias de prévia não são gravadas inadvertidamente como posição de origem do objeto.
+- Corrigida a navegação para as keyframes e o botão de exclusão, antes inacessíveis por um retorno prematuro no evento.
+
+### Android e interfaces
+- Novo módulo de adaptação ao `visualViewport`: calcula altura útil com o teclado virtual, melhora o foco em campos de formulário e atualiza o layout ao girar o aparelho.
+- Barra de ferramentas 3D com alças legíveis, barra inferior rolável e painéis com rolagem independente. Botão Voltar fecha uma animação em prévia antes de sair do editor.
+- Telas e projetos antigos permanecem compatíveis. Backups JSON continuam recomendados.
+
+**Limitações e instalação:** não inclui rigging ou editor de esqueleto 3D, cinemática inversa ou física de corpos rígidos. O pacote `com.aurenix.engine.alpha09` instala ao lado das alphas anteriores porque a assinatura debug antiga não foi preservada. Exporte projetos antes de desinstalar qualquer versão.

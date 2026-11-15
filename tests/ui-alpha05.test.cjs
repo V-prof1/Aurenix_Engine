@@ -44,6 +44,6 @@ test('UI e build Android têm áudio, Pixel Studio e retorno de teste',()=>{
  assert.match(pixel,/ps-quicknav/);
  assert.match(pixel,/\.ps-stage\{width:100%;height:100%;min-height:0/);
  assert.ok(editor.includes('AURENIX_EXIT_PLAY'));
- assert.equal(app.appId,'com.aurenix.engine.alpha08');
+ assert.equal(app.appId,'com.aurenix.engine.alpha09');
  assert.ok(pkg.dependencies['@capacitor/app']);
 });
