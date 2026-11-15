@@ -97,10 +97,10 @@ function addClip(o,name='Animação'){
  keyframes:[{time:0,...keyPose(o)},{time:1,...keyPose(o)}]};
  list.push(clip);o.activeAnimation=clip.id;return clip;
 }
-function addKeyframe(o,clip,time){
+function addKeyframe(o,clip,time,poseOverride=null){
  const duration=clamp(clip.duration||1,.1,120);
  const t=Math.round(clamp(time,0,duration)*1000)/1000;
- const frame={time:t,...keyPose(o)};
+ const frame={time:t,...(poseOverride||keyPose(o))};
  const at=clip.keyframes.findIndex(k=>Math.abs(k.time-t)<.001);
  if(at>=0)clip.keyframes[at]=frame;else clip.keyframes.push(frame);
  clip.keyframes.sort((a,b)=>a.time-b.time);
@@ -235,7 +235,7 @@ function previewClip(clip,time){
 }
 function playPreview(){
  const clip=clipSelected();if(!clip)return;
- pausePreview();playing=true;
+ pausePreview();previewClip(clip,scrubTime);playing=true;
  const token=previewToken,start=performance.now(),from=scrubTime;
  const tick=now=>{
   if(!playing||token!==previewToken)return;
@@ -287,7 +287,7 @@ function onClick(e){
   if(action==='addClip'){const o=config.getSelected?.();if(!o)return;history();addClip(o);touch();renderAnimations();}
   if(action==='cloneClip'){const o=config.getSelected?.(),clip=clipSelected();if(!clip)return;history();const next=clone(clip);next.id=uid();next.name+=' cópia';o.animations.push(next);o.activeAnimation=next.id;touch();renderAnimations();}
   if(action==='deleteClip'){const o=config.getSelected?.(),clip=clipSelected();if(!clip||!confirm('Excluir esta animação?'))return;stopPreview();history();o.animations=o.animations.filter(c=>c.id!==clip.id);o.activeAnimation=o.animations[0]?.id||'';touch();renderAnimations();}
-  if(action==='captureKey'){const o=config.getSelected?.(),clip=clipSelected();if(!clip)return;stopPreview();history();const t=$('axKeyTime').value;addKeyframe(o,clip,t);scrubTime=clamp(t,0,clip.duration);touch();renderAnimations();notify('Keyframe capturada');}
+  if(action==='captureKey'){const o=config.getSelected?.(),clip=clipSelected();if(!clip)return;const pose=keyPose(o);stopPreview();history();const t=$('axKeyTime').value;addKeyframe(o,clip,t,pose);scrubTime=clamp(t,0,clip.duration);touch();renderAnimations();notify('Keyframe capturada');}
   if(action==='stopPreview'){stopPreview();renderAnimations();}
   if(action==='pausePreview'){pausePreview();}
 
