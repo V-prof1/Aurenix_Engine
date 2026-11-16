@@ -235,3 +235,35 @@ As expressões podem ser gravadas **junto com os keyframes do corpo**, e são in
 
 **Limites atuais:** a face é uma transformação estilizada de formas primitivas, não um sistema de blendshapes deformáveis nem rig de malhas complexas. A criação é gratuita, local e otimizada para editor móvel. Algumas animações são demonstrações editáveis, não soluções prontas de locomoção com root motion.
 **Android:** identificador `com.aurenix.engine.alpha013`; instala em paralelo com versões anteriores. Exporte JSON antes de excluir uma instalação antiga.
+
+## Alpha 0.14 — Aurenix Creator Studio: toque 3D e timeline unificada
+
+O novo **Model Studio** reúne manipulação 3D por toque, expressões e animações de cenário. No painel central há seis modos:
+
+- **Ver** orbita a câmera. Com dois dedos, navegue e altere o zoom sem modificar peças.
+- **Selecionar** toca diretamente em uma peça; use o painel Peças quando houver sobreposição.
+- **Mover** arrasta a peça nas direções da tela; **Z Profundidade** muda a direção vertical para o eixo de profundidade.
+- **Girar** altera a rotação por gesto. O modo Z permite ajustar a rotação lateral.
+- **Escalar** altera as dimensões mantendo o objeto editável.
+- **Rosto** aproxima a câmera da face, exibe marcadores sobre olhos, boca e sobrancelhas e permite editá-los diretamente. O rosto continua low-poly quadradinho.
+
+O botão **Encaixe** arredonda movimentações e escalas em passos de 0,05 unidade e rotações em 5°.
+
+### Timeline — corpo, rosto e objetos no mesmo clipe
+
+- **🦴 Corpo:** keyframes de rotação das articulações.
+- **😄 Rosto:** expressões faciais e piscadas, interpoladas por canal.
+- **🧱 Objetos:** posição, deslocamento visual e tamanho das peças. Use para portas, acessórios, armas, troncos, cenários, etc.
+
+A timeline apresenta as três trilhas alinhadas no mesmo tempo. Se você modificar um objeto durante uma animação, o movimento é salvo como **keyframe**, sem mudar as propriedades iniciais do personagem. Mudanças pendentes são gravadas ao navegar na timeline, reproduzir, exportar ou salvar.
+
+### Model Studio ⇆ Pixel Studio ⇆ Editor de Jogos
+
+- Use o novo botão **Carregar cores salvas** no inspetor do Model Studio: ele importa paletas de sprites da biblioteca local do Pixel Studio para pintar peças 3D sem dependências extras.
+- Use **▦ Pixel** e **🎮 Jogos** para navegar entre os estúdios. O Model Studio salva o personagem antes da troca, se houver edições pendentes.
+- O Pixel Studio tem um atalho **🎭 Model Studio 3D**, salvando a arte antes da navegação.
+- A biblioteca de personagens continua em IndexedDB e os modelos importados nos jogos ficam incluídos no JSON e no pacote exportado.
+
+O exportador HTML5/APK incorpora automaticamente **character3d.js**, **character-face13.js** e **character-motion14.js**, permitindo animar os três canais durante o jogo. Não há serviços pagos, IA obrigatória ou renderização na nuvem.
+
+**Limitações e testes:** a seleção direta é baseada na projeção do centro das peças; os controles numéricos continuam disponíveis para ajustes de alta precisão. O Model Studio não inclui escultura por vértices, malha deformável por ossos, UV avançado ou cinemática inversa. Os testes automatizados cobrem transformações, importação antiga e exportação, mas não substituem testes reais no dispositivo. A Alpha 0.14 usa o app ID `com.aurenix.engine.alpha014` e instala ao lado das versões anteriores.
