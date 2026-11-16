@@ -3,7 +3,7 @@ test('scripts da interface e pixel studio compilam sem erro de sintaxe',()=>{
  for(const path of ['js/home.js','js/editor.js','js/runtime.js','js/gizmo3d.js','js/file-save.js']){
   assert.doesNotThrow(()=>new vm.Script(fs.readFileSync(path,'utf8'),{filename:path}),path);
  }
- const html=fs.readFileSync('pixelstudio.html','utf8'),from=html.indexOf('<script>'),to=html.lastIndexOf('</script>');
+ const html=fs.readFileSync('pixelstudio.html','utf8'),from=html.indexOf('<script>'),to=html.indexOf('</script>',from);
  assert.ok(from>=0&&to>from,'Pixel Studio deve incluir código inline');
  assert.doesNotThrow(()=>new vm.Script(html.slice(from+8,to),{filename:'pixelstudio.inline.js'}));
 });
