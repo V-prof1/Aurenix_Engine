@@ -6,7 +6,7 @@ const clone=C.copy,clamp=(x,a,b)=>Math.min(b,Math.max(a,Number(x)||0));
 const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const types=[['cube','▣ Cubo'],['sphere','● Esfera'],['capsule','⬟ Cápsula'],['cylinder','⬢ Cilindro'],['cone','▲ Cone'],['pyramid','◆ Pirâmide'],['torus','◎ Anel']];
 const library=C.library(),canvas=$('view'),renderer=new R.Renderer3D(canvas);
-let model=C.preset('human'),libId=null,selectedId=model.parts[0].id,clipId='',time=0,draftPose=null,playing=false,dirty=false;
+let model=C.preset('human'),libId=null,selectedId=model.parts[0].id,clipId='',time=0,draftPose=null,draftExpression=null,playing=false,dirty=false;
 let history=[],future=[],camera={yaw:.65,pitch:.32,distance:7.5,target:[0,1.3,0]},pointers=new Map(),lastTouch=null,lastFrame=performance.now(),toastId=0,previewParts=[];
 const selected=()=>model.parts.find(p=>p.id===selectedId)||null;
 const clip=()=>model.animations.find(c=>c.id===clipId)||null;
@@ -21,7 +21,7 @@ function snapshot(){
  history.push(data);if(history.length>70)history.shift();future=[];updateUndo();
 }
 function restore(state){
- model=state.model;selectedId=state.selectedId;clipId=state.clipId;time=state.time;dirty=true;playing=false;draftPose=clip()?C.getPose(model,clipId,time):null;
+ model=state.model;selectedId=state.selectedId;clipId=state.clipId;time=state.time;dirty=true;playing=false;draftPose=clip()?C.getPose(model,clipId,time):null;draftExpression=null;
  renderAll();
 }
 function undo(){if(!history.length)return;const prev=history.pop();future.push({model:clone(model),selectedId,clipId,time,dirty});restore(prev);}
@@ -89,14 +89,37 @@ function renderClips(){
 function renderMarkers(){
  const box=$('markers'),c=clip();box.innerHTML=c?c.frames.map(f=>'<button data-time="'+f.time+'">◆ '+f.time.toFixed(1)+'</button>').join(''):'';
 }
+function currentExpression(){
+ if(typeof draftExpression==='string')return draftExpression;
+ const c=clip();
+ if(!c)return model.face?.expression||'neutral';
+ const prev=c.frames.filter(f=>f.time<=time+.001).at(-1)||c.frames[0];
+ return prev?.expression||model.face?.expression||'neutral';
+}
+function renderFace(){
+ const expr=currentExpression(),name=C.FACE_EXPRESSIONS.find(([id])=>id===expr)?.[1]||'😐 Neutro';
+ const label=$('faceStatus');if(label)label.textContent=name+(clip()?' • grave com ◆ Pose':'');
+ const intensity=$('faceStrength');if(intensity)intensity.value=String(model.face?.intensity??1);
+ for(const button of document.querySelectorAll('[data-expression]')){
+  const active=button.dataset.expression===expr;
+  button.classList.toggle('active',active);button.setAttribute('aria-pressed',active?'true':'false');
+ }
+}
+function setExpression(expression){
+ if(!C.FACE_EXPRESSIONS.some(([id])=>id===expression))return;
+ snapshot();playing=false;
+ if(clip())draftExpression=expression;
+ else{model.face??={expression:'neutral',intensity:1};model.face.expression=expression;draftExpression=null;}
+ mark();renderFace();notify(clip()?'Expressão pronta. Toque em ◆ Pose para gravar.':'Expressão aplicada ao modelo.');
+}
 function renderAll(){
- $('name').value=model.name;renderTree();renderInspector();renderClips();updateClock();updateUndo();
+ $('name').value=model.name;renderTree();renderInspector();renderClips();renderFace();updateClock();updateUndo();
 }
 function applyFramePreview(t){
  const c=clip();time=clamp(t,0,c?.duration||1);
- draftPose=c?C.getPose(model,c.id,time):null;updateClock();
+ draftPose=c?C.getPose(model,c.id,time):null;draftExpression=null;updateClock();renderFace();
 }
-function resetPose(){playing=false;clipId='';time=0;draftPose=null;renderAll();}
+function resetPose(){playing=false;clipId='';time=0;draftPose=null;draftExpression=null;renderAll();}
 function addPart(){
  if(model.parts.length>=C.MAX_PARTS){notify('Limite de 80 peças');return;}
  snapshot();const parent=selected(),p=C.part('Nova peça','cube',parent?.id||null,parent?[0,.8,0]:[0,1.5,0],[0,.1,0],[.42,.42,.42],'#81c7e8');
@@ -159,17 +182,17 @@ function removePart(){
  selectedId=p.parent||model.parts[0].id;mark();renderAll();
 }
 function selectClip(id){
- playing=false;clipId=id;time=0;draftPose=id?C.getPose(model,id,0):null;
- renderInspector();renderClips();
+ playing=false;clipId=id;time=0;draftPose=id?C.getPose(model,id,0):null;draftExpression=null;
+ renderInspector();renderClips();renderFace();
 }
 function createClip(){
  const name=prompt('Nome do movimento','Minha animação');if(!name)return;
- snapshot();const c=C.newClip(model,name);clipId=c.id;time=0;draftPose=C.getPose(model,c.id,0);
+ snapshot();const c=C.newClip(model,name);clipId=c.id;time=0;draftPose=C.getPose(model,c.id,0);draftExpression=null;
  mark();renderAll();notify('Gire as peças e capture poses em tempos diferentes.');
 }
 function capturePose(){
  const c=clip();if(!c){notify('Crie ou selecione uma animação');return;}
- snapshot();C.capture(model,c,time,currentPose());mark();renderMarkers();notify('Pose salva aos '+time.toFixed(2)+'s');
+ snapshot();C.capture(model,c,time,currentPose(),currentExpression());draftExpression=null;mark();renderMarkers();renderFace();notify('Pose e expressão salvas aos '+time.toFixed(2)+'s');
 }
 function removeFrame(){
  const c=clip();if(!c)return;
@@ -178,37 +201,63 @@ function removeFrame(){
  snapshot();c.frames.splice(c.frames.indexOf(frame),1);mark();renderMarkers();notify('Frame removido');
 }
 function autoMovement(kind){
- const labels={idle:'Respirar',walk:'Caminhar',run:'Corrida',attack:'Ataque'};
+ const labels={idle:'Respirar',walk:'Caminhar',run:'Corrida',attack:'Ataque',
+  wave:'Acenar',jump:'Pular',hit:'Receber dano',dance:'Dançar',blink:'Piscar',talk:'Conversar'};
+ if(model.animations.length>=C.MAX_CLIPS){notify('Máximo de 24 animações');return;}
  snapshot();const c=C.newClip(model,labels[kind]||'Movimento');
  const base=Object.fromEntries(model.parts.map(p=>[p.id,[...p.rotation]]));
- const leftArm=model.parts.find(x=>/braço esquerdo/i.test(x.name)),rightArm=model.parts.find(x=>/braço direito/i.test(x.name)),
-  leftLeg=model.parts.find(x=>/perna esquerda/i.test(x.name)),rightLeg=model.parts.find(x=>/perna direita/i.test(x.name)),
-  torso=model.parts.find(x=>/tronco/i.test(x.name));
- c.duration=kind==='idle'?2:kind==='attack'?.8:kind==='run'?.55:1;
- const steps=kind==='idle'?[0,1,2]:kind==='attack'?[0,.25,.55,.8]:[0,.25,.5,.75,1];
+ const leftArm=model.parts.find(p=>/braço esquerdo/i.test(p.name)),rightArm=model.parts.find(p=>/braço direito/i.test(p.name)),
+  leftLeg=model.parts.find(p=>/perna esquerda/i.test(p.name)),rightLeg=model.parts.find(p=>/perna direita/i.test(p.name)),
+  torso=model.parts.find(p=>/tronco/i.test(p.name)),head=model.parts.find(p=>/cabeça/i.test(p.name));
+ c.duration={idle:2,run:.55,attack:.8,blink:.5,talk:1.2,wave:1.3,jump:.85,hit:.65,dance:1.6}[kind]||1;
+ const steps=kind==='idle'?[0,.25,.5,.75,1]:kind==='attack'?[0,.25,.55,1]:
+  kind==='blink'?[0,.35,.5,.65,1]:kind==='hit'?[0,.2,.5,1]:
+  kind==='talk'?[0,.12,.25,.37,.5,.62,.75,.87,1]:[0,.25,.5,.75,1];
+ c.loop=!['attack','jump','hit'].includes(kind);
  c.frames=steps.map((step,i)=>{
   const pose=clone(base);
   const set=(part,axis,value)=>{if(part)pose[part.id][axis]+=value;};
+  const wave=Math.sin(step*Math.PI*2);
+  let expression=model.face?.expression||'neutral';
   if(kind==='idle'){
-   const wave=Math.sin((step/2)*Math.PI*2);
    set(torso,0,wave*3);set(leftArm,2,wave*3);set(rightArm,2,-wave*3);
   }else if(kind==='attack'){
-   const v=[0,-65,-120,0][i];set(rightArm,0,v);set(torso,1,[0,-10,20,0][i]);set(leftArm,0,[0,15,25,0][i]);
+   set(rightArm,0,[0,-65,-120,0][i]);set(torso,1,[0,-10,20,0][i]);set(leftArm,0,[0,15,25,0][i]);
+   expression=step>.2&&step<.75?'angry':'neutral';
+  }else if(kind==='wave'){
+   set(rightArm,0,-115);set(rightArm,2,20+wave*25);set(head,2,wave*6);expression='happy';
+  }else if(kind==='jump'){
+   set(leftLeg,0,step<.5?-22:16);set(rightLeg,0,step<.5?-22:16);
+   set(leftArm,2,-35);set(rightArm,2,35);set(torso,0,step<.5?12:-8);
+   expression=step>.25&&step<.8?'surprised':'happy';
+  }else if(kind==='hit'){
+   set(torso,0,[0,-24,-15,0][i]);set(head,0,[0,19,10,0][i]);
+   set(leftArm,2,[0,-35,-19,0][i]);set(rightArm,2,[0,35,19,0][i]);
+   expression=step===0?'neutral':'scared';
+  }else if(kind==='dance'){
+   set(torso,2,wave*18);set(head,2,-wave*12);set(leftArm,2,55+wave*30);set(rightArm,2,-55+wave*30);
+   set(leftLeg,0,wave*18);set(rightLeg,0,-wave*18);expression='happy';
+  }else if(kind==='blink'){
+   expression=step>.2&&step<.8?'blink':'neutral';
+  }else if(kind==='talk'){
+   expression=i%2?'talk':'neutral';
+   set(head,0,wave*2.5);set(rightArm,0,wave*8);
   }else{
-   const wave=Math.sin(step*Math.PI*2),ang=kind==='run'?50:28;
-   set(leftLeg,0,wave*ang);set(rightLeg,0,-wave*ang);
-   set(leftArm,0,-wave*ang*.85);set(rightArm,0,wave*ang*.85);
+   const angle=kind==='run'?50:28;
+   set(leftLeg,0,wave*angle);set(rightLeg,0,-wave*angle);
+   set(leftArm,0,-wave*angle*.85);set(rightArm,0,wave*angle*.85);
    set(torso,0,kind==='run'?8:3);
   }
-  return {time:c.duration*step,pose};
+  return {time:Number((c.duration*step).toFixed(4)),pose,expression};
  });
- clipId=c.id;time=0;draftPose=C.getPose(model,c.id,0);mark();renderAll();notify('Animação '+labels[kind]+' pronta para editar!');
+ clipId=c.id;time=0;draftPose=C.getPose(model,c.id,0);draftExpression=null;mark();renderAll();
+ notify('Animação '+labels[kind]+' pronta! Ajuste movimentos e expressões.');
 }
 async function saveModel(){
  try{
   model.name=$('name').value.trim().slice(0,72)||'Personagem';
   const checked=C.validate(model);libId=await library.save(checked,libId||undefined);
-  model=checked;dirty=false;updateClock();await renderLibrary();
+  model=checked;dirty=false;draftExpression=null;updateClock();renderFace();await renderLibrary();
   notify('✓ Personagem salvo no aplicativo!');return true;
  }catch(e){notify('Erro ao salvar: '+e.message);return false;}
 }
@@ -249,7 +298,7 @@ async function importFile(file){
  if(!file||file.size>900000){notify('Arquivo muito grande (máximo 900 KB)');return;}
  try{
   const doc=C.validate(JSON.parse(await file.text()));if(dirty&&!confirm('Substituir o personagem atual por '+doc.name+'?'))return;
-  snapshot();model=doc;libId=null;selectedId=model.parts[0].id;clipId='';draftPose=null;time=0;playing=false;dirty=true;renderAll();notify('Personagem importado!');
+  snapshot();model=doc;libId=null;selectedId=model.parts[0].id;clipId='';draftPose=null;draftExpression=null;time=0;playing=false;dirty=true;renderAll();notify('Personagem importado!');
  }catch(e){notify('Erro ao importar: '+e.message);}
 }
 function editField(input,saveHistory=false){
@@ -337,10 +386,10 @@ function loop(now){
  const dt=clamp((now-lastFrame)*.001,0,.1);lastFrame=now;
  const c=clip();
  if(playing&&c){time+=dt*(c.speed||1);if(c.loop)time%=c.duration;else if(time>=c.duration){time=c.duration;playing=false;}
-  draftPose=C.getPose(model,c.id,time);updateClock();}
+  draftPose=C.getPose(model,c.id,time);draftExpression=null;updateClock();renderFace();}
  const root={id:'preview',type:'character3d',visible:true,x:0,y:0,z:0,ry:0,rx:0,rz:0,modelScale:1};
  const pose=currentPose();
- previewParts=C.expand(model,root,'',0,pose);
+ previewParts=C.expand(model,root,clipId,time,pose,draftExpression);
  if(renderer)renderer.render({mode:'3d',background:'#102032',objects:previewParts,assets:[]},camera,{grid:true,selectedId:root.id+'::'+selectedId});
  requestAnimationFrame(loop);
 }
@@ -353,9 +402,16 @@ async function onAction(e){
   if(b.dataset.load){
    const row=await library.load(b.dataset.load);if(!row)return;
    if(dirty&&!confirm('Abrir '+row.name+' e substituir as alterações não salvas?'))return;
-   model=C.validate(row.model);libId=row.id;selectedId=model.parts[0].id;clipId='';draftPose=null;time=0;playing=false;dirty=false;history=[];future=[];renderAll();closeDrawers();notify('Personagem carregado.');return;
+   model=C.validate(row.model);libId=row.id;selectedId=model.parts[0].id;clipId='';draftPose=null;draftExpression=null;time=0;playing=false;dirty=false;history=[];future=[];renderAll();closeDrawers();notify('Personagem carregado.');return;
   }
   if(b.dataset.del){if(confirm('Excluir este modelo salvo do aplicativo?')){await library.remove(b.dataset.del);if(b.dataset.del===libId)libId=null;await renderLibrary();}return;}
+  if(b.dataset.expression){setExpression(b.dataset.expression);return;}
+  if(id==='addFace'){
+   if(!model.parts.some(p=>/cabeça|head/i.test(p.name))){notify('Este objeto não tem cabeça. Adicione uma peça chamada Cabeça para criar um rosto.');return;}
+   const before=model.parts.length;snapshot();C.ensureFace(model);
+   if(model.parts.length===before){notify('Este modelo já tem um rosto completo.');history.pop();updateUndo();return;}
+   mark();renderAll();notify('Rosto quadradinho adicionado!');return;
+  }
   if(b.dataset.kit){addAccessory(b.dataset.kit);return;}
   if(b.dataset.auto){if(model.animations.length>=24){notify('Máximo de animações atingido');return;}autoMovement(b.dataset.auto);return;}
   if(id==='back'){if(dirty&&!confirm('Há alterações não salvas. Voltar à engine mesmo assim?'))return;location.href='index.html';return;}
@@ -364,7 +420,7 @@ async function onAction(e){
   if(id==='export')return exportJSON();if(id==='exportOBJ')return exportOBJ();
   if(id==='import')return $('fileInput').click();
   if(id==='newPreset'){if(dirty&&!confirm('Criar um personagem novo e descartar alterações atuais?'))return;
-   snapshot();model=C.preset($('preset').value);libId=null;selectedId=model.parts[0].id;clipId='';time=0;draftPose=null;playing=false;mark();renderAll();notify('Novo personagem criado!');return;}
+   snapshot();model=C.preset($('preset').value);libId=null;selectedId=model.parts[0].id;clipId='';time=0;draftPose=null;draftExpression=null;playing=false;mark();renderAll();notify('Novo personagem criado!');return;}
   if(id==='library'){await renderLibrary();return;}
   if(id==='addPart')return addPart();if(id==='clonePart')return clonePart();if(id==='mirrorPart')return clonePart(true);if(id==='removePart')return removePart();
   if(id==='frameModel'){camera={yaw:.65,pitch:.32,distance:7.5,target:[0,1.3,0]};return;}
@@ -380,6 +436,7 @@ async function onAction(e){
 function init(){
  $('name').value=model.name;
  $('name').addEventListener('change',()=>{snapshot();model.name=$('name').value.trim().slice(0,72)||'Personagem';mark();});
+ $('faceStrength').addEventListener('change',e=>{snapshot();model.face??={expression:'neutral',intensity:1};model.face.intensity=clamp(e.target.value,0,1);mark();renderFace();});
  $('clip').addEventListener('change',e=>selectClip(e.target.value));
  $('scrub').addEventListener('input',e=>{playing=false;applyFramePreview(Number(e.target.value));renderInspector();});
  $('fileInput').addEventListener('change',async e=>{await importFile(e.target.files?.[0]);e.target.value='';});
