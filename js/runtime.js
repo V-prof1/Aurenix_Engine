@@ -8,13 +8,13 @@ const CHARACTER_TYPE='application/x-aurenix-character+json';
 const charCache=new WeakMap();
 function characterAsset(asset){
  if(!asset||asset.type!==CHARACTER_TYPE||!global.AurenixCharacters)return null;
- if(charCache.has(asset))return charCache.get(asset);
+ const prior=charCache.get(asset);if(prior&&prior.raw===asset.data)return prior.model;
  try{
   const raw=String(asset.data||'');if(raw.length>650000)throw Error('Modelo acima do limite');
   const json=raw.startsWith('data:')?decodeURIComponent(escape(atob(raw.split(',')[1]||''))):raw;
   const checked=global.AurenixCharacters.validate(JSON.parse(json));
-  charCache.set(asset,checked);return checked;
- }catch(e){console.warn('Personagem Aurenix inválido:',e.message);charCache.set(asset,null);return null;}
+  charCache.set(asset,{raw:asset.data,model:checked});return checked;
+ }catch(e){console.warn('Personagem Aurenix inválido:',e.message);charCache.set(asset,{raw:asset.data,model:null});return null;}
 }
 function expandedSceneObjects(scene){
  if(!global.AurenixCharacters||!scene?.assets)return scene.objects||[];
