@@ -7,7 +7,7 @@ const SCOPE='https://www.googleapis.com/auth/drive.appdata';
 const BASE='https://www.googleapis.com/drive/v3';
 const UPLOAD='https://www.googleapis.com/upload/drive/v3';
 const LIMIT=24*1024*1024;
-const types=['project','pixel'];
+const types=['project','pixel','settings'];
 const clone=x=>JSON.parse(JSON.stringify(x));
 const validId=id=>typeof id==='string'&&id.length>0&&id.length<=90&&/^[a-zA-Z0-9_-]+$/.test(id);
 const keyOf=(type,id)=>{
@@ -24,8 +24,10 @@ function validate(type,data){
   if(!['2d','3d','pixel','html5'].includes(data.mode))throw Error('Projeto incompatível: modo desconhecido');
   if(!Array.isArray(data.objects)||!Array.isArray(data.assets))throw Error('Projeto incompleto: objetos ou arquivos ausentes');
   if(data.objects.length>40000||data.assets.length>2000)throw Error('Projeto ultrapassa limites de segurança');
- }else if(!Array.isArray(data.frames)||data.frames.length>600||!Number.isInteger(data.size)||data.size<8||data.size>256){
-  throw Error('Pixel Art inválido');
+ }else if(type==='pixel'){
+  if(!Array.isArray(data.frames)||data.frames.length>600||!Number.isInteger(data.size)||data.size<8||data.size>256)throw Error('Pixel Art inválido');
+ }else if(type==='settings'){
+  if(data.id!=='settings'||!Array.isArray(data.prefabs)||!looksLikeObject(data.theme))throw Error('Configurações incompatíveis');
  }
  return true;
 }
@@ -88,7 +90,7 @@ function client({getToken,fetchImpl}={}){
    if(page)qs.set('pageToken',page);
    const result=await (await call(BASE+'/files?'+qs)).json();
    for(const f of result.files||[]){
-    if(/^aurenix-(project|pixel)-[a-zA-Z0-9_-]+\.json$/.test(f.name||''))all.push(normalizeRemote(f));
+    if(/^aurenix-(project|pixel|settings)-[a-zA-Z0-9_-]+\.json$/.test(f.name||''))all.push(normalizeRemote(f));
    }
    page=result.nextPageToken||'';
    if(all.length>2000)throw Error('Limite de 2 mil arquivos sincronizados atingido');
@@ -213,17 +215,19 @@ function manager({api,getToken,getUser,storage,onStatus}={}){
  }
  async function pull(type,file){
   if(!file?.name?.startsWith('aurenix-'+type+'-'))throw Error('Tipo de arquivo remoto incompatível');
-  const data=unpack(type,await drive.download(file));
+  return unpack(type,await drive.download(file));
+ }
+ async function markPulled(type,data,file){
+  validate(type,data);
   const hash=await digest(JSON.stringify(data));
   accountCache().set(type,data.id,{remoteId:file.id,remoteVersion:file.version,localHash:hash,at:Date.now()});
-  return data;
  }
  async function list(){return drive.listAll();}
  const needsPush=async(type,data)=>{
   const meta=accountCache().get(type,data.id);
   return !meta||meta.localHash!==(await digest(JSON.stringify(data)));
  };
- return {list,push,forceUpload,pull,planPush,needsPush,find,digest,cache:accountCache};
+ return {list,push,forceUpload,pull,markPulled,planPush,needsPush,find,digest,cache:accountCache};
 }
 global.AurenixCloudCore={SCOPE,client,manager,validate,packageData,unpack,keyOf,digest,syncCache,LIMIT};
 })(window);
