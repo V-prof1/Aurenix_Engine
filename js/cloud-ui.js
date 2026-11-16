@@ -160,7 +160,8 @@ function render(){
   '<div class="ax-cloud-account"><span class="ax-cloud-avatar">G</span><div><strong>'+esc(user.name||'Google')+'</strong><small>'+esc(user.email)+'</small><small>✓ Drive particular conectado</small></div><button data-cloud="disconnect">Sair</button></div>':
   '<div class="ax-cloud-connect"><h3>☁ Seus jogos em qualquer dispositivo</h3><p>Use a mesma Conta Google no celular e futuramente no PC para recuperar seus jogos, Pixel Arts e configurações.</p>'+
   '<button class="ax-cloud-primary" data-cloud="connect" '+(!A()?.state?.().configured?'disabled':'')+'>Entrar com Google</button>'+
-  (!A()?.state?.().configured?'<p class="ax-cloud-warning">O login Google precisa de um Client ID OAuth da Aurenix e da configuração Android (SHA-1). O armazenamento local continua disponível enquanto isso.</p>':'')+
+  (!A()?.state?.().configured?'<p class="ax-cloud-warning">O login Google ainda não foi ativado oficialmente. O responsável pela Aurenix precisa cadastrar a API Drive e os clientes OAuth Android/Web.</p>'+
+    '<details class="ax-cloud-dev"><summary>⚙ Configuração para desenvolvedor</summary><label>Client ID OAuth Web (público) <input id="axCloudClientId" placeholder="123456-xxxx.apps.googleusercontent.com" autocomplete="off" spellcheck="false"></label><button data-cloud="saveClientId">Usar Client ID neste aparelho</button><p>Também é preciso registrar o cliente OAuth Android com o pacote do APK e o SHA-1 da assinatura.</p></details>':'')+
   '<p class="ax-cloud-note">Permissão solicitada: apenas a pasta privada da Aurenix no seu Google Drive. Não lemos seus outros documentos.</p></div>';
  if(actions){
   actions.hidden=!connected;
@@ -179,7 +180,7 @@ function render(){
     const conflict=conflicts.has(type+':'+id),localFound=!!localItem(type,id);
     return '<article class="ax-cloud-file'+(conflict?' conflict':'')+'"><div><strong>'+typeLabel[type]+' · '+esc(labelOf(x))+'</strong><small>Atualizado: '+(x.modifiedTime?new Date(x.modifiedTime).toLocaleString('pt-BR'):'—')+'</small><small>'+(localFound?'Já existe neste aparelho':'Não existe neste aparelho')+'</small></div>'+
       '<div class="ax-cloud-buttons"><button data-cloud="pull" data-remote="'+esc(x.id)+'">↓ Restaurar</button>'+
-      (localFound?'<button data-cloud="copy" data-remote="'+esc(x.id)+'">▣ Cópia</button>':'')+
+      (localFound&&type!=='settings'?'<button data-cloud="copy" data-remote="'+esc(x.id)+'">▣ Cópia</button>':'')+
       (conflict?'<button data-cloud="force" data-type="'+type+'" data-item="'+esc(id)+'">↑ Usar versão local</button>':'')+'</div></article>';
    }).join(''):'<p class="ax-cloud-empty">Nenhum backup encontrado. Salve um projeto e toque em Sincronizar.</p>')+
    '<div class="ax-cloud-actions"><button data-cloud="settingsUp">↑ Backup de temas e prefabs</button><button data-cloud="settingsDown">↓ Restaurar temas e prefabs</button></div>';
@@ -204,6 +205,11 @@ async function onClick(e){
  const btn=e.target.closest('button[data-cloud]');if(!btn||busy)return;
  const action=btn.dataset.cloud;
  if(action==='close'){close();return;}
+ if(action==='saveClientId'){
+  try{A().setTestClientId($('axCloudClientId')?.value);setStatus('Client ID público configurado. Agora é possível testar a conexão Google.');render();}
+  catch(err){setStatus(err.message,true);}
+  return;
+ }
  try{
   busy=true;render();
   if(action==='connect')await connect();

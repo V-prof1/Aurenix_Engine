@@ -6,7 +6,10 @@
 const SCOPE='https://www.googleapis.com/auth/drive.appdata';
 const ID='openid email profile';
 let accessToken='',user=null,expiresAt=0,client=null,loginPromise=null,initialized=false,nativeUsed=false;
-const config=()=>String(global.AURENIX_GOOGLE_WEB_CLIENT_ID||'').trim();
+const config=()=>{
+ let fallback='';try{fallback=localStorage.getItem('aurenix.cloud.oauth.clientId')||'';}catch{}
+ return String(global.AURENIX_GOOGLE_WEB_CLIENT_ID||fallback).trim();
+};
 const isNative=()=>global.Capacitor?.isNativePlatform?.()===true;
 const nativePlugin=()=>global.Capacitor?.Plugins?.GoogleSignIn;
 function requireId(){
@@ -112,5 +115,11 @@ async function signOut(){
 }
 function getToken(){return connected()?accessToken:'';}
 function getUser(){return connected()?user:null;}
-global.AurenixGoogleAuth={init,signIn,signOut,state,getToken,getUser,connected,loadGIS,_test:{setSession:(token,profile,ttl=3600)=>{accessToken=token;user=profile;expiresAt=Date.now()+ttl*1000;}}};
+function setTestClientId(clientId){
+ const id=String(clientId||'').trim();
+ if(!/^[\d]+-[a-zA-Z0-9-]+\.apps\.googleusercontent\.com$/.test(id))throw Error('Client ID OAuth inválido');
+ try{localStorage.setItem('aurenix.cloud.oauth.clientId',id);}catch{throw Error('Não consegui salvar o Client ID público');}
+ return true;
+}
+global.AurenixGoogleAuth={init,signIn,signOut,state,getToken,getUser,connected,loadGIS,setTestClientId,_test:{setSession:(token,profile,ttl=3600)=>{accessToken=token;user=profile;expiresAt=Date.now()+ttl*1000;}}};
 })(window);
