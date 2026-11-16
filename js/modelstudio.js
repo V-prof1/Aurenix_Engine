@@ -1,31 +1,94 @@
 /* Aurenix Model Studio — editor 3D offline para celular (sem assinaturas ou bibliotecas externas). */
 (function(){
 'use strict';
-const C=window.AurenixCharacters,R=window.AurenixRuntime,$=id=>document.getElementById(id);
+const C=window.AurenixCharacters,R=window.AurenixRuntime,T=window.AurenixModelTouch,$=id=>document.getElementById(id);
 const clone=C.copy,clamp=(x,a,b)=>Math.min(b,Math.max(a,Number(x)||0));
 const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const types=[['cube','▣ Cubo'],['sphere','● Esfera'],['capsule','⬟ Cápsula'],['cylinder','⬢ Cilindro'],['cone','▲ Cone'],['pyramid','◆ Pirâmide'],['torus','◎ Anel']];
 const library=C.library(),canvas=$('view'),renderer=new R.Renderer3D(canvas);
-let model=C.preset('blocky'),libId=null,selectedId=model.parts[0].id,clipId='',time=0,draftPose=null,draftExpression=null,playing=false,dirty=false;
-let history=[],future=[],camera={yaw:.65,pitch:.32,distance:7.5,target:[0,1.3,0]},pointers=new Map(),lastTouch=null,lastFrame=performance.now(),toastId=0,previewParts=[];
+let model=C.preset('blocky'),libId=null,selectedId=model.parts[0].id,clipId='',time=0,draftPose=null,draftExpression=null,draftTransforms=null,draftModified=false,playing=false,dirty=false,tool='orbit',snapToGrid=false,depthAxis=false;
+let history=[],future=[],camera={yaw:.65,pitch:.32,distance:7.5,target:[0,1.3,0]},pointers=new Map(),lastTouch=null,lastFrame=performance.now(),toastId=0,previewParts=[],lastOverlay=0,draggedPart=null;
 const selected=()=>model.parts.find(p=>p.id===selectedId)||null;
 const clip=()=>model.animations.find(c=>c.id===clipId)||null;
 const canRedo=()=>future.length>0;
+const currentTransforms=()=>draftTransforms||C.getTransforms(model,clipId,time);
+function commitDraft(){
+ if(!clip()||!draftModified)return;
+ C.capture(model,clip(),time,currentPose(),currentExpression(),currentTransforms());
+ draftModified=false;mark();renderMarkers();
+}
+function loadDraft(t){
+ const c=clip();
+ time=clamp(t,0,c?.duration||1);
+ draftPose=c?C.getPose(model,c.id,time):null;
+ draftTransforms=c?C.getTransforms(model,c.id,time):null;
+ draftExpression=null;draftModified=false;
+ updateClock();renderFace();renderInspector();
+}
+function partDisplay(p){
+ const transforms=clip()?currentTransforms():null,from=transforms?.[p.id];
+ return {
+  position:[...(from?.position||p.position)],
+  offset:[...(from?.offset||p.offset)],
+  size:[...(from?.size||p.size)],
+  rotation:[...(clip()?(currentPose()[p.id]||p.rotation):p.rotation)]
+ };
+}
+function setTool(name){
+ if(!['orbit','select','move','rotate','scale','face'].includes(name))return;
+ tool=name;playing=false;
+ if(name==='face'){
+  if(!model.parts.some(p=>p.faceRole)){
+   notify('Para editar rosto, selecione um personagem com olhos e boca.');
+  }
+  camera.yaw=0;camera.pitch=0;
+  const head=model.parts.find(p=>/cabeça/i.test(p.name));
+  if(head)camera.target=[0,2.1,0];
+  camera.distance=clamp(camera.distance,3.7,9);
+ }
+ for(const b of document.querySelectorAll('[data-tool14]')){
+  const on=b.dataset.tool14===tool;b.classList.toggle('active',on);b.setAttribute('aria-pressed',String(on));
+ }
+ const labels={orbit:'Arraste: orbitar • Dois dedos: zoom/panorâmica',select:'Toque uma peça para selecioná-la',
+  move:'Arraste a peça para mover • Botão Z altera profundidade',rotate:'Arraste a peça para girar • Z controla rotação lateral',
+  scale:'Arraste para cima/baixo para aumentar ou diminuir',
+  face:'Toque olho, boca ou sobrancelha e arraste diretamente para mudar a expressão'};
+ $('ax14ToolHint').textContent=labels[name];
+ renderTouchMarkers();
+}
+function renderTouchMarkers(){
+ const panel=$('ax14TouchMarkers');if(!panel)return;
+ panel.replaceChildren();
+ if(tool!=='face'&&tool!=='select'&&tool!=='move'&&tool!=='rotate'&&tool!=='scale')return;
+ const points=tool==='face'?T.faceMarkers(previewParts,point=>renderer.project(point)):
+  (()=>{const p=previewParts.find(p=>p._partId===selectedId);if(!p)return [];
+   const point=renderer.project([p.x,p.y,p.z]);return point?[{id:p._partId,role:'selected',symbol:'✥',x:point.x,y:point.y}]:[];})();
+ const width=canvas.clientWidth,height=canvas.clientHeight;
+ for(const p of points){
+  if(p.x<25||p.y<35||p.x>width-25||p.y>height-25)continue;
+  const el=document.createElement('div');
+  el.className='ax14-face-point'+(p.id===selectedId?' selected':'');
+  el.style.left=p.x+'px';el.style.top=p.y+'px';
+  el.textContent=p.symbol;el.title=p.role;
+  panel.appendChild(el);
+ }
+}
+
 const currentPose=()=>draftPose||Object.fromEntries(model.parts.map(p=>[p.id,[...p.rotation]]));
 function notify(message){
  const box=$('toast');box.textContent=message;box.style.display='block';clearTimeout(toastId);
  toastId=setTimeout(()=>{box.style.display='none';},3000);
 }
 function snapshot(){
- const data={model:clone(model),selectedId,clipId,time,dirty};
+ const data={model:clone(model),selectedId,clipId,time,dirty,draftPose:clone(draftPose),draftTransforms:clone(draftTransforms),draftExpression,draftModified};
  history.push(data);if(history.length>70)history.shift();future=[];updateUndo();
 }
 function restore(state){
- model=state.model;selectedId=state.selectedId;clipId=state.clipId;time=state.time;dirty=true;playing=false;draftPose=clip()?C.getPose(model,clipId,time):null;draftExpression=null;
+ model=state.model;selectedId=state.selectedId;clipId=state.clipId;time=state.time;dirty=true;playing=false;draftPose=state.draftPose|| (clip()?C.getPose(model,clipId,time):null);draftTransforms=state.draftTransforms|| (clip()?C.getTransforms(model,clipId,time):null);draftExpression=state.draftExpression||null;draftModified=!!state.draftModified;draftExpression=null;
  renderAll();
 }
-function undo(){if(!history.length)return;const prev=history.pop();future.push({model:clone(model),selectedId,clipId,time,dirty});restore(prev);}
-function redo(){if(!future.length)return;history.push({model:clone(model),selectedId,clipId,time,dirty});restore(future.pop());}
+function undo(){if(!history.length)return;const prev=history.pop();future.push({model:clone(model),selectedId,clipId,time,dirty,draftPose:clone(draftPose),draftTransforms:clone(draftTransforms),draftExpression,draftModified});restore(prev);}
+function redo(){if(!future.length)return;history.push({model:clone(model),selectedId,clipId,time,dirty,draftPose:clone(draftPose),draftTransforms:clone(draftTransforms),draftExpression,draftModified});restore(future.pop());}
 function updateUndo(){$('undo').disabled=!history.length;$('redo').disabled=!canRedo();}
 function mark(){dirty=true;updateClock();}
 function setSelected(id){selectedId=id;renderTree();renderInspector();}
@@ -39,7 +102,7 @@ function drawer(side){
 }
 function updateClock(){
  const c=clip(),timeLabel=$('clock');timeLabel.textContent=(Number(time)||0).toFixed(2)+'s'+(dirty?' ●':'');
- const scrub=$('scrub');scrub.max=String(c?.duration||1);scrub.value=String(Math.min(time,c?.duration||1));
+ const scrub=$('scrub');scrub.max=String(c?.duration||1);scrub.value=String(Math.min(time,c?.duration||1));updateTrackPlayhead();
 }
 function renderTree(){
  const box=$('tree'),map=new Map(model.parts.map(p=>[p.id,p]));
@@ -62,14 +125,14 @@ function renderInspector(){
   let walk=other;const map=new Map(model.parts.map(x=>[x.id,x]));
   while(walk){if(walk.id===p.id)return true;walk=map.get(walk.parent);}return false;
  };
- const angles=clip()?(currentPose()[p.id]||p.rotation):p.rotation;
+ const shown=partDisplay(p),angles=shown.rotation;
  box.innerHTML='<div class="group">'+field('name','Nome da peça',p.name,'text','maxlength="60"')+
  '<label>Formato<select data-field="type">'+types.map(([key,name])=>'<option value="'+key+'" '+(key===p.type?'selected':'')+'>'+name+'</option>').join('')+'</select></label>'+
  '<label>Ligada à peça<select data-field="parent"><option value="">— Centro do personagem —</option>'+
  parents.filter(x=>!disabled(x)).map(x=>'<option value="'+esc(x.id)+'" '+(p.parent===x.id?'selected':'')+'>'+esc(x.name)+'</option>').join('')+'</select></label>'+
  field('color','Cor',p.color,'color')+'</div>'+
- '<div class="group">'+vector('position','Articulação / pivô',p.position)+
- vector('offset','Centro visual (ajuste fino)',p.offset)+vector('size','Tamanho',p.size)+
+ '<div class="group">'+vector('position',clip()?'Articulação / pivô • KEYFRAME':'Articulação / pivô',shown.position)+
+ vector('offset',clip()?'Deslocamento visual • KEYFRAME':'Centro visual (ajuste fino)',shown.offset)+vector('size',clip()?'Tamanho • KEYFRAME':'Tamanho',shown.size)+
  '<h3>ROTAÇÃO '+(clip()?'DESTA POSE':'BASE')+'</h3><div class="fieldgrid">'+['X','Y','Z'].map((axis,i)=>field('rotation'+i,axis,Number(angles[i]).toFixed(1),'number','step="1"')).join('')+'</div></div>'+
  '<p class="hint">💡 Girar uma articulação também move suas peças filhas. Para animar, escolha uma animação, gire o braço/perna e toque em ◆ Pose.</p>';
 }
@@ -88,7 +151,26 @@ function renderClips(){
 }
 function renderMarkers(){
  const box=$('markers'),c=clip();box.innerHTML=c?c.frames.map(f=>'<button data-time="'+f.time+'">◆ '+f.time.toFixed(1)+'</button>').join(''):'';
+ const tracks=$('ax14Tracks');if(!tracks)return;
+ if(!c){tracks.innerHTML='<div class="ax14-help">＋ Crie uma animação: corpo 🦴, rosto 😄 e objetos 🧱 usarão a mesma timeline.</div>';return;}
+ const names=[['body','🦴 Corpo'],['face','😄 Rosto'],['objects','🧱 Objetos']];
+ tracks.innerHTML=names.map(([channel,label])=>{
+  const dots=c.frames.map(f=>{
+   if(channel==='objects'&&!Object.keys(f.transforms||{}).length)return '';
+   const caption=channel==='body'?'◆':channel==='face'?'☺':'▣';
+   const percentage=clamp(f.time/c.duration*100,0,100);
+   const selected=Math.abs(f.time-time)<.025?' current':'';
+   return '<button class="ax14-track-dot'+selected+'" data-track="'+channel+'" data-time="'+f.time+'" style="left:'+percentage+'%" title="'+label+' aos '+f.time.toFixed(2)+'s">'+caption+'</button>';
+  }).join('');
+  return '<div class="ax14-track"><span class="ax14-track-label">'+label+'</span><div class="ax14-track-content">'+dots+'<div class="ax14-track-playhead" style="left:'+clamp(time/c.duration*100,0,100)+'%"></div></div></div>';
+ }).join('');
 }
+function updateTrackPlayhead(){
+ const c=clip(),tracks=$('ax14Tracks');if(!c||!tracks)return;
+ const v=clamp(time/c.duration*100,0,100);
+ tracks.querySelectorAll('.ax14-track-playhead').forEach(el=>el.style.left=v+'%');
+}
+
 function currentExpression(){
  if(typeof draftExpression==='string')return draftExpression;
  const c=clip();
@@ -108,7 +190,7 @@ function renderFace(){
 function setExpression(expression){
  if(!C.FACE_EXPRESSIONS.some(([id])=>id===expression))return;
  snapshot();playing=false;
- if(clip())draftExpression=expression;
+ if(clip()){draftExpression=expression;draftModified=true;}
  else{model.face??={expression:'neutral',intensity:1};model.face.expression=expression;draftExpression=null;}
  mark();renderFace();notify(clip()?'Expressão pronta. Toque em ◆ Pose para gravar.':'Expressão aplicada ao modelo.');
 }
@@ -116,10 +198,9 @@ function renderAll(){
  $('name').value=model.name;renderTree();renderInspector();renderClips();renderFace();updateClock();updateUndo();
 }
 function applyFramePreview(t){
- const c=clip();time=clamp(t,0,c?.duration||1);
- draftPose=c?C.getPose(model,c.id,time):null;draftExpression=null;updateClock();renderFace();
+ commitDraft();loadDraft(t);renderMarkers();
 }
-function resetPose(){playing=false;clipId='';time=0;draftPose=null;draftExpression=null;renderAll();}
+function resetPose(){commitDraft();playing=false;clipId='';time=0;draftPose=null;draftExpression=null;draftTransforms=null;draftModified=false;renderAll();}
 function addPart(){
  if(model.parts.length>=C.MAX_PARTS){notify('Limite de 80 peças');return;}
  snapshot();const parent=selected(),p=C.part('Nova peça','cube',parent?.id||null,parent?[0,.8,0]:[0,1.5,0],[0,.1,0],[.42,.42,.42],'#81c7e8');
@@ -182,17 +263,17 @@ function removePart(){
  selectedId=p.parent||model.parts[0].id;mark();renderAll();
 }
 function selectClip(id){
- playing=false;clipId=id;time=0;draftPose=id?C.getPose(model,id,0):null;draftExpression=null;
+ commitDraft();playing=false;clipId=id;time=0;draftPose=id?C.getPose(model,id,0):null;draftTransforms=id?C.getTransforms(model,id,0):null;draftExpression=null;draftModified=false;
  renderInspector();renderClips();renderFace();
 }
 function createClip(){
  const name=prompt('Nome do movimento','Minha animação');if(!name)return;
- snapshot();const c=C.newClip(model,name);clipId=c.id;time=0;draftPose=C.getPose(model,c.id,0);draftExpression=null;
+ commitDraft();snapshot();const c=C.newClip(model,name);clipId=c.id;time=0;draftPose=C.getPose(model,c.id,0);draftTransforms=C.getTransforms(model,c.id,0);draftExpression=null;draftModified=false;
  mark();renderAll();notify('Gire as peças e capture poses em tempos diferentes.');
 }
 function capturePose(){
  const c=clip();if(!c){notify('Crie ou selecione uma animação');return;}
- snapshot();C.capture(model,c,time,currentPose(),currentExpression());draftExpression=null;mark();renderMarkers();renderFace();notify('Pose e expressão salvas aos '+time.toFixed(2)+'s');
+ snapshot();C.capture(model,c,time,currentPose(),currentExpression(),currentTransforms());draftExpression=null;draftModified=false;mark();renderMarkers();renderFace();notify('Corpo + rosto + peças gravados aos '+time.toFixed(2)+'s');
 }
 function removeFrame(){
  const c=clip();if(!c)return;
@@ -250,7 +331,7 @@ function autoMovement(kind){
   }
   return {time:Number((c.duration*step).toFixed(4)),pose,expression};
  });
- clipId=c.id;time=0;draftPose=C.getPose(model,c.id,0);draftExpression=null;mark();renderAll();
+ clipId=c.id;time=0;draftPose=C.getPose(model,c.id,0);draftTransforms=C.getTransforms(model,c.id,0);draftExpression=null;draftModified=false;mark();renderAll();
  notify('Animação '+labels[kind]+' pronta! Ajuste movimentos e expressões.');
 }
 async function saveModel(){
