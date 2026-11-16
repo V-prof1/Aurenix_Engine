@@ -1,42 +1,59 @@
-# 🏮 Lacres da Bruma — A Última Batida | V1.2.1
+# 🏮 Lacres da Bruma: A Última Batida — V2.0.0
 
-**Jogo original editável com o motor nativo da Aurenix Engine.** Preserva compatibilidade com os salvamentos locais da versão 1.0, quando o armazenamento da WebView/navegador permite.
+Jogo original criado na **Aurenix Engine** (motor JavaScript nativo, 2D top-down). Campanha de 15 capítulos, 7 mapas, inimigos, colecionáveis e habilidades. Todo o jogo permanece num projeto Aurenix JSON editável, não é um HTML externo.
 
-> Quando o Grande Sino tocou 13 vezes, o mundo esqueceu seus nomes. Os lacres espalhados por Orval guardam as memórias que faltam.
+## 📜 Campanha narrativa: 15 capítulos
+A Décima Terceira Batida apagou memórias do mundo de Orval. O Catador de Ecos parte do Farol de Eira, encontra Kael, Dara, Nim, Orin e Cid, recupera lacres de memória, decifra o nome proibido e confronta o Regente do Silêncio. A história se revela aos poucos; cada capítulo oferece um objetivo simples, diálogo e recompensa. O diário preserva os capítulos concluídos.
 
-## Como instalar e editar
-1. Baixe `lacres-da-bruma.aurenix.json` desta pasta.
-2. Na Aurenix Engine, toque em **Importar projeto** e escolha esse arquivo.
-3. Abra o jogo e pressione **▶ Testar**.
-4. Edite as quatro cenas, os cenários, as animações, os sprites ou o script principal. A lógica central é replicada no script de cada cena para que o motor reconheça eventos após mudar de área.
-5. Para exportar para Android: **🐙 Publicar no GitHub e gerar APK**, preferencialmente usando um repositório do jogo separado.
+**Missões da campanha:**
+1. Conversar com Mira no Refúgio.
+2. Abrir 3 baús no Bosque.
+3. Encontrar Kael.
+4. Derrotar 4 guardiões no Bosque.
+5. Abrir 4 baús na Forja.
+6. Conversar com Dara.
+7. Abrir 3 baús no Lago dos Reflexos.
+8. Encontrar Nim.
+9. Ler os 3 obeliscos da Cripta das Letras.
+10. Derrotar 5 guardiões no Jardim dos Nomes.
+11. Abrir 5 lacres no Jardim.
+12. Conversar com Eira no Refúgio.
+13. Abrir 3 lacres na Torre.
+14. Derrotar o Regente do Silêncio.
+15. Voltar a conversar com Eira e concluir a história.
 
-## Controles (1.2.1)
-- **Celular:** analógico esquerdo para movimentação, **analógico direito para mirar e atacar enquanto segura**, botão **✦** para interagir, **🌀** para esquivar.
-- **Celular:** botões pequenos **❤️, 💥, 🛡️** no canto superior direito para usar consumíveis comprados na loja.
-- **Teclado:** **WASD/setas** mover, **IJKL** escolher direção de ataque, **Espaço** golpear, **F** interagir, **Shift** esquiva, **1/2/3** consomem poção/bomba/escudo.
-- Os ataques respeitam a direção do analógico direito mesmo enquanto o personagem anda numa direção diferente.
+## 🌍 Mapas
+- Refúgio do Farol: início, portais, melhorias, NPCs, diário e lojas.
+- Bosque dos Sussurros: exploração e a história do cartógrafo Kael.
+- Forja Silenciosa: máquinas e história de Dara.
+- Lago dos Reflexos: segredo submerso, Nim e novos lacres.
+- Cripta das Letras: obeliscos e pistas do nome verdadeiro.
+- Jardim dos Nomes: guardiões, flores e sementes de memória.
+- Torre do Décimo Terceiro Sino: batalha contra o Regente.
 
-## Como gastar moedas e ecos
-- **⚒ Oficina de Mira:** cinco melhorias permanentes (espada, velocidade, vida, sorte e mochila).
-- **🛒 Bazar dos Perdidos:** poções de cura, bombas de área, proteção temporária, bússolas que mostram o baú mais próximo e chaves que garantem raridade Rara ou superior.
-- **🔮 Mesa das Runas (ecos):** aprimoramento permanente de dano, ouro de baús e resistência. Forja de relíquias Raras ou melhores.
-- **🎨 Atelier das Lanternas:** desbloqueio de cores para a aura e o ataque.
-- **📜 Quadro de Contratos:** selecione objetivos por expedição, como abrir baús ou derrotar guardiões, e receba moedas/ecos extras ao voltar vivo.
+## ⚔️ Controles
+O jogo é fácil de aprender, independentemente da arma:
+- **Android:** analógico esquerdo para andar; analógico direito para mirar e atacar segurando; botão ✦ para interagir; 🌀 para esquivar. Botões❤️💥🛡️ usam consumíveis.
+- **PC:** WASD/setas para andar, IJKL para direcionar, Espaço para atacar, F para interagir, Shift para esquivar, 1/2/3 para consumíveis.
 
-## Conteúdo e progressão
-- 4 áreas: Refúgio do Farol, Bosque dos Sussurros, Forja Silenciosa, Torre do Décimo Terceiro Sino.
-- 6 capítulos de lore e batalha contra o Regente do Silêncio.
-- 5 níveis de raridade de baús, relíquias colecionáveis, proteção contra sequências longas de azar e recompensas repetíveis.
-- Upgrades de mochila fazem surgir novos baús, distribuídos fora de obstáculos sólidos. Entre 8 e 17 baús conforme a região e mochila.
-- Inimigos corpo a corpo e atiradores, ataque direcionado contínuo, esquiva com invulnerabilidade breve, consumíveis táticos.
-- Ao retornar vivo, guarda o saque e pode receber recompensa do contrato. Ao morrer, perde metade das moedas/ecos da expedição, mas mantém as relíquias coletadas.
-- Perfil salvo por `api.saveData` e `api.loadData`, conforme a disponibilidade de armazenamento local.
+## 🧰 Sistemas e atividades
+- **Três armas**, mesmo controle: ⚔️ espada rápida, 🔨 martelo poderoso (atordoa), ✨ cajado de longo alcance.
+- Economia com moedas (oficina, armas, bazar, cosméticos), ecos (runas e forja de relíquias), contratos repetíveis.
+- Expedições curtas com baús aleatórios, 5 raridades, proteção contra sequências de azar, recompensas extras e chance de inimigo-surpresa.
+- Segredos regionais com ecos especiais, santuários de cura, coleção de relíquias, cenário com colisões e sprites.
+- Progresso narrativo, equipamentos e coleção salvos localmente via API da Aurenix, conforme as permissões do dispositivo.
+- Uma única regra para todas as missões: **andar, atacar, interagir**. Nenhuma tela de comandos complexos ou árvore de missões obrigatória.
 
-## Preview web
-https://v-prof1.github.io/Aurenix_Engine/games/lacres-da-bruma/?v=1.2.1
+## Abrir e editar na Aurenix
+1. Baixe `lacres-da-bruma.aurenix.json` neste diretório.
+2. Na Aurenix Engine, use **Importar projeto** e escolha o JSON.
+3. Pressione **▶ Testar**; personalize arte, objetos, cenas e scripts.
+4. Para publicar APK de teste, use o fluxo gratuito de GitHub Actions da engine em um repositório separado.
 
-O preview usa o mesmo JSON e `js/runtime.js` da engine. Os testes do projeto são simulados; a execução gráfica e o toque real dependem do navegador/Android.
+## Jogar no navegador
+https://v-prof1.github.io/Aurenix_Engine/games/lacres-da-bruma/?v=2.0.0
 
-## Limitações
-A Aurenix Alpha 0.10 tem física e colisões simplificadas. As entidades de baús e inimigos são criadas ao executar a cena via scripts. Não há multiplayer nem geração de mapas totalmente procedural. O APK gerado pelo fluxo de GitHub é para debug até configurar assinatura de release. Antes de atualizar/desinstalar uma versão da engine, exporte seus projetos.
+A página de preview carrega o mesmo runtime `js/runtime.js` e o mesmo JSON do projeto.
+
+## Compatibilidade e limitações
+O perfil usa a mesma chave de salvamento das versões antigas e os novos campos são inicializados automaticamente; mantenha backup dos projetos. A engine está em Alpha, com física e inteligência artificial simplificadas. Os testes automatizados disponíveis foram simulados; desempenho real, layout e multitoque devem ser validados num Android. GitHub Pages pode demorar para atualizar por causa da publicação e do cache. O projeto não inclui multiplayer, áudio profissional ou geração procedural completa.
