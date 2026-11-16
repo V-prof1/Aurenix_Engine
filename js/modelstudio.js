@@ -251,7 +251,6 @@ function visualEdit(e){
  editField(e.target);
 }
 function touchCanvas(){
- const bounds=canvas.getBoundingClientRect();
  canvas.addEventListener('pointerdown',e=>{
   e.preventDefault();canvas.setPointerCapture?.(e.pointerId);
   pointers.set(e.pointerId,{x:e.clientX,y:e.clientY,startX:e.clientX,startY:e.clientY});
@@ -281,7 +280,7 @@ function touchCanvas(){
   pointers.delete(e.pointerId);
   if(pointers.size<2)touchCanvas.previous=null;
   if(pointers.size===0&&lastTouch&&!lastTouch.moved&&Math.hypot(e.clientX-lastTouch.x,e.clientY-lastTouch.y)<10){
-   const x=e.clientX-bounds.left,y=e.clientY-bounds.top;let best=null,dist=44;
+   const bounds=canvas.getBoundingClientRect();const x=e.clientX-bounds.left,y=e.clientY-bounds.top;let best=null,dist=44;
    // Smaller items are selectable by their projected center even when the body overlaps.
    for(const part of previewParts){
     const projected=renderer.project([part.x,part.y,part.z]);if(!projected)continue;
@@ -354,6 +353,13 @@ function init(){
   if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z'){e.preventDefault();e.shiftKey?redo():undo();}
   if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='s'){e.preventDefault();saveModel();}
  });
+ const nativeApp=window.Capacitor?.Plugins?.App;
+ nativeApp?.addListener?.('backButton',()=>{
+  if($('leftPanel').classList.contains('open')||$('rightPanel').classList.contains('open')){closeDrawers();return;}
+  if(dirty&&!confirm('Seu personagem possui alterações não salvas. Sair?'))return;
+  location.href='index.html';
+ });
+ document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')playing=false;});
  touchCanvas();renderAll();renderLibrary();requestAnimationFrame(loop);
 }
 init();
