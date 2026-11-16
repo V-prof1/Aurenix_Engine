@@ -19,6 +19,8 @@ const links=[
  ['gameSettings','🎮','Configurar jogo','HUD, controles e câmera'],
  ['theme','🌈','17 temas','Personalizar as cores da engine'],
  ['pixelStudio','✎','Pixel Studio completo','Desenhar sprites, quadros e camadas'],
+ ['modelStudio','🎭','Model Studio 3D','Montar e animar personagens com articulações'],
+ ['models','♟','Personagens 3D','Inserir personagens animados no jogo'],
  ['play','▶','Testar jogo','Executar a cena atual'],
  ['save','▣','Salvar projeto','Guardar no aplicativo'],
  ['export','⬇','Exportar jogo','HTML5 e template para APK'],

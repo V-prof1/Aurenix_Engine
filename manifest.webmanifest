@@ -1,6 +1,6 @@
 {
-  "name": "Aurenix Engine Cloud Alpha 0.11",
-  "short_name": "Aurenix 0.11",
+  "name": "Aurenix Engine Alpha 0.12",
+  "short_name": "Aurenix 0.12",
   "description": "Editor de jogos 2D, 3D e pixel art para celular",
   "id": "./",
   "start_url": "./index.html",

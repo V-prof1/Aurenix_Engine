@@ -9,7 +9,7 @@ test('scripts da interface e pixel studio compilam sem erro de sintaxe',()=>{
 });
 test('configuração mantém identificador paralelo para não apagar dados do APK 0.3',()=>{
  const app=JSON.parse(fs.readFileSync('capacitor.config.json','utf8'));
- assert.equal(app.appId,'com.aurenix.engine.cloud');
+ assert.equal(app.appId,'com.aurenix.engine.alpha012');
 });
 test('editor inclui ancoragem e seleção bloqueada persistentes',()=>{
  const editor=fs.readFileSync('js/editor.js','utf8');

@@ -207,3 +207,18 @@ Veja também `docs/GOOGLE_CLOUD_SETUP.md`.
 - Não é um multiplayer online. É **cross-save**: continuar editando o mesmo projeto entre aparelhos. Multiplayer cross-play exigirá rede/servidor próprios.
 - Assinaturas de APK anteriores não são reutilizadas; o pacote novo `com.aurenix.engine.cloud` instala ao lado da v0.10. Migre seus jogos via JSON antes de remover versões antigas.
 - Requer internet e credenciais OAuth ativas para sincronização. A falta do Client ID oficial impossibilita login até o cadastro pelo mantenedor da engine.
+
+## Alpha 0.12 — Model Studio 3D: personagens low-poly e animação gratuita
+
+Abra o **🎭 Model Studio 3D** pela tela inicial, Central de Ferramentas ou menu ⋮.
+
+- Modelos prontos: humano, robô e criatura. Peças: cubo, esfera, cápsula, cilindro, cone, pirâmide e toro. Até 80 peças por personagem.
+- Hierarquia com articulações e pivôs, rotação XYZ, tamanho, cor, duplicação, espelhamento, desfazer/refazer; gestos de toque para orbitar a câmera e pinça para zoom.
+- Timeline de animação por peças e articulações: crie clipes, capture poses, edite quadros, reproduza e controle velocidade, loop e suavização. Quatro movimentos base: respirar, andar, correr e atacar.
+- Modelos salvos localmente no IndexedDB, exportação/importação **.aurenix3d** (JSON animado) e exportação **.obj** estática (somente malha).
+- Abra **Personagens 3D** no editor para usar os modelos em jogos 3D. Personagens são objetos especiais com asset, articulações e animações. O runtime renderiza no WebGL ou fallback CPU; scripts e blocos podem acionar `api.playAnimation(self,'Correr')`.
+- Os dados dos personagens importados fazem parte do projeto JSON e da exportação HTML5/APK. A biblioteca local do Model Studio é independente; exporte arquivos .aurenix3d para transferi-la entre instalações.
+
+**Limitação:** não é substituto integral do Blender. Esta primeira versão é um editor low-poly por peças, não possui escultura de vértices, UVs complexas, rig automático, weight painting ou animação por ossos deformando malhas. Essas seriam fases futuras.
+
+**Instalação:** o pacote `com.aurenix.engine.alpha012` instala ao lado da 0.11; os projetos antigos podem ser transferidos por exportação/importação JSON. A assinatura Android ainda não é permanente.
