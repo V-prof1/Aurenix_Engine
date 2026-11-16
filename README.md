@@ -222,3 +222,16 @@ Abra o **🎭 Model Studio 3D** pela tela inicial, Central de Ferramentas ou men
 **Limitação:** não é substituto integral do Blender. Esta primeira versão é um editor low-poly por peças, não possui escultura de vértices, UVs complexas, rig automático, weight painting ou animação por ossos deformando malhas. Essas seriam fases futuras.
 
 **Instalação:** o pacote `com.aurenix.engine.alpha012` instala ao lado da 0.11; os projetos antigos podem ser transferidos por exportação/importação JSON. A assinatura Android ainda não é permanente.
+
+## Alpha 0.13 — Expressões e personagens quadradinhos
+
+A **Aurenix Model Studio** agora tem rostos low-poly feitos de peças simples e animáveis, sem texturas pesadas ou dependências de nuvem. Expressões: neutro, feliz, triste, raiva, surpresa, medo, sonolento, piscada dupla, piscadela, desconfiado e falando. Uma seção de botões permite alternar as expressões com toque; a intensidade pode ser ajustada. Os rostos usam olhos, pupilas, sobrancelhas, boca, bochechas e cantos do sorriso articulados, sem escultura pesada.
+
+As expressões podem ser gravadas **junto com os keyframes do corpo**, e são interpoladas ou trocadas de forma discreta conforme o modo do clipe. O arquivo .aurenix3d preserva as expressões e acompanha o APK/HTML5 do jogo. Modelos antigos sem propriedades faciais continuam compatíveis, com opção para adicionar peças faciais depois.
+
+**Novas animações prontas:** acenar, pular, receber dano, dançar, piscar e conversar, além de respirar, andar, correr e atacar.
+
+**Modelos de cenário reutilizáveis:** caixote, árvore low-poly, poste de luz, cadeira e porta com dobradiça (com clipe Abrir porta). Todos usam o mesmo sistema gratuito de hierarquia e animações, sem exigir Blender.
+
+**Limites atuais:** a face é uma transformação estilizada de formas primitivas, não um sistema de blendshapes deformáveis nem rig de malhas complexas. A criação é gratuita, local e otimizada para editor móvel. Algumas animações são demonstrações editáveis, não soluções prontas de locomoção com root motion.
+**Android:** identificador `com.aurenix.engine.alpha013`; instala em paralelo com versões anteriores. Exporte JSON antes de excluir uma instalação antiga.
