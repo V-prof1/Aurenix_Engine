@@ -1,7 +1,7 @@
 {
   "name": "aurenix-engine",
   "private": true,
-  "version": "0.14.0",
+  "version": "0.15.0",
   "description": "Engine 3D 2D pixel mobile-first com gameplay por componentes, OBJ e cenários",
   "scripts": {
     "android:add": "cap add android",
