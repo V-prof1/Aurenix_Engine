@@ -1,0 +1,34 @@
+/* Aurenix Model Studio 0.14 — phone-first direct manipulation and multitrack timeline. */
+:root{--ax14-hit:50px}
+.ax14-viewport-toolbar{position:absolute;left:10px;right:10px;top:9px;display:flex;gap:5px;align-items:center;overflow-x:auto;scrollbar-width:thin;z-index:13;max-width:calc(100% - 16px);padding:2px 1px 4px;overscroll-behavior-x:contain;pointer-events:auto}
+.ax14-viewport-toolbar button{flex:0 0 auto;min-height:var(--ax14-hit);min-width:58px;padding:6px 10px;background:#14273ee8;border:1px solid #4d7183;white-space:nowrap;font-size:12px;backdrop-filter:blur(8px)}
+.ax14-viewport-toolbar button.active{background:#20656c;border:2px solid #91eddc;color:#fff}
+.ax14-viewport-toolbar button:focus-visible{outline:3px solid #fff}
+#ax14TouchMarkers{position:absolute;inset:0;pointer-events:none;z-index:12;overflow:hidden}
+.ax14-face-point{position:absolute;width:38px;height:38px;border:2px solid #b2f7e8;background:#11454fc9;color:white;border-radius:50%;transform:translate(-50%,-50%);font:800 14px system-ui;display:grid;place-items:center;box-shadow:0 0 0 3px #0a273955;pointer-events:none}
+.ax14-face-point.selected{width:47px;height:47px;border:3px solid #ffe79a;background:#5b4c25c9;box-shadow:0 0 9px #fff3}
+.ax14-face-point span{pointer-events:none}
+#ax14ToolHint{position:absolute;top:70px;left:50%;transform:translateX(-50%);z-index:15;pointer-events:none;background:#0c203bc9;border:1px solid #426985;border-radius:9px;padding:7px 10px;max-width:min(90%,440px);text-align:center;font-size:11px;line-height:1.4;color:#cff8f5}
+.ax14-timeline{flex:0 0 auto;background:#14253b;border-top:1px solid #406079;min-height:80px;max-height:min(33dvh,170px);display:flex;flex-direction:column;padding:4px max(8px,env(safe-area-inset-left)) 5px;overflow:hidden}
+.ax14-timeline-actions{display:flex;align-items:center;gap:6px;overflow-x:auto;flex:0 0 auto;padding-bottom:4px}
+.ax14-timeline-actions button{min-height:42px;flex:0 0 auto;white-space:nowrap;padding:6px 8px}
+.ax14-timeline-actions select{height:43px;min-width:110px;max-width:165px;background:#112237;border:1px solid #54708b;color:#e4f9ff;border-radius:8px;padding:5px}
+.ax14-timeline-actions #clock{min-width:69px;font:700 12px monospace;color:#8bf7de}
+.ax14-timeline-actions #scrub{accent-color:#75e9d7;flex:1;min-width:76px;max-width:280px;height:40px;touch-action:pan-y}
+.ax14-track-rows{display:grid;gap:3px;min-height:0;overflow-y:auto}
+.ax14-track{display:grid;grid-template-columns:87px minmax(0,1fr);align-items:center;min-height:30px;gap:5px}
+.ax14-track-label{font-size:11px;color:#d9eff8;font-weight:700;white-space:nowrap}
+.ax14-track-content{position:relative;min-width:0;height:26px;background:#0c192c;border-radius:7px;border:1px solid #365471;overflow:hidden}
+.ax14-track-content:before{content:"";position:absolute;top:0;bottom:0;left:50%;width:1px;background:#ffffff21}
+.ax14-track-dot{position:absolute;top:3px;transform:translateX(-50%);width:24px;height:19px;min-height:0;border-radius:7px;padding:0;border:1px solid #a8ddec;background:#23677b;font-size:11px;line-height:15px;color:white}
+.ax14-track-dot.current{background:#a87e39;border:2px solid #ffe6a4}
+.ax14-track-playhead{position:absolute;left:0;top:0;bottom:0;width:2px;background:#ffcf7c;pointer-events:none;z-index:2}
+.ax14-track-dot[data-track=face]{background:#805ea3}
+.ax14-track-dot[data-track=objects]{background:#58815e}
+.ax14-track-dot:focus-visible{outline:3px solid #fff}
+.ax14-pixel-swatches{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:5px;margin-top:8px}
+.ax14-pixel-swatches button{min-width:0;min-height:40px;padding:0;border:2px solid #93d8cc;border-radius:8px;box-shadow:inset 0 0 0 2px #0005}
+.ax14-help{border:1px solid #325f74;border-radius:9px;padding:7px;color:#a8e4e0;background:#183147;font-size:11px;line-height:1.4}
+.ax14-partial{font-size:10px;color:#ffdda0}
+@media(max-width:720px){#ax14ToolHint{top:69px;font-size:10px}.ax14-viewport-toolbar{top:7px}.ax14-viewport-toolbar button{min-height:46px;padding:5px 9px}.ax14-timeline{min-height:100px;max-height:150px}.ax14-timeline-actions{gap:4px}.ax14-timeline-actions button{font-size:11px}.ax14-track{grid-template-columns:77px minmax(0,1fr)}.ax14-track-label{font-size:10px}.ax14-track-dot{width:27px;min-height:20px}}
+@media(max-width:720px) and (orientation:landscape){.ax14-timeline{max-height:100px;min-height:88px}.ax14-track{min-height:23px}.ax14-track-content{height:22px}.ax14-track-dot{height:16px;top:2px;line-height:11px}.ax14-viewport-toolbar button{min-height:41px}.ax14-timeline-actions button{min-height:36px}.ax14-timeline-actions select{height:36px}.ax14-timeline-actions #scrub{height:36px}#ax14ToolHint{top:54px}.viewport-actions{top:100px}}
