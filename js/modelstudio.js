@@ -426,48 +426,91 @@ function visualEdit(e){
  editField(e.target);
 }
 function touchCanvas(){
+ const point=e=>{const r=canvas.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top};};
  canvas.addEventListener('pointerdown',e=>{
-  e.preventDefault();canvas.setPointerCapture?.(e.pointerId);
+  e.preventDefault();try{canvas.setPointerCapture(e.pointerId);}catch{}
   pointers.set(e.pointerId,{x:e.clientX,y:e.clientY,startX:e.clientX,startY:e.clientY});
-  if(pointers.size===1)lastTouch={x:e.clientX,y:e.clientY,time:performance.now(),moved:false};
+  if(pointers.size>1){draggedPart=null;lastTouch=null;touchCanvas.previous=null;return;}
+  lastTouch={x:e.clientX,y:e.clientY,time:performance.now(),moved:false};
+  draggedPart=null;
+  if(tool!=='orbit'){
+   const mesh=T.pick(previewParts,point(e),v=>renderer.project(v),{facesOnly:tool==='face',threshold:tool==='face'?44:61});
+   if(mesh){
+    setSelected(mesh._partId);
+    if(tool!=='select'){
+     const p=selected();
+     if(p)draggedPart={id:p.id,pointerId:e.pointerId,sx:e.clientX,sy:e.clientY,start:partDisplay(p),didMove:false};
+    }
+   }
+  }
  });
  canvas.addEventListener('pointermove',e=>{
-  const p=pointers.get(e.pointerId);if(!p)return;e.preventDefault();
+  const p=pointers.get(e.pointerId);if(!p)return;
+  e.preventDefault();
   const dx=e.clientX-p.x,dy=e.clientY-p.y;p.x=e.clientX;p.y=e.clientY;
-  if(pointers.size===1){
-   if(Math.hypot(e.clientX-p.startX,e.clientY-p.startY)>9&&lastTouch)lastTouch.moved=true;
-   camera.yaw-=dx*.009;camera.pitch=clamp(camera.pitch-dy*.008,-1.35,1.35);
-  }else{
-   const ps=[...pointers.values()];if(ps.length!==2)return;
+  if(pointers.size>=2){
+   draggedPart=null;if(lastTouch)lastTouch.moved=true;
+   const ps=[...pointers.values()];
+   if(ps.length!==2)return;
    const a=ps[0],b=ps[1],dist=Math.hypot(a.x-b.x,a.y-b.y);
    if(!touchCanvas.previous){touchCanvas.previous={dist,centerX:(a.x+b.x)/2,centerY:(a.y+b.y)/2};return;}
    const old=touchCanvas.previous;
    if(dist>15&&old.dist>15)camera.distance=clamp(camera.distance*old.dist/dist,2.6,38);
    const mx=(a.x+b.x)/2,my=(a.y+b.y)/2,px=mx-old.centerX,py=my-old.centerY;
-   camera.target[0]-=(px*Math.cos(camera.yaw)+py*Math.sin(camera.y))*camera.distance*.002;
+   camera.target[0]-=(px*Math.cos(camera.yaw)+py*Math.sin(camera.yaw))*camera.distance*.002;
    camera.target[2]+=(px*Math.sin(camera.yaw)-py*Math.cos(camera.yaw))*camera.distance*.002;
-   touchCanvas.previous={dist,centerX:mx,centerY:my};if(lastTouch)lastTouch.moved=true;
+   touchCanvas.previous={dist,centerX:mx,centerY:my};return;
+  }
+  if(draggedPart&&draggedPart.pointerId===e.pointerId&&['move','rotate','scale','face'].includes(tool)){
+   const mx=e.clientX-draggedPart.sx,my=e.clientY-draggedPart.sy;
+   if(!draggedPart.didMove&&Math.hypot(mx,my)<6)return;
+   if(!draggedPart.didMove){snapshot();draggedPart.didMove=true;}
+   const part=model.parts.find(p=>p.id===draggedPart.id);
+   if(!part)return;
+   const value=T.transform({tool,start:draggedPart.start,dx:mx,dy:my,camera,snapToGrid,depth:depthAxis});
+   if(!value)return;
+   if(tool==='rotate'){
+    if(clip()){draftPose??=C.getPose(model,clipId,time);draftPose[part.id]=value.rotation;draftModified=true;}
+    else part.rotation=value.rotation;
+   }else if(clip()){
+    draftTransforms??=C.getTransforms(model,clipId,time);
+    const old=partDisplay(part);
+    draftTransforms[part.id]??={position:[...old.position],offset:[...old.offset],size:[...old.size]};
+    if(tool==='scale')draftTransforms[part.id].size=value.size;
+    else draftTransforms[part.id].position=value.position;
+    draftModified=true;
+   }else{
+    if(tool==='scale')part.size=value.size;
+    else part.position=value.position;
+   }
+   if(lastTouch)lastTouch.moved=true;
+   playing=false;mark();return;
+  }
+  if(lastTouch&&Math.hypot(e.clientX-p.startX,e.clientY-p.startY)>8)lastTouch.moved=true;
+  if(tool==='orbit'||tool==='select'||!draggedPart){
+   camera.yaw-=dx*.009;camera.pitch=clamp(camera.pitch-dy*.008,-1.35,1.35);
   }
  });
- function end(e){
-  const p=pointers.get(e.pointerId);
-  if(!p)return;
+ function finish(e,cancel=false){
+  const p=pointers.get(e.pointerId);if(!p)return;
   pointers.delete(e.pointerId);
   if(pointers.size<2)touchCanvas.previous=null;
-  if(pointers.size===0&&lastTouch&&!lastTouch.moved&&Math.hypot(e.clientX-lastTouch.x,e.clientY-lastTouch.y)<10){
-   const bounds=canvas.getBoundingClientRect();const x=e.clientX-bounds.left,y=e.clientY-bounds.top;let best=null,dist=44;
-   // Smaller items are selectable by their projected center even when the body overlaps.
-   for(const part of previewParts){
-    const projected=renderer.project([part.x,part.y,part.z]);if(!projected)continue;
-    const length=Math.hypot(projected.x-x,projected.y-y);
-    if(length<dist){dist=length;best=part;}
+  if(draggedPart?.pointerId===e.pointerId&&draggedPart.didMove){
+   renderInspector();renderTouchMarkers();
+   if(clip())$('ax14ToolHint').textContent='◆ Movimento ajustado! Grave tudo ou mude o tempo para salvar o keyframe.';
+  }else if(!cancel&&pointers.size===0&&lastTouch&&!lastTouch.moved&&Math.hypot(e.clientX-lastTouch.x,e.clientY-lastTouch.y)<10){
+   const mesh=T.pick(previewParts,point(e),v=>renderer.project(v),{facesOnly:tool==='face',threshold:tool==='face'?46:55});
+   if(mesh){
+    setSelected(mesh._partId);
+    if(tool==='select'&&matchMedia('(max-width:720px)').matches)drawer('right');
    }
-   if(best){setSelected(best._partId);drawer('right');}
   }
-  lastTouch=null;
+  if(pointers.size===0){lastTouch=null;draggedPart=null;}
  }
- canvas.addEventListener('pointerup',end);canvas.addEventListener('pointercancel',e=>{pointers.delete(e.pointerId);lastTouch=null;touchCanvas.previous=null;});
- window.addEventListener('blur',()=>{pointers.clear();lastTouch=null;touchCanvas.previous=null;playing=false;});
+ canvas.addEventListener('pointerup',e=>finish(e));
+ canvas.addEventListener('pointercancel',e=>finish(e,true));
+ canvas.addEventListener('lostpointercapture',e=>{if(pointers.has(e.pointerId))finish(e,true);});
+ window.addEventListener('blur',()=>{pointers.clear();lastTouch=null;draggedPart=null;touchCanvas.previous=null;playing=false;});
 }
 function loop(now){
  const dt=clamp((now-lastFrame)*.001,0,.1);lastFrame=now;
