@@ -81,7 +81,18 @@ function propPreset(kind){
 }
 C.preset=function(kind){
  if(['crate','tree','lamp','door','chair'].includes(kind))return propPreset(kind);
- const m=oldPreset(kind);m.face={expression:'neutral',intensity:1};return addFaceParts(m);
+ const blocky=kind==='blocky';
+ const m=oldPreset(blocky?'human':kind);
+ if(blocky){
+  m.name='Avatar quadradinho';
+  const torso=m.parts.find(p=>p.name==='Tronco'),head=m.parts.find(p=>p.name==='Cabeça');
+  if(torso){torso.type='cube';torso.size=[.87,.96,.56];torso.color='#4b85ba';}
+  if(head){head.type='cube';head.size=[.84,.82,.72];head.color='#f4c7a5';}
+  for(const p of m.parts){
+   if(/braço|perna/i.test(p.name)){p.type='cube';p.size=p.name.includes('Braço')?[.32,.84,.34]:[.36,1.0,.38];}
+  }
+ }
+ m.face={expression:'neutral',intensity:1};return addFaceParts(m);
 };
 C.validate=function(input){
  const checked=oldValidate(input);
@@ -128,7 +139,7 @@ function faceAt(model,clipId='',time=0,override=null){
 const expressionParams={
  neutral:   {eye:1,mouthW:1,mouthH:1,browY:0,browTilt:0,smile:0,cheek:0,pupilY:0,mouthTilt:0},
  happy:     {eye:.77,mouthW:1.52,mouthH:1.2,browY:.025,browTilt:-5,smile:1,cheek:1,pupilY:0,mouthTilt:0},
- sad:       {eye:.72,mouthW:.86,mouthH:1,browY:-.035,browTilt:16,smile:0,cheek:.15,pupilY:-.04,mouthTilt:180},
+ sad:       {eye:.72,mouthW:.86,mouthH:1,browY:-.035,browTilt:16,smile:-.8,cheek:.15,pupilY:-.04,mouthTilt:180},
  angry:     {eye:.52,mouthW:1.10,mouthH:.82,browY:-.12,browTilt:-25,smile:0,cheek:0,pupilY:0,mouthTilt:0},
  surprised: {eye:1.3,mouthW:.63,mouthH:3.6,browY:.14,browTilt:0,smile:0,cheek:0,pupilY:0,mouthTilt:0},
  scared:    {eye:1.42,mouthW:.66,mouthH:3.1,browY:.10,browTilt:13,smile:0,cheek:0,pupilY:-.04,mouthTilt:0},
@@ -155,7 +166,7 @@ function modifyPart(p,face,model){
   const side=kind.endsWith('L')?1:-1;
   visual.dy=face.browY*intensity;visual.rz=side*face.browTilt*intensity;
  }else if(kind==='cornerL'||kind==='cornerR'){
-  visual.sx=mix(1+face.smile*3);visual.sy=mix(1+face.smile*3);
+  visual.sx=mix(1+Math.abs(face.smile)*3);visual.sy=mix(1+Math.abs(face.smile)*3);
   visual.dy=face.smile*.07*intensity;
   visual.rz=(kind==='cornerL'?-1:1)*face.smile*28*intensity;
  }else if(kind==='cheekL'||kind==='cheekR'){
