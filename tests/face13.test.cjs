@@ -81,7 +81,7 @@ test('Aplicativo e exportação carregam plugin de rosto antes do motor 3D',()=>
  assert.ok(editor.includes("characterSrc+'\\n'+faceSrc+'\\n'+runtimeSrc"));
  assert.ok(cache.includes('character-face13.js'));
  const config=JSON.parse(read('capacitor.config.json'));
- assert.equal(config.appId,'com.aurenix.engine.alpha013');
+ assert.equal(config.appId,'com.aurenix.engine.alpha014');
 });
 test('Aurenix 0.13 está disponível offline e JavaScript novo compila',()=>{
  const script=read('js/character-face13.js'),studio=read('js/modelstudio.js'),page=read('modelstudio.html');
