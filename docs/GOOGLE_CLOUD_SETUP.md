@@ -22,7 +22,7 @@ Crie dois **OAuth Client IDs** em **Google Auth Platform → Clientes**.
 ### Cliente Android (para o APK da Aurenix)
 - Tipo: **Android**
 - Pacote: `com.aurenix.engine.cloud`.
-- SHA-1: **impressão digital da chave que assinou exatamente o APK que será instalado**. Após a compilação do GitHub Actions, abra o log da etapa **Mostrar SHA-1 do APK para OAuth Google**.
+- SHA-1: **impressão digital da chave que assinou exatamente o APK que será instalado**. Após a compilação do GitHub Actions, abra o log da etapa **Mostrar SHA-1 do APK para OAuth Google** (extraído do APK assinado com apksigner).
 - Crie o cliente Android com a SHA-1. Se houver múltiplas chaves de distribuição, cadastre clientes Android adicionais.
 - No plugin `@capawesome/capacitor-google-sign-in` é usado o Client ID **Web**, mas o cliente Android precisa existir e estar no mesmo projeto Google Cloud.
 

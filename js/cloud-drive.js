@@ -107,7 +107,8 @@ function client({getToken,fetchImpl}={}){
  async function upload(type,id,text,remote=null){
   if(byteLength(text)>LIMIT)throw Error('Backup maior que 24 MB');
   const name=keyOf(type,id);
-  const metadata={name,mimeType:'application/json',description:'Aurenix Cloud · '+type+' · '+String(id).slice(0,80)};
+  const title=String(JSON.parse(text).title||id).slice(0,90);
+  const metadata={name,mimeType:'application/json',description:'Aurenix Cloud - '+title};
   const contentType='application/json; charset=UTF-8';
   let res;
   if(remote?.id){

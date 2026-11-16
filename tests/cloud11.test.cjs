@@ -133,3 +133,16 @@ test('Todos os novos JS sao sintaticamente validos',()=>{
   assert.doesNotThrow(()=>new vm.Script(code(file),{filename:file}),file);
  }
 });
+
+test('Metadado remoto usa nome legivel do projeto sem dar acesso a pastas comuns',async()=>{
+ const {C}=harness();
+ let posted='';
+ const mock=async(url,options)=>{
+  posted=String(options?.body||'');
+  return {ok:true,json:async()=>({id:'f1',name:'aurenix-project-abc.json',version:'1'})};
+ };
+ const cli=C.client({getToken:()=> 't',fetchImpl:mock});
+ await cli.upload('project','abc',C.packageData('project',project()));
+ assert.ok(posted.includes('Aurenix Cloud - Meu jogo'),posted.slice(0,230));
+ assert.ok(posted.includes('appDataFolder'));
+});
