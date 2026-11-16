@@ -436,5 +436,45 @@ newProjectModal = function(){
     '<small>Escolha definitiva para este projeto. Depois de criado, não poderá mudar o tipo sem criar outro projeto.</small></div>');
 };
 project.programming='script';
+
+/* Integração exclusiva dos tutoriais: não altera projetos de usuário fora de uma aula. */
+window.AurenixTutorialBridge={
+ async prepareManualProject(){
+  if(projectDirty&&(history.length||lastSave)&&!confirm('Você tem alterações não salvas. Faça um backup ou salve antes de criar um tutorial. Continuar?'))throw Error('Abertura cancelada');
+  window.AurenixHome?.close();selectTab('projects');openPanel('left');
+ },
+ async openProject(track,course){
+  if(projectDirty&&(history.length||lastSave)&&!confirm('Você tem alterações não salvas. Salve seu jogo antes de entrar no laboratório. Continuar?'))throw Error('Abertura cancelada');
+  if(!db)db=await openDB();
+  const id='aurenix-academy-'+track;
+  let p=await requestPromise(store().get(id));
+  if(!p){
+   const template=track==='3d'?'3d':track==='pixel'?'topdown':'platformer';
+   p=R.makeTemplate(template);p.id=id;
+   p.name={'2d':'📘 Laboratório de Jogo 2D','3d':'📘 Laboratório de Jogo 3D','pixel':'📘 Laboratório de Jogo Pixel'}[track]||'📘 Laboratório';
+   p.programming='script';
+   p.updated=Date.now();
+  }
+  if(course?.id==='blocos')p.programming='blocks';
+  if(course?.id==='codigo')p.programming='script';
+  setProject(p);
+  if(course?.id==='animacao2d-loop'){
+   const obj=selected()||project.objects.find(o=>o.type==='player2d')||project.objects[0];
+   if(obj){selectObj(obj.id);if(!(obj.animations||[]).length){S?.addClip(obj);touchProject();}}
+  }
+ },
+ goTo(tab){
+  if(tab==='inspector'){openPanel('right');return;}
+  if(!tab)return;selectTab(tab);openPanel('left');
+ },
+ state(){return {id:project.id,mode:project.mode,objects:project.objects?.length||0,clips:selected()?.animations?.length||0,selected:selected()?.type||''};},
+ async adoptProject(track){
+  const id='aurenix-academy-'+track;
+  project.id=id;project.name='📘 Laboratório de Jogo 2D';
+  $('projectName').value=project.name;
+  await saveProject();window.AurenixHome?.refresh?.();
+ },
+ async save(){await saveProject();}
+};
 start().catch(e=>{console.error(e);toast('Erro ao iniciar: '+e.message);});
 })();
