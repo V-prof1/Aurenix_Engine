@@ -8,7 +8,9 @@ function harness(){
 test('Expressões faciais preservam estilo quadradinho e peças articuladas',()=>{
  const {C}=harness();
  assert.equal(C.FACE_EXPRESSIONS.length,11);
- for(const kind of ['human','robot','creature']){
+ const avatar=C.preset('blocky');assert.equal(avatar.parts.find(p=>p.name==='Cabeça').type,'cube');
+ assert.equal(avatar.parts.find(p=>p.name==='Braço esquerdo').type,'cube');
+ for(const kind of ['blocky','human','robot','creature']){
   const model=C.preset(kind),checked=C.validate(model);
   assert.equal(checked.face.expression,'neutral');
   assert.ok(checked.parts.some(p=>p.faceRole==='browL'));

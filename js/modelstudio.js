@@ -6,7 +6,7 @@ const clone=C.copy,clamp=(x,a,b)=>Math.min(b,Math.max(a,Number(x)||0));
 const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const types=[['cube','▣ Cubo'],['sphere','● Esfera'],['capsule','⬟ Cápsula'],['cylinder','⬢ Cilindro'],['cone','▲ Cone'],['pyramid','◆ Pirâmide'],['torus','◎ Anel']];
 const library=C.library(),canvas=$('view'),renderer=new R.Renderer3D(canvas);
-let model=C.preset('human'),libId=null,selectedId=model.parts[0].id,clipId='',time=0,draftPose=null,draftExpression=null,playing=false,dirty=false;
+let model=C.preset('blocky'),libId=null,selectedId=model.parts[0].id,clipId='',time=0,draftPose=null,draftExpression=null,playing=false,dirty=false;
 let history=[],future=[],camera={yaw:.65,pitch:.32,distance:7.5,target:[0,1.3,0]},pointers=new Map(),lastTouch=null,lastFrame=performance.now(),toastId=0,previewParts=[];
 const selected=()=>model.parts.find(p=>p.id===selectedId)||null;
 const clip=()=>model.animations.find(c=>c.id===clipId)||null;
