@@ -87,8 +87,8 @@ function rotate(a){
  return mul(mul(my,mx),mz);
 }
 function transformPoint(m,p){return [m[0]*p[0]+m[4]*p[1]+m[8]*p[2]+m[12],m[1]*p[0]+m[5]*p[1]+m[9]*p[2]+m[13],m[2]*p[0]+m[6]*p[1]+m[10]*p[2]+m[14]];}
-function expand(model,root={x:0,y:0,z:0,ry:0,rx:0,rz:0,modelScale:1},animation='',time=0){
- const pose=getPose(model,animation,time),byId=new Map(model.parts.map(p=>[p.id,p])),matrices=new Map(),result=[];
+function expand(model,root={x:0,y:0,z:0,ry:0,rx:0,rz:0,modelScale:1},animation='',time=0,poseOverride=null){
+ const pose=poseOverride||getPose(model,animation,time),byId=new Map(model.parts.map(p=>[p.id,p])),matrices=new Map(),result=[];
  const rootMatrix=mul(translate([root.x||0,root.y||0,root.z||0]),mul(rotate([root.rx||0,root.ry||0,root.rz||0]),scale([clamp(root.modelScale??1,.01,40),clamp(root.modelScale??1,.01,40),clamp(root.modelScale??1,.01,40)])));
  function calc(p){
   if(matrices.has(p.id))return matrices.get(p.id);
@@ -110,8 +110,8 @@ function newClip(model,name='Nova animação'){
  const c={id:uid(),name:String(name).slice(0,50),duration:1,loop:true,speed:1,ease:'smooth',frames:[{time:0,pose:copy(pose)},{time:1,pose:copy(pose)}]};
  model.animations.push(c);return c;
 }
-function capture(model,clip,t){
- const pose=Object.fromEntries(model.parts.map(p=>[p.id,[...p.rotation]]));
+function capture(model,clip,t,poseOverride=null){
+ const pose=poseOverride?copy(poseOverride):Object.fromEntries(model.parts.map(p=>[p.id,[...p.rotation]]));
  const time=clamp(t,0,clip.duration);
  const same=clip.frames.find(f=>Math.abs(f.time-time)<.0001);
  if(same)same.pose=pose;
