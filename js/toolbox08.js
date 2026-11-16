@@ -22,7 +22,8 @@ const links=[
  ['play','▶','Testar jogo','Executar a cena atual'],
  ['save','▣','Salvar projeto','Guardar no aplicativo'],
  ['export','⬇','Exportar jogo','HTML5 e template para APK'],
- ['githubAPK','🐙','Gerar APK no GitHub','Conectar conta, criar repositório e compilar APK']
+ ['githubAPK','🐙','Gerar APK no GitHub','Conectar conta, criar repositório e compilar APK'],
+ ['cloud','☁','Aurenix Cloud','Google Drive, backup e projetos em outro celular ou PC']
 ];
 let overlay=null,search=null,handler=()=>{};
 function render(query=''){

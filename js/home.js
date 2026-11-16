@@ -7,12 +7,12 @@ function create(){
 root=document.createElement('section');root.id='axHome';root.className='ax-home hidden';root.setAttribute('aria-label','Início Aurenix Engine');
 root.innerHTML='<div class="ax-homewrap">'+
  '<header class="ax-homeheader"><div class="ax-homebrand"><span class="ax-homeglyph">A✦</span><div><b>AURENIX <em>ENGINE</em></b><small>CRIAR · EXPLORAR · JOGAR</small></div></div><span class="ax-alpha">ALPHA 0.10</span><button data-home="continue" class="ax-continue">↩ Voltar ao editor</button></header>'+
- '<div class="ax-homehero"><div class="ax-eyebrow">SEU ESTÚDIO DE JOGOS, NO CELULAR</div><h1>O que vamos criar hoje?</h1><p>Comece do zero, continue seu jogo ou desenhe sprites. Sem conta e sem assinatura.</p><div class="ax-homeactions"><button class="ax-primary" data-home="create">＋ Novo jogo</button><button data-home="pixel">▦ Pixel Studio</button><button data-home="import">⇧ Importar projeto</button><button data-home="audio">♫ Áudio</button><button data-home="settings">🎨 17 temas</button></div></div>'+
+ '<div class="ax-homehero"><div class="ax-eyebrow">SEU ESTÚDIO DE JOGOS, NO CELULAR</div><h1>O que vamos criar hoje?</h1><p>Comece do zero, continue seu jogo ou desenhe sprites. Sem conta e sem assinatura.</p><div class="ax-homeactions"><button class="ax-primary" data-home="create">＋ Novo jogo</button><button data-home="pixel">▦ Pixel Studio</button><button data-home="import">⇧ Importar projeto</button><button data-home="audio">♫ Áudio</button><button data-home="settings">🎨 17 temas</button><button class="ax-cloud-home" data-home="cloud">☁ Aurenix Cloud</button></div></div>'+
  '<div class="ax-homestats"><span><b id="axHomeCount">0</b><small>Projetos no aparelho</small></span><span><b>2D + 3D</b><small>Jogos e cenas</small></span><span><b>Blocos / JS</b><small>Programação</small></span></div>'+
  '<div class="ax-homeheading"><div><span class="ax-eyebrow">BIBLIOTECA</span><h2>Seus projetos</h2></div><button data-home="refresh">⟳ Atualizar</button></div>'+
  '<div class="ax-homefilters"><input id="axHomeSearch" aria-label="Buscar projetos" placeholder="Buscar pelo nome do jogo..."><select id="axHomeFilter" aria-label="Filtrar tipo"><option value="all">Todos os modos</option><option value="2d">2D</option><option value="pixel">Pixel</option><option value="3d">3D</option><option value="html5">HTML5</option></select></div>'+
  '<div id="axHomeGrid" class="ax-homegrid" aria-live="polite"></div>'+
- '<footer class="ax-homefooter"><span>Os projetos ficam salvos neste dispositivo. Exporte backups antes de remover o aplicativo.</span><button data-home="help">? Ajuda</button></footer></div>';
+ '<footer class="ax-homefooter"><span>Projetos salvos neste aparelho. Use ☁ Aurenix Cloud para criar backups no seu Google Drive.</span><button data-home="help">? Ajuda</button></footer></div>';
 document.body.appendChild(root);
 root.addEventListener('click',async e=>{
  const b=e.target.closest('button[data-home],button[data-open],button[data-delete],button[data-rename],button[data-copy],button[data-backup]');
@@ -26,7 +26,7 @@ root.addEventListener('click',async e=>{
  if(op==='pixel'){api?.pixel?.();return;}
  if(op==='help'){api?.help?.();return;}
  if(op==='audio'){api?.audio?.();return;}
- if(op==='settings'){api?.settings?.();return;}
+ if(op==='settings'){api?.settings?.();return;}if(op==='cloud'){api?.cloud?.();return;}
  if(b.dataset.open){await api.open?.(b.dataset.open);close();return;}
  if(b.dataset.copy){await api.copy?.(b.dataset.copy);await refresh();return;}
  if(b.dataset.rename){const p=(await api.list())?.find(p=>p.id===b.dataset.rename);if(!p)return;const name=prompt('Novo nome do projeto:',p.name||'Projeto');if(name&&name.trim()){await api.rename?.(p.id,name.trim().slice(0,70));await refresh();}return;}

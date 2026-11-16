@@ -66,7 +66,7 @@ function openDB(){return new Promise((resolve,reject)=>{if(!indexedDB)return rej
 function store(mode='readonly'){return db.transaction('projects',mode).objectStore('projects');}
 function requestPromise(req){return new Promise((res,rej)=>{req.onsuccess=()=>res(req.result);req.onerror=()=>rej(req.error);});}
 function prepareProject(){S?.stopPreview?.();S?.ensureScenes(project);window.AurenixBlocks?.compileAll(project);S?.syncScene(project);}
-async function saveProject(){prepareProject();try{if(!db)db=await openDB();project.updated=Date.now();await requestPromise(store('readwrite').put(JSON.parse(JSON.stringify(project))));projectDirty=false;lastSave=Date.now();$('saveStatus').textContent='✓ Salvo neste aparelho';renderProjects();toast('Projeto salvo localmente');}catch(e){toast('Erro ao salvar: '+e.message);}}
+async function saveProject(){prepareProject();try{if(!db)db=await openDB();project.updated=Date.now();await requestPromise(store('readwrite').put(JSON.parse(JSON.stringify(project))));projectDirty=false;lastSave=Date.now();$('saveStatus').textContent='✓ Salvo neste aparelho';renderProjects();window.AurenixCloud?.onLocalSave(project,'project');toast('Projeto salvo localmente');}catch(e){toast('Erro ao salvar: '+e.message);}}
 async function renderProjects(){if(!db)return;try{const arr=await requestPromise(store().getAll());arr.sort((a,b)=>(b.updated||0)-(a.updated||0));$('savedProjects').innerHTML=arr.map(p=>`<div class="saved-project"><div class="info"><strong>${esc(p.name||'Projeto')}</strong><small>${esc(p.mode)} • ${p.programming==='blocks'?'Blocos':'Scripts'} • ${new Date(p.updated||Date.now()).toLocaleDateString('pt-BR')}</small></div><button data-loadproject="${esc(p.id)}">Abrir</button><button data-deleteproject="${esc(p.id)}" title="Apagar">✕</button></div>`).join('')||'<div class="section-description">Nenhum projeto salvo ainda.</div>';}catch(e){console.warn(e);}}
 async function loadProject(id){if(!db)db=await openDB();const p=await requestPromise(store().get(id));if(p){setProject(p);closePanels();toast('Projeto carregado');}}
 async function deleteProject(id){if(!confirm('Apagar este projeto salvo? Faça antes um backup se for importante.'))return;await requestPromise(store('readwrite').delete(id));renderProjects();toast('Projeto excluído do armazenamento');}
@@ -252,7 +252,7 @@ function wireEvents(){
   if(id==='pixelStudio'){if(projectDirty&&!confirm('Há mudanças não salvas. Salve seu projeto antes de sair. Continuar?'))return;location.href='pixelstudio.html';return;}
   if(id==='play'){play();return;}
   if(id==='save'){saveProject();return;}
-  if(id==='export'){exportGame();return;}if(id==='githubAPK'){window.AurenixGithubUI?.open();return;}
+  if(id==='export'){exportGame();return;}if(id==='githubAPK'){window.AurenixGithubUI?.open();return;}if(id==='cloud'){window.AurenixCloud?.open();return;}
   selectTab(id);openPanel('left');
  });
  $('axAssetPixel').onclick=()=>{selectTab('pixelBridge');openPanel('left');};
@@ -272,7 +272,7 @@ function wireEvents(){
  'menuAnimations':()=>{selectTab('animation');openPanel('left');},
  'menuPrefabs':()=>{selectTab('prefabs');openPanel('left');},
  'menuDebug':()=>{project.debugFps=!project.debugFps;markDirty();$('menuDebug').textContent=project.debugFps?'◉ FPS durante teste: ligado':'◉ FPS durante teste: desligado';toast('Exibição FPS '+(project.debugFps?'ativada':'desativada'));},
- 'menuHome':()=>window.AurenixHome?.open(),'menuTheme':()=>window.AurenixTheme?.open(),'menuAudio':()=>{selectTab('audio');openPanel('left');},'menuPixelStudio':()=>location.href='pixelstudio.html','menuNew':newProjectModal,'menuImport':()=>$('projectPicker').click(),'menuExportJson':exportProject,'menuExportGame':exportGame,'menuExportApk':exportAPK,'menuGithubAPK':()=>window.AurenixGithubUI?.open(),'menuSettings':openSceneSettings,'menuDocs':showDocs};for(const [id,fn] of Object.entries(menus))$(id).onclick=()=>{$('menuPopover').classList.add('hidden');fn();};
+ 'menuHome':()=>window.AurenixHome?.open(),'menuTheme':()=>window.AurenixTheme?.open(),'menuAudio':()=>{selectTab('audio');openPanel('left');},'menuPixelStudio':()=>location.href='pixelstudio.html','menuNew':newProjectModal,'menuImport':()=>$('projectPicker').click(),'menuExportJson':exportProject,'menuExportGame':exportGame,'menuExportApk':exportAPK,'menuGithubAPK':()=>window.AurenixGithubUI?.open(),'menuCloud':()=>window.AurenixCloud?.open(),'menuSettings':openSceneSettings,'menuDocs':showDocs};for(const [id,fn] of Object.entries(menus))$(id).onclick=()=>{$('menuPopover').classList.add('hidden');fn();};
  document.addEventListener('click',e=>{if(!e.target.closest('#menuPopover')&&!e.target.closest('#topMoreBtn'))$('menuPopover').classList.add('hidden');});
  $('modalClose').onclick=closeModal;$('modalLayer').addEventListener('click',e=>{if(e.target===$('modalLayer'))closeModal();});
  $('modalLayer').addEventListener('click',e=>{const add=e.target.closest('[data-newobject]'),tem=e.target.closest('[data-template]');if(add){createObj(add.dataset.newobject);return;}if(tem){const p=R.makeTemplate(tem.dataset.template);p.programming=$('newProgrammingChoice')?.value==='blocks'?'blocks':'script';if(p.programming==='blocks'){p.script='';for(const o of p.objects){o.script='';o.blocks=[];}window.AurenixBlocks?.compileAll(p);}setProject(p);ensurePixel();closeModal();toast('Cena criada');return;}if(e.target.id==='applySceneSettings'){historyPush();project.name=$('sceneName').value.trim()||'Meu jogo';project.background=$('sceneBg').value;project.grid=R.clamp(Number($('sceneGrid').value)||32,4,256);project.gravity=Number($('sceneGravity').value)||1100;project.gravity3d=Number($('sceneGravity3d').value)||18;project.script=$('globalScript').value;$('projectName').value=project.name;markDirty();renderSummary();closeModal();toast('Cena configurada');}});
@@ -306,7 +306,7 @@ function wireEvents(){
  document.addEventListener('keydown',e=>{if(e.target.matches('input,textarea,select'))return;if(e.ctrlKey||e.metaKey){if(e.key==='z'){e.preventDefault();undo();}if(e.key==='y'||e.shiftKey&&e.key==='Z'){e.preventDefault();redo();}if(e.key==='s'){e.preventDefault();saveProject();}}if(e.key==='Delete'&&selected()){historyPush();project.objects=project.objects.filter(o=>o.id!==selectedId);selectObj('');touchProject();}if(e.key==='Escape'){closePanels();closeModal();if(!$('playOverlay').classList.contains('hidden'))stop();}});
  window.addEventListener('beforeunload',e=>{if(projectDirty){e.preventDefault();e.returnValue='';}});
  window.addEventListener('message',e=>{if(e.source===$('playFrame')?.contentWindow&&e.data?.type==='AURENIX_EXIT_PLAY')stop();});
- window.setInterval(async()=>{if(projectDirty&&Date.now()-lastSave>120000&&db){try{prepareProject();await requestPromise(store('readwrite').put(JSON.parse(JSON.stringify(project))));projectDirty=false;lastSave=Date.now();$('saveStatus').textContent='✓ Autosalvo';}catch(e){}}},30000);
+ window.setInterval(async()=>{if(projectDirty&&Date.now()-lastSave>120000&&db){try{prepareProject();await requestPromise(store('readwrite').put(JSON.parse(JSON.stringify(project))));projectDirty=false;lastSave=Date.now();$('saveStatus').textContent='✓ Autosalvo';window.AurenixCloud?.onLocalSave(project,'project');}catch(e){}}},30000);
 }
 function showDocs(){openModal('Aurenix Engine • Ajuda e API',`<p><b>Esta versão alpha</b> inclui edição de objetos 2D, pixel art, geometria 3D WebGL, inspector, scripts JavaScript, física básica, câmera, controle touch, exportação ZIP e projeto Android gratuito.</p><p><b>JavaScript de objeto:</b> a função recebe <code>self</code>, <code>scene</code>, <code>api</code> e <code>dt</code> (segundos desde o quadro anterior).</p><pre>// Movimento de um objeto (graus/segundo)\nself.rotation += dt * 90;\n\n// Buscar objetos\nconst heroi = api.get('Herói');\n\n// Criar e excluir\napi.spawn('circle', {x:100,y:50,w:20,h:20,color:'#ffd070'});\napi.remove('id-ou-nome');\n\n// Teclas, colisão e som\nif (api.isKeyDown('e')) api.sound(600,0.1);\nconst colidiu = api.collides(self,heroi);
 // Componentes funcionam em projetos Blocos ou Scripts.
@@ -317,11 +317,11 @@ api.heal(5);
 api.message('Você encontrou um baú!');
 api.cameraShake(4);
 api.getByTag('inimigo');
-api.saveData('nivel',3); const nivel=api.loadData('nivel',1);\n\n// Outras cenas, animação e tiles\napi.loadScene('Cena 2');\napi.nextScene();\napi.playAnimation(self,'Correr');\napi.stopAnimation(self);\napi.setTile(3,2,'#45a968',true);</pre><p><b>HTML5:</b> use ⋮ → Importar para abrir <code>.html</code>, <code>.zip</code> ou um projeto Aurenix em <code>.json</code>. ZIPs com <code>index.html</code> são importados como projetos web. O arquivo original é preservado ao exportar; a prévia interna usa URLs incorporadas, então apps que fazem <code>fetch()</code>, <code>import</code> complexo ou exigem headers próprios podem precisar de um servidor.</p><p><b>Outras linguagens:</b> jogos compilados para JavaScript/WebAssembly (Rust, C/C++, Godot Web, etc.) podem ser importados como pacote HTML5, desde que sejam compatíveis com WebView Android. Python, C# e Lua não são interpretados nativamente aqui.</p><p><b>APK:</b> ⋮ → Exportar template de APK cria um ZIP com o jogo, Capacitor e workflow do GitHub Actions. Não é um APK imediato; envie os arquivos ao GitHub e execute o fluxo. APK debug é para testes.</p><p><b>Privacidade:</b> projetos ficam no seu próprio navegador e são executados em iframe isolado durante os testes. Não há login, IA, assinatura ou backend obrigatório.</p>`);}
+api.saveData('nivel',3); const nivel=api.loadData('nivel',1);\n\n// Outras cenas, animação e tiles\napi.loadScene('Cena 2');\napi.nextScene();\napi.playAnimation(self,'Correr');\napi.stopAnimation(self);\napi.setTile(3,2,'#45a968',true);</pre><p><b>HTML5:</b> use ⋮ → Importar para abrir <code>.html</code>, <code>.zip</code> ou um projeto Aurenix em <code>.json</code>. ZIPs com <code>index.html</code> são importados como projetos web. O arquivo original é preservado ao exportar; a prévia interna usa URLs incorporadas, então apps que fazem <code>fetch()</code>, <code>import</code> complexo ou exigem headers próprios podem precisar de um servidor.</p><p><b>Outras linguagens:</b> jogos compilados para JavaScript/WebAssembly (Rust, C/C++, Godot Web, etc.) podem ser importados como pacote HTML5, desde que sejam compatíveis com WebView Android. Python, C# e Lua não são interpretados nativamente aqui.</p><p><b>APK:</b> ⋮ → Exportar template de APK cria um ZIP com o jogo, Capacitor e workflow do GitHub Actions. Não é um APK imediato; envie os arquivos ao GitHub e execute o fluxo. APK debug é para testes.</p><p><b>Privacidade:</b> projetos permanecem no aparelho por padrão e são executados em iframe isolado durante os testes. O backup opcional ☁ Aurenix Cloud usa exclusivamente a pasta privada do aplicativo no seu Google Drive; login Google e acesso à internet são necessários para sincronizar.</p>`);}
 function initializeHome(){
  window.AurenixHome?.init({
   list:async()=>db?await requestPromise(store().getAll()):[],
-  open:loadProject,create:newProjectModal,import:()=>$('projectPicker').click(),help:showDocs,settings:()=>window.AurenixTheme?.open(),audio:()=>{window.AurenixHome?.close();selectTab('audio');openPanel('left');},
+  open:loadProject,create:newProjectModal,import:()=>$('projectPicker').click(),help:showDocs,settings:()=>window.AurenixTheme?.open(),audio:()=>{window.AurenixHome?.close();selectTab('audio');openPanel('left');},cloud:()=>window.AurenixCloud?.open(),
   pixel:()=>{if(projectDirty&&(history.length||lastSave)&&!confirm('Seu jogo tem mudanças não salvas. Salve antes de entrar no Pixel Studio. Continuar?'))return;projectDirty=false;location.href='pixelstudio.html';},
   copy:async id=>{const p=await requestPromise(store().get(id));if(!p)return;const n=JSON.parse(JSON.stringify(p));n.id=R.uid();n.name=(p.name||'Projeto')+' (cópia)';n.updated=Date.now();await requestPromise(store('readwrite').put(n));},
   rename:async(id,name)=>{const p=await requestPromise(store().get(id));if(!p)return;p.name=name;p.updated=Date.now();await requestPromise(store('readwrite').put(p));if(project.id===id){project.name=name;$('projectName').value=name;}},
@@ -331,6 +331,59 @@ function initializeHome(){
  window.AurenixHome?.open();
 }
 async function start(){
+ window.AurenixCloud?.init({
+  getProject:()=>project,
+  beforeSync:async()=>{if(projectDirty)await saveProject();},
+  listProjects:async()=>{
+   if(!db)db=await openDB();
+   return await requestPromise(store().getAll());
+  },
+  putProject:async incoming=>{
+   if(!db)db=await openDB();
+   await requestPromise(store('readwrite').put(JSON.parse(JSON.stringify(incoming))));
+   if(project.id===incoming.id){setProject(incoming);projectDirty=false;}
+   renderProjects();window.AurenixHome?.refresh?.();
+  },
+  listPixels:async()=>{
+   const pixelDb=await new Promise((resolve,reject)=>{
+    const req=indexedDB.open('aurenix-pixelstudio-v1',1);
+    req.onupgradeneeded=()=>{if(!req.result.objectStoreNames.contains('artworks'))req.result.createObjectStore('artworks',{keyPath:'id'});};
+    req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error);
+   });
+   try{
+    return await new Promise((resolve,reject)=>{
+     const req=pixelDb.transaction('artworks','readonly').objectStore('artworks').getAll();
+     req.onsuccess=()=>resolve(req.result||[]);req.onerror=()=>reject(req.error);
+    });
+   }finally{pixelDb.close();}
+  },
+  putPixel:async incoming=>{
+   const pixelDb=await new Promise((resolve,reject)=>{
+    const req=indexedDB.open('aurenix-pixelstudio-v1',1);
+    req.onupgradeneeded=()=>{if(!req.result.objectStoreNames.contains('artworks'))req.result.createObjectStore('artworks',{keyPath:'id'});};
+    req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error);
+   });
+   try{
+    await new Promise((resolve,reject)=>{
+     const req=pixelDb.transaction('artworks','readwrite').objectStore('artworks').put(JSON.parse(JSON.stringify(incoming)));
+     req.onsuccess=()=>resolve();req.onerror=()=>reject(req.error);
+    });
+   }finally{pixelDb.close();}
+  },
+  getSettings:async()=>({
+   id:'settings',name:'Temas e prefabs',
+   theme:JSON.parse(localStorage.getItem('aurenix.theme.v1')||'{}'),
+   prefabs:JSON.parse(localStorage.getItem('aurenix.studio.prefabs.07')||'[]')
+  }),
+  putSettings:async data=>{
+   localStorage.setItem('aurenix.theme.v1',JSON.stringify(data.theme));
+   localStorage.setItem('aurenix.studio.prefabs.07',JSON.stringify(data.prefabs));
+  },
+  onRestored:(type,data)=>{
+   toast(type==='settings'?'Preferências recuperadas! Reinicie a engine para aplicar os temas.':(data.name||'Arquivo')+' recuperado da nuvem.');
+   if(type==='project'){renderProjects();window.AurenixHome?.refresh?.();}
+  }
+ });
  window.AurenixGithubUI?.init({
    getProject:()=>project,
    getFiles:()=>{requireRuntime();return gameFiles();}

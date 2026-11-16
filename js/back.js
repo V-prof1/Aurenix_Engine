@@ -10,6 +10,7 @@ function toast(msg){
 }
 async function back(){
  try{
+  if(global.AurenixCloud?.isOpen?.()){global.AurenixCloud.close();return 'cloud';}
   if(global.AurenixGithubUI?.isOpen?.()){global.AurenixGithubUI.close();return 'github-publisher';}
   if(global.AurenixToolbox?.isOpen?.()){global.AurenixToolbox.close();return 'toolbox';}
   if(global.AurenixStudio07?.isPreviewing?.()){global.AurenixStudio07.stopPreview();return 'animation';}
