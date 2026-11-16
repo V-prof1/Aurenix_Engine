@@ -138,7 +138,7 @@ const expressionParams={
  suspicious:{eye:.70,mouthW:.9,mouthH:1,browY:.04,browTilt:-15,smile:.1,cheek:0,pupilY:0,mouthTilt:0},
  talk:      {eye:1,mouthW:.8,mouthH:2.7,browY:0,browTilt:0,smile:.1,cheek:0,pupilY:0,mouthTilt:0}
 };
-function expressionValues(id){return expressionParams[IDS.has(id)?id:'neutral'];}
+function expressionValues(id){const base=expressionParams[IDS.has(id)?id:'neutral'];return {...base,eyeL:id==='wink'?.045:id==='suspicious'?.25:base.eye,eyeR:base.eye};}
 function modifyPart(p,face,model){
  const kind=role(p);if(!kind)return null;
  const intensity=faceDoc(model).intensity;
@@ -147,9 +147,8 @@ function modifyPart(p,face,model){
  if(kind==='mouth'){
   visual.sx=mix(face.mouthW);visual.sy=mix(face.mouthH);visual.rz=mix(face.mouthTilt,0);
  }else if(kind==='eyeL'||kind==='eyeR'||kind==='pupilL'||kind==='pupilR'){
-  const side=kind.endsWith('L')?'L':'R',name=model.face?.expression||'';
-  let eye=face.eye;
-  if(name==='wink'||name==='suspicious')eye=side==='L'?Math.min(eye,.08):eye;
+  const side=kind.endsWith('L')?'L':'R';
+  const eye=side==='L'?face.eyeL:face.eyeR;
   visual.sy=mix(eye);
   if(kind.startsWith('pupil'))visual.dy=face.pupilY;
  }else if(kind==='browL'||kind==='browR'){
