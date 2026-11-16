@@ -451,7 +451,7 @@ window.AurenixTutorialBridge={
   if(!p){
    const template=track==='3d'?'3d':track==='pixel'?'topdown':'platformer';
    p=R.makeTemplate(template);p.id=id;
-   p.name={'2d':'📘 Laboratório de Jogo 2D','3d':'📘 Laboratório de Jogo 3D','pixel':'📘 Laboratório de Jogo Pixel'}[track]||'📘 Laboratório';
+   p.name={'2d':'📘 Laboratório de Jogo 2D','3d':'📘 Laboratório de Jogo 3D','pixel':'📘 Laboratório de Jogo Pixel','animation2d':'📘 Laboratório de Animações 2D'}[track]||'📘 Laboratório';
    p.programming='script';
    p.updated=Date.now();
   }
