@@ -93,6 +93,7 @@ async function syncAll(){
  if(busy)throw Error('Outra sincronização está em andamento');
  busy=true;render();
  try{
+  await opts.beforeSync?.();
   await refreshLocal();
   const source=[...(local.project||[]).map(x=>({type:'project',data:x})),...(local.pixel||[]).map(x=>({type:'pixel',data:x}))];
   // Preferences are explicit, not included in automatic sync on save.
