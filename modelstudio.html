@@ -50,11 +50,11 @@ label input[type=color]{padding:3px;min-height:45px}
 @media(max-width:960px){.body{grid-template-columns:220px minmax(0,1fr) 230px}aside{padding:8px}header #name{max-width:120px}}
 @media(max-width:720px){header{gap:5px;padding:5px 7px;height:57px}.brand{min-width:70px}.brand b{font-size:12px}.brand small{font-size:9px}header #name{max-width:105px;min-width:60px;font-size:12px}.header-actions{max-width:52vw}header button{min-height:43px;padding:6px 9px}.body{grid-template-columns:minmax(0,1fr);position:relative}.body aside{position:absolute;top:0;bottom:0;width:min(330px,88vw);z-index:40;transition:transform .17s;box-shadow:0 5px 30px #0008}.body aside.left{left:0;transform:translateX(-105%)}.body aside.right{right:0;transform:translateX(105%)}.body aside.open{transform:translateX(0)}.body aside.right{border-left:1px solid #35536e}.drawer-backdrop{display:none;position:fixed;inset:57px 0 70px;background:#020912a9;z-index:30}.drawer-backdrop.open{display:block}.bottomnav{display:flex;gap:5px;overflow-x:auto;background:#17283d;justify-content:space-around;border-top:1px solid #3b5472;padding:5px max(7px,env(safe-area-inset-right)) calc(5px + env(safe-area-inset-bottom));flex:0 0 auto}.bottomnav button{flex:1;min-width:72px;min-height:46px;padding:4px 7px}.timeline{min-height:60px;padding:5px 8px;gap:5px}.timeline button{min-height:41px;padding:5px 8px}.timeline select{min-height:41px;max-width:115px}.timeline #markers{display:none}.viewhint{font-size:10px}}
 @media(pointer:coarse) and (orientation:landscape){header{height:51px}.timeline{min-height:54px;flex-wrap:nowrap}.timeline #clock{min-width:48px}.bottomnav{padding-top:2px;padding-bottom:calc(2px + env(safe-area-inset-bottom));min-height:48px}.bottomnav button{min-height:42px}.drawer-backdrop{inset:51px 0 102px}.viewhint{bottom:5px;padding:4px}}
-</style></head>
+</style><link rel="stylesheet" href="js/model14.css"></head>
 <body><div id="app">
 <header><button id="back" title="Voltar à engine">⌂</button><div class="brand"><b>AURENIX MODEL STUDIO</b><small>MODELOS + ARTICULAÇÕES + ANIMAÇÕES</small></div>
 <input id="name" value="Personagem básico" aria-label="Nome do personagem"><div class="header-actions">
-<button id="undo" title="Desfazer">↶</button><button id="redo" title="Refazer">↷</button><button id="save" class="primary">▣ Salvar</button><button id="export">⬇ JSON</button><button id="exportOBJ">⬇ OBJ</button><button id="import">⇧ Abrir</button></div></header>
+<button id="undo" title="Desfazer">↶</button><button id="redo" title="Refazer">↷</button><button id="save" class="primary">▣ Salvar</button><button id="export">⬇ JSON</button><button id="exportOBJ">⬇ OBJ</button><button id="import">⇧ Abrir</button><button id="goPixel" title="Editar sprites no Pixel Studio">▦ Pixel</button><button id="goEditor" title="Voltar ao editor de jogos">🎮 Jogos</button></div></header>
 <div class="body"><aside class="left" id="leftPanel"><h2>🧩 MODELO</h2><label>Começar por modelo<select id="preset"><option value="blocky" selected>🧱 Avatar quadradinho</option><option value="human">Humano arredondado</option><option value="robot">Robô</option><option value="creature">Criatura</option><optgroup label="🏡 Objetos de cenário"><option value="crate">Caixote</option><option value="tree">Árvore</option><option value="lamp">Poste de luz</option><option value="door">Porta articulada</option><option value="chair">Cadeira</option></optgroup></select></label>
 <div class="row"><button id="newPreset">＋ Criar</button><button id="library">▣ Salvos</button></div><h3>PEÇAS E ARTICULAÇÕES</h3>
 <p>Selecione uma peça para editar. As peças filhas acompanham os movimentos dos pais.</p><div id="tree" class="tree"></div>
@@ -74,15 +74,35 @@ label input[type=color]{padding:3px;min-height:45px}
 <div class="row"><button data-auto="hit">Levar dano</button><button data-auto="dance">Dançar</button></div>
 <div class="row"><button data-auto="blink">Piscar</button><button data-auto="talk">Conversar</button></div>
 <h3>BIBLIOTECA LOCAL</h3><div id="libraryList"><p>Salve um modelo para encontrá-lo aqui.</p></div></aside>
-<div class="preview" id="preview"><canvas id="view" aria-label="Prévia 3D por toque"></canvas><div id="axis">X ↗ Y ↑ Z ↙</div>
+<div class="preview" id="preview"><canvas id="view" aria-label="Prévia 3D por toque"></canvas>
+<div class="ax14-viewport-toolbar" role="toolbar" aria-label="Ferramentas de modelagem 3D" id="ax14Tools">
+<button data-tool14="orbit" class="active" aria-pressed="true" title="Orbitar a câmera">🖐 Ver</button>
+<button data-tool14="select" aria-pressed="false">☝ Selecionar</button>
+<button data-tool14="move" aria-pressed="false">✥ Mover</button>
+<button data-tool14="rotate" aria-pressed="false">⟳ Girar</button>
+<button data-tool14="scale" aria-pressed="false">⬡ Escalar</button>
+<button data-tool14="face" aria-pressed="false">😄 Rosto</button>
+<button id="ax14Depth" aria-pressed="false" title="Mover no eixo Z">Z Profundidade</button>
+<button id="ax14Snap" aria-pressed="false" title="Encaixe de movimento e rotação">⌗ Encaixe</button>
+</div><div id="ax14ToolHint">🖐 Deslize para orbitar. Use dois dedos para zoom e deslocar a câmera.</div>
+<div id="ax14TouchMarkers" aria-hidden="true"></div><div id="axis">X ↗ Y ↑ Z ↙</div>
 <div class="viewport-actions"><button id="frameModel">◎ Centralizar</button><button id="resetPose">↻ Pose original</button></div><div class="viewhint">☝ Arraste para orbitar • ✌ Dois dedos: zoom e mover • Toque para selecionar peça</div></div>
-<aside class="right" id="rightPanel"><h2>⚙ PEÇA SELECIONADA</h2><div id="inspector"></div><div class="group"><h3>😄 EXPRESSÃO ATUAL</h3><p id="faceStatus">Neutro</p><label>Força da expressão<input id="faceStrength" type="range" min="0" max="1" step=".05" value="1" aria-label="Intensidade da expressão"></label><p>Os olhos, sobrancelhas e boca se movem por peças. Não exige textura nem cabelo realista.</p></div>
+<aside class="right" id="rightPanel"><h2>⚙ PEÇA SELECIONADA</h2><div id="inspector"></div><div class="group"><h3>🎨 PALETA DO PIXEL STUDIO</h3>
+<p>Importa cores da sua arte pixelada para pintar peças quadradinhas. Não altera texturas.</p>
+<button id="ax14LoadPalette">▦ Carregar cores salvas</button><div id="ax14PixelPalette" class="ax14-pixel-swatches"></div>
+</div><div class="group"><h3>😄 EXPRESSÃO ATUAL</h3><p id="faceStatus">Neutro</p><label>Força da expressão<input id="faceStrength" type="range" min="0" max="1" step=".05" value="1" aria-label="Intensidade da expressão"></label><p>Os olhos, sobrancelhas e boca se movem por peças. Não exige textura nem cabelo realista.</p></div>
 <h2>🎞 CRIADOR DE ANIMAÇÕES</h2><div id="clipEditor"><p>Crie uma animação para começar.</p></div>
 <h3>AJUDA</h3><p>1. Escolha um modelo pronto. 2. Edite tamanho e cores. 3. Gire braços, pernas e cabeça. 4. Capture poses na timeline. 5. Salve e use no seu jogo 3D!</p>
 </aside><div class="drawer-backdrop" id="shade"></div></div>
-<div class="timeline"><button id="newClip" class="primary">＋ Animação</button><select id="clip" aria-label="Animação ativa"><option value="">Sem animação</option></select>
+<section class="ax14-timeline" aria-label="Timeline unificada de animação">
+<div class="ax14-timeline-actions"><button id="newClip" class="primary">＋ Animação</button><select id="clip" aria-label="Animação ativa"><option value="">Sem animação</option></select>
 <button id="play">▶</button><button id="pause">❚❚</button><input id="scrub" type="range" min="0" max="1" step=".01" value="0" aria-label="Percorrer animação">
-<span id="clock">0.00s</span><button id="capture">◆ Pose</button><button id="deleteFrame">✕ Frame</button><div id="markers"></div></div>
+<span id="clock">0.00s</span><button id="capture" class="primary">◆ Gravar tudo</button><button id="deleteFrame">✕ Frame</button><div id="markers" hidden></div></div>
+<div id="ax14Tracks" class="ax14-track-rows" aria-label="Trilhas sincronizadas de corpo, rosto e peças">
+<div class="ax14-track"><span class="ax14-track-label">🦴 Corpo</span><div class="ax14-track-content"></div></div>
+<div class="ax14-track"><span class="ax14-track-label">😄 Rosto</span><div class="ax14-track-content"></div></div>
+<div class="ax14-track"><span class="ax14-track-label">🧱 Objetos</span><div class="ax14-track-content"></div></div>
+</div></section>
 <nav class="bottomnav"><button id="openParts">🧩 Peças</button><button id="openProps">⚙ Editar</button><button id="openAnim">🎞 Animar</button><button id="mobileSave">▣ Salvar</button></nav>
 <div id="toast" role="status"></div><input type="file" id="fileInput" accept=".aurenix3d,.json" aria-label="Abrir personagem">
-</div><script src="js/character3d.js"></script><script src="js/character-face13.js"></script><script src="js/runtime.js"></script><script src="js/file-save.js"></script><script src="js/modelstudio.js"></script></body></html>
+</div><script src="js/character3d.js"></script><script src="js/character-face13.js"></script><script src="js/character-motion14.js"></script><script src="js/runtime.js"></script><script src="js/file-save.js"></script><script src="js/modelstudio.js"></script></body></html>
