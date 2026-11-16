@@ -4,8 +4,32 @@
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const colorRGBA=(hex,alpha=1)=>{if(!hex)return `rgba(130,160,220,${alpha})`;if(hex.startsWith('#')){let c=hex.slice(1);if(c.length===3)c=c.split('').map(s=>s+s).join('');if(c.length===6){const n=parseInt(c,16);return `rgba(${n>>16&255},${n>>8&255},${n&255},${alpha})`;}}return hex;};
 const uid=()=> 'o'+Math.random().toString(36).slice(2,9);
+const CHARACTER_TYPE='application/x-aurenix-character+json';
+const charCache=new WeakMap();
+function characterAsset(asset){
+ if(!asset||asset.type!==CHARACTER_TYPE||!global.AurenixCharacters)return null;
+ if(charCache.has(asset))return charCache.get(asset);
+ try{
+  const raw=String(asset.data||'');if(raw.length>650000)throw Error('Modelo acima do limite');
+  const json=raw.startsWith('data:')?decodeURIComponent(escape(atob(raw.split(',')[1]||''))):raw;
+  const checked=global.AurenixCharacters.validate(JSON.parse(json));
+  charCache.set(asset,checked);return checked;
+ }catch(e){console.warn('Personagem Aurenix inválido:',e.message);charCache.set(asset,null);return null;}
+}
+function expandedSceneObjects(scene){
+ if(!global.AurenixCharacters||!scene?.assets)return scene.objects||[];
+ const assets=new Map(scene.assets.map(a=>[a.id,a])),res=[];
+ for(const o of scene.objects||[]){
+  if(o.type!=='character3d'){res.push(o);continue;}
+  if(o.visible===false)continue;
+  const model=characterAsset(assets.get(o.assetId));
+  if(model)res.push(...global.AurenixCharacters.expand(model,o,o.rigClip||'',o.rigTime||0));
+  else res.push({...o,type:'cube',color:'#ad6c81'});
+ }
+ return res;
+}
 const defaults={mode:'2d',genre:'platformer',name:'Meu primeiro jogo',background:'#101c31',gravity:1100,gravity3d:18,grid:32,grid3d:1,objects:[],assets:[],script:'',pixelData:null};
-function makeObj(type,props={}){const o={id:uid(),type,name:({rect:'Retângulo',circle:'Círculo',text:'Texto',sprite:'Sprite',player2d:'Jogador',cube:'Cubo',sphere:'Esfera',cylinder:'Cilindro',plane:'Plataforma',player3d:'Jogador 3D',model3d:'Modelo OBJ',pyramid:'Pirâmide',cone:'Cone',torus:'Toro',capsule:'Cápsula'})[type]||type,x:0,y:0,z:0,w:type==='plane'?6:60,h:type==='plane'?.3:60,d:1,rotation:0,rx:0,ry:0,rz:0,color:'#64cad5',opacity:1,layer:0,visible:true,solid:false,physics:false,anchored:false,editorLocked:false,tags:'',components:[],health:100,maxHealth:100,speed:230,jump:430,text:'Texto',fontSize:22,assetId:'',script:'',...props};return o;}
+function makeObj(type,props={}){const o={id:uid(),type,name:({rect:'Retângulo',circle:'Círculo',text:'Texto',sprite:'Sprite',player2d:'Jogador',cube:'Cubo',sphere:'Esfera',cylinder:'Cilindro',plane:'Plataforma',player3d:'Jogador 3D',character3d:'Personagem 3D',model3d:'Modelo OBJ',pyramid:'Pirâmide',cone:'Cone',torus:'Toro',capsule:'Cápsula'})[type]||type,x:0,y:0,z:0,w:type==='plane'?6:60,h:type==='plane'?.3:60,d:1,rotation:0,rx:0,ry:0,rz:0,color:'#64cad5',opacity:1,layer:0,visible:true,solid:false,physics:false,anchored:false,editorLocked:false,tags:'',components:[],health:100,maxHealth:100,speed:230,jump:430,text:'Texto',fontSize:22,assetId:'',script:'',...props};return o;}
 function makeTemplate(kind='platformer'){
  const base={...JSON.parse(JSON.stringify(defaults)),id:uid(),updated:Date.now()};
  if(kind==='platformer')return {...base,name:'Aventura 2D',objects:[makeObj('rect',{name:'Solo',x:0,y:328,w:1200,h:76,color:'#3a786f',solid:true}),makeObj('rect',{name:'Plataforma 1',x:-170,y:185,w:160,h:22,color:'#6975b2',solid:true}),makeObj('rect',{name:'Plataforma 2',x:115,y:107,w:180,h:22,color:'#6975b2',solid:true}),makeObj('player2d',{name:'Herói',x:-330,y:248,w:35,h:53,color:'#68ebd7',speed:270,jump:515}),makeObj('circle',{name:'Cristal',x:152,y:64,w:24,h:24,color:'#ffcd73',script:'self.rotation += dt * 65;'})]};
@@ -144,7 +168,7 @@ class Renderer3D{
  render(scene,camera={},opts={}){const gl=this.gl;if(!gl){this.renderFallback(scene,camera,opts);return;}const canvas=this.canvas,W=canvas.clientWidth||canvas.width||1,H=canvas.clientHeight||canvas.height||1,dpr=Math.min(devicePixelRatio||1,2);if(canvas.width!==Math.round(W*dpr)||canvas.height!==Math.round(H*dpr)){canvas.width=Math.round(W*dpr);canvas.height=Math.round(H*dpr);}gl.viewport(0,0,canvas.width,canvas.height);const clr=rgbaNorm(scene.background||'#101c31');gl.clearColor(...clr,1);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);gl.useProgram(this.program);gl.enableVertexAttribArray(this.loc.p);gl.enableVertexAttribArray(this.loc.n);const eye=orbitPosition(camera);const view=lookAt(eye,camera.target||[0,0,0]),proj=perspective(Math.PI/3,W/H,.1,500),vp=matMul(proj,view);this.vp=vp;this.canvasW=W;this.canvasH=H;
  const draw=(mesh,model,color,unlit=0,mode=gl.TRIANGLES)=>{gl.bindBuffer(gl.ARRAY_BUFFER,mesh.vb);gl.vertexAttribPointer(this.loc.p,3,gl.FLOAT,false,0,0);gl.bindBuffer(gl.ARRAY_BUFFER,mesh.nb);gl.vertexAttribPointer(this.loc.n,3,gl.FLOAT,false,0,0);gl.uniformMatrix4fv(this.loc.mvp,false,matMul(vp,model));gl.uniformMatrix4fv(this.loc.model,false,model);gl.uniform3fv(this.loc.color,color);gl.uniform1f(this.loc.unlit,unlit);gl.drawArrays(mode,0,mesh.count);};
  if(opts.grid){if(!this.gridBuffer){const a=[],b=[];for(let i=-50;i<=50;i++){a.push(-50,0,i,50,0,i,i,0,-50,i,0,50);for(let k=0;k<4;k++)b.push(0,1,0);}const vb=gl.createBuffer(),nb=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,vb);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(a),gl.STATIC_DRAW);gl.bindBuffer(gl.ARRAY_BUFFER,nb);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array(b),gl.STATIC_DRAW);this.gridBuffer={vb,nb,count:a.length/3};}draw(this.gridBuffer,matIdentity(),[.19,.27,.33],1,gl.LINES);}
- for(const o of (scene.objects||[]).slice().sort((a,b)=>(a.y||0)-(b.y||0))){if(!o.visible)continue;let mesh=this.meshes[o.type]||this.meshes.cube;
+ for(const o of expandedSceneObjects(scene).slice().sort((a,b)=>(a.y||0)-(b.y||0))){if(!o.visible)continue;let mesh=this.meshes[o.type]||this.meshes.cube;
  if(o.type==='model3d'&&o.assetId){
   if(!this.customMeshes.has(o.assetId)){
    const asset=(scene.assets||[]).find(a=>a.id===o.assetId),geo=objFromAsset(asset);
@@ -157,7 +181,7 @@ class Renderer3D{
   }
   mesh=this.customMeshes.get(o.assetId)||this.meshes.cube;
  }
- let model=matMove(o.x||0,o.y||0,o.z||0);model=matMul(model,matRotY((o.ry||0)*Math.PI/180));model=matMul(model,matRotX((o.rx||0)*Math.PI/180));model=matMul(model,matRotZ((o.rz||o.rotation||0)*Math.PI/180));model=matMul(model,matScale(o.w||1,o.h||1,o.d||1));draw(mesh,model,rgbaNorm(o.color));if(o.id===opts.selectedId){const border=matMul(model,matScale(1.055,1.055,1.055));gl.enable(gl.BLEND);gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);gl.depthFunc(gl.ALWAYS);draw(mesh,border,[.24,1,.88],1,gl.LINE_LOOP);gl.depthFunc(gl.LEQUAL);gl.disable(gl.BLEND);}}
+ let model=o._modelMatrix?new Float32Array(o._modelMatrix):matMove(o.x||0,o.y||0,o.z||0);if(!o._modelMatrix){model=matMul(model,matRotY((o.ry||0)*Math.PI/180));model=matMul(model,matRotX((o.rx||0)*Math.PI/180));model=matMul(model,matRotZ((o.rz||o.rotation||0)*Math.PI/180));model=matMul(model,matScale(o.w||1,o.h||1,o.d||1));}draw(mesh,model,rgbaNorm(o.color));if(o.id===opts.selectedId||o._parentId===opts.selectedId){const border=matMul(model,matScale(1.055,1.055,1.055));gl.enable(gl.BLEND);gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);gl.depthFunc(gl.ALWAYS);draw(mesh,border,[.24,1,.88],1,gl.LINE_LOOP);gl.depthFunc(gl.LEQUAL);gl.disable(gl.BLEND);}}
  this.lastCamera=camera;}
  renderFallback(scene,camera={},opts={}){
  const ctx=this.fallback;if(!ctx)return;
@@ -169,14 +193,14 @@ class Renderer3D{
  const projectPoint=(x,y,z)=>{const w=vp[3]*x+vp[7]*y+vp[11]*z+vp[15];if(w<=0.08)return null;return {x:(1+(vp[0]*x+vp[4]*y+vp[8]*z+vp[12])/w)*W/2,y:(1-(vp[1]*x+vp[5]*y+vp[9]*z+vp[13])/w)*H/2,w};};
  if(opts.grid){ctx.lineWidth=1;ctx.strokeStyle='#ffffff18';ctx.beginPath();for(let i=-20;i<=20;i++){const a=projectPoint(-20,0,i),b=projectPoint(20,0,i),c=projectPoint(i,0,-20),d=projectPoint(i,0,20);for(const pair of [[a,b],[c,d]])if(pair[0]&&pair[1]){ctx.moveTo(pair[0].x,pair[0].y);ctx.lineTo(pair[1].x,pair[1].y);}}ctx.stroke();}
  const faces=[];
- for(const o of scene.objects||[]){if(!o.visible)continue;let mesh=this.cpuMeshes[o.type]||this.cpuMeshes.cube;
+ for(const o of expandedSceneObjects(scene)){if(!o.visible)continue;let mesh=this.cpuMeshes[o.type]||this.cpuMeshes.cube;
  if(o.type==='model3d'&&o.assetId){
   if(!this.customMeshes.has(o.assetId)){
    this.customMeshes.set(o.assetId,objFromAsset((scene.assets||[]).find(a=>a.id===o.assetId)));
   }
   mesh=this.customMeshes.get(o.assetId)||this.cpuMeshes.cube;
  }
- let model=matMove(o.x||0,o.y||0,o.z||0);model=matMul(model,matRotY((o.ry||0)*Math.PI/180));model=matMul(model,matRotX((o.rx||0)*Math.PI/180));model=matMul(model,matRotZ((o.rz||o.rotation||0)*Math.PI/180));model=matMul(model,matScale(o.w||1,o.h||1,o.d||1));
+ let model=o._modelMatrix?new Float32Array(o._modelMatrix):matMove(o.x||0,o.y||0,o.z||0);if(!o._modelMatrix){model=matMul(model,matRotY((o.ry||0)*Math.PI/180));model=matMul(model,matRotX((o.rx||0)*Math.PI/180));model=matMul(model,matRotZ((o.rz||o.rotation||0)*Math.PI/180));model=matMul(model,matScale(o.w||1,o.h||1,o.d||1));}
  const base=rgbaNorm(o.color);
  for(let i=0;i<mesh.p.length;i+=9){const points=[];
  for(let j=0;j<9;j+=3){const x=mesh.p[i+j],y=mesh.p[i+j+1],z=mesh.p[i+j+2],wx=model[0]*x+model[4]*y+model[8]*z+model[12],wy=model[1]*x+model[5]*y+model[9]*z+model[13],wz=model[2]*x+model[6]*y+model[10]*z+model[14],pp=projectPoint(wx,wy,wz);if(!pp){points.length=0;break;}points.push(pp);}
@@ -184,7 +208,7 @@ class Renderer3D{
  const nx=mesh.n[i],ny=mesh.n[i+1],nz=mesh.n[i+2],N=vnorm([model[0]*nx+model[4]*ny+model[8]*nz,model[1]*nx+model[5]*ny+model[9]*nz,model[2]*nx+model[6]*ny+model[10]*nz]);
  const brightness=.45+Math.max(0,vdot(N,vnorm([-.55,.85,.45])))*.55;
  const r=Math.round(base[0]*brightness*255),g=Math.round(base[1]*brightness*255),b=Math.round(base[2]*brightness*255);
- faces.push({points,depth:points.reduce((a,p)=>a+p.w,0)/3,color:`rgb(${r},${g},${b})`,selected:o.id===opts.selectedId});
+ faces.push({points,depth:points.reduce((a,p)=>a+p.w,0)/3,color:`rgb(${r},${g},${b})`,selected:o.id===opts.selectedId||o._parentId===opts.selectedId});
  }}
  faces.sort((a,b)=>b.depth-a.depth);
  for(const f of faces){ctx.beginPath();ctx.moveTo(f.points[0].x,f.points[0].y);ctx.lineTo(f.points[1].x,f.points[1].y);ctx.lineTo(f.points[2].x,f.points[2].y);ctx.closePath();ctx.fillStyle=f.color;ctx.fill();if(f.selected){ctx.strokeStyle='#75fbdd';ctx.lineWidth=.6;ctx.stroke();}}
@@ -300,6 +324,18 @@ function startGame(scene){const canvas=document.getElementById('game');if(!canva
  }
  function animateObject(o,dt){
   const clips=o.animations||[],clip=clips.find(c=>c.id===o.activeAnimation);
+  if(o.type==='character3d'){
+   const asset=(scene.assets||[]).find(a=>a.id===o.assetId),model=characterAsset(asset);
+   if(model){
+    const rigClip=model.animations.find(c=>c.id===o.rigClip||c.name===o.rigClip)||model.animations[0];
+    if(rigClip){
+     if(o.rigPlaying!==false){
+      o.rigClip=rigClip.id;o.rigTime=(o.rigTime||0)+dt*(rigClip.speed||1);
+      if(!rigClip.loop&&o.rigTime>=rigClip.duration){o.rigTime=rigClip.duration;o.rigPlaying=false;}
+     }
+    }
+   }
+  }
   if(!clip)return;let state=animClocks.get(o.id);
   if(!state||state.clipId!==clip.id){state={clipId:clip.id,time:0,playing:clip.autoplay!==false};animClocks.set(o.id,state);}
   if(!state.playing)return;
@@ -417,8 +453,8 @@ function startGame(scene){const canvas=document.getElementById('game');if(!canva
  loadScene:name=>requestScene(name),nextScene:()=>nextScene(),
  getTile:(x,y)=>scene.tilemap?.cells?.[Math.floor(x)+','+Math.floor(y)]||null,
  setTile:(x,y,color='#5aa78b',solid=false)=>{scene.tilemap||={size:32,cells:{}};scene.tilemap.cells[Math.floor(x)+','+Math.floor(y)]={color,solid:!!solid};},
- playAnimation:(o,name)=>{const target=typeof o==='string'?objects.find(x=>x.id===o||x.name===o):o;if(!target)return false;const clip=(target.animations||[]).find(c=>c.id===name||c.name===name);if(!clip)return false;const current=animClocks.get(target.id);if(current?.playing&&current.clipId===clip.id)return true;target.activeAnimation=clip.id;animClocks.set(target.id,{clipId:clip.id,time:0,playing:true});return true;},
- stopAnimation:o=>{const target=typeof o==='string'?objects.find(x=>x.id===o||x.name===o):o;if(!target)return false;const st=animClocks.get(target.id);if(st)st.playing=false;return true;},
+ playAnimation:(o,name)=>{const target=typeof o==='string'?objects.find(x=>x.id===o||x.name===o):o;if(!target)return false;if(target.type==='character3d'){const doc=characterAsset((scene.assets||[]).find(a=>a.id===target.assetId));const rig=doc?.animations.find(c=>c.name===name||c.id===name);if(!rig)return false;if(target.rigClip===rig.id&&target.rigPlaying!==false)return true;target.rigClip=rig.id;target.rigTime=0;target.rigPlaying=true;return true;}const clip=(target.animations||[]).find(c=>c.id===name||c.name===name);if(!clip)return false;const current=animClocks.get(target.id);if(current?.playing&&current.clipId===clip.id)return true;target.activeAnimation=clip.id;animClocks.set(target.id,{clipId:clip.id,time:0,playing:true});return true;},
+ stopAnimation:o=>{const target=typeof o==='string'?objects.find(x=>x.id===o||x.name===o):o;if(!target)return false;if(target.type==='character3d'){target.rigPlaying=false;return true;}const st=animClocks.get(target.id);if(st)st.playing=false;return true;},
  playSound:(name,options={})=>playAsset(name,options),stopMusic:()=>{bgMusic?.pause();bgMusic=null;},sound:(freq=440,duration=.1)=>{try{const ac=api.audio||(api.audio=new (window.AudioContext||window.webkitAudioContext)());const osc=ac.createOscillator(),gain=ac.createGain();osc.frequency.value=Number(freq)||440;osc.connect(gain);gain.connect(ac.destination);gain.gain.setValueAtTime(.06,ac.currentTime);gain.gain.exponentialRampToValueAtTime(.001,ac.currentTime+Math.max(.03,duration));osc.start();osc.stop(ac.currentTime+Math.max(.03,duration));}catch(e){}}};
  function scriptTick(o,dt){if(!o.script)return;let entry=playscript.get(o.id);if(!entry||entry.code!==o.script){try{entry={code:o.script,fn:new Function('self','scene','api','dt',`'use strict';\n${o.script}`)};playscript.set(o.id,entry);}catch(e){showError(`${o.name}: ${e.message}`);return;}}try{entry.fn(o,scene,api,dt);}catch(e){if(!scriptErrors.has(o.id)){showError(`${o.name}: ${e.message}`);scriptErrors.add(o.id);}}}
  function showError(s){let el=document.querySelector('.gameerror');if(!el){el=document.createElement('div');el.className='gameerror';document.body.appendChild(el);}el.textContent='Erro no script: '+s;}
@@ -448,5 +484,5 @@ function startGame(scene){const canvas=document.getElementById('game');if(!canva
  requestAnimationFrame(tick);}
  if(renderer?.error){showError(renderer.error);return;}requestAnimationFrame(tick);return ()=>{dead=true;for(const snd of audioPlaying)snd.pause();audioPlaying.clear();clearTimeout(messageTimeout);hudBox?.remove();gameMessage?.remove();};
 }
-const Runtime={makeTemplate,makeObj,draw2D,Renderer3D,parseOBJ,createGeometry,gameHTML,startGame,imgMap,clamp,uid};global.AurenixRuntime=Runtime;if(global.__AURENIX_GAME__)document.addEventListener('DOMContentLoaded',()=>startGame(global.__AURENIX_GAME__));
+const Runtime={makeTemplate,makeObj,draw2D,Renderer3D,parseOBJ,createGeometry,gameHTML,startGame,imgMap,clamp,uid,expandedSceneObjects,characterAsset};global.AurenixRuntime=Runtime;if(global.__AURENIX_GAME__)document.addEventListener('DOMContentLoaded',()=>startGame(global.__AURENIX_GAME__));
 })(window);
