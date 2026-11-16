@@ -1,0 +1,14 @@
+/* Aurenix Model Bridge — mobile-first character library */
+#tabModels{overflow-y:auto;overflow-x:hidden;min-width:0;padding:12px}
+#tabModels .ax-studio-heading{padding:12px;background:linear-gradient(110deg,#1b3c45,#213148);border:1px solid #3a6471;border-radius:12px;margin:8px 0}
+#tabModels h3{margin:0 0 7px;color:#aff5e9}
+#tabModels p{font-size:11px;color:#b2cede;line-height:1.55}
+#tabModels .ax08-quick{display:flex;gap:7px;flex-wrap:wrap}
+#tabModels .ax08-quick button{flex:1 1 110px;min-height:48px}
+.ax-modelrow{display:flex;align-items:center;gap:8px;min-width:0;justify-content:space-between;margin:8px 0;padding:10px;background:#1b3047;border:1px solid #3e6174;border-radius:11px}
+.ax-modelrow>div{min-width:0;flex:1}
+.ax-modelrow b{font-size:12px;display:block;overflow-wrap:anywhere}
+.ax-modelrow small{display:block;font-size:10px;color:#9caec4;margin-top:4px}
+.ax-modelrow button{flex:0 0 auto;min-height:46px;padding:7px 10px;border-radius:9px;border:1px solid #5cb6a8;background:#24585c;color:#d9fff5;font-size:12px;font-weight:700}
+#tabModels .upload-button{display:block;margin:9px 0;padding:13px;text-align:center;border:1px dashed #78bfb7;border-radius:10px;color:#b5f8ed;background:#18384b}
+@media(pointer:coarse) and (orientation:landscape){#tabModels{padding-bottom:90px}}
