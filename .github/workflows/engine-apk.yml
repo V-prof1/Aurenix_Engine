@@ -61,8 +61,28 @@ jobs:
           else
             echo "Usando keystore de debug temporaria. Para login Google Android, configure o segredo com assinatura estavel."
           fi
+      - name: Cache das dependências Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: aurenix-gradle-${{ runner.os }}-${{ hashFiles('package.json') }}
+          restore-keys: |
+            aurenix-gradle-${{ runner.os }}-
       - name: Compilar APK de testes
-        run: cd android && chmod +x gradlew && ./gradlew assembleDebug --no-daemon
+        run: |
+          cd android
+          chmod +x gradlew
+          for attempt in 1 2 3; do
+            echo "Aurenix Gradle tentativa $attempt"
+            if ./gradlew assembleDebug --no-daemon --max-workers=2; then
+              exit 0
+            fi
+            echo "Falha de rede/Gradle; aguardando antes da próxima tentativa"
+            sleep $((attempt * 35))
+          done
+          exit 1
       - name: Mostrar SHA-1 do APK para OAuth Google
         run: |
           echo "Fingerprint do APK Android (para cadastrar no Google Cloud):"
