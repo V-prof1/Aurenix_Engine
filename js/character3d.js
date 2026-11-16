@@ -14,19 +14,43 @@ function part(name,type,parent,pos,offset,size,color,rotation=[0,0,0]){
 }
 function preset(kind='human'){
  const robot=kind==='robot',creature=kind==='creature';
- const skin=robot?'#8a9fb9':creature?'#75bd8b':'#f0b995',outfit=robot?'#405d88':creature?'#4d8c64':'#4d8cc7';
+ const skin=robot?'#8298b4':creature?'#83b68b':'#efbf9f';
+ const outfit=robot?'#3c5f91':creature?'#466d4d':'#4f82bb';
+ const legColor=robot?'#526f99':creature?'#555473':'#37445e';
+ const hairColor=creature?'#3f765e':robot?'#384967':'#3d2f42';
  const torso=part('Tronco',robot?'cube':'capsule',null,[0,1.48,0],[0,0,0],[.82,1.05,.48],outfit);
  const head=part('Cabeça',robot?'cube':creature?'sphere':'capsule',torso.id,[0,.76,0],[0,.26,0],[.67,.67,.61],skin);
  const leftArm=part('Braço esquerdo','capsule',torso.id,[-.55,.38,0],[0,-.44,0],[.29,.87,.29],skin,[0,0,-9]);
  const rightArm=part('Braço direito','capsule',torso.id,[.55,.38,0],[0,-.44,0],[.29,.87,.29],skin,[0,0,9]);
- const leftLeg=part('Perna esquerda','capsule',torso.id,[-.23,-.55,0],[0,-.53,0],[.34,1.07,.35],robot?'#7086ab':'#354b66');
- const rightLeg=part('Perna direita','capsule',torso.id,[.23,-.55,0],[0,-.53,0],[.34,1.07,.35],robot?'#7086ab':'#354b66');
+ const leftLeg=part('Perna esquerda','capsule',torso.id,[-.23,-.55,0],[0,-.53,0],[.34,1.07,.35],legColor);
+ const rightLeg=part('Perna direita','capsule',torso.id,[.23,-.55,0],[0,-.53,0],[.34,1.07,.35],legColor);
  const parts=[torso,head,leftArm,rightArm,leftLeg,rightLeg];
- if(creature){
-  parts.push(part('Orelha esquerda','cone',head.id,[-.25,.44,0],[0,.12,0],[.25,.48,.26],skin));
-  parts.push(part('Orelha direita','cone',head.id,[.25,.44,0],[0,.12,0],[.25,.48,.26],skin));
+ parts.push(part('Olho esquerdo','cube',head.id,[-.18,.34,.335],[0,0,0],[.15,.14,.065],robot?'#6debd9':'#fff9ef'));
+ parts.push(part('Olho direito','cube',head.id,[.18,.34,.335],[0,0,0],[.15,.14,.065],robot?'#6debd9':'#fff9ef'));
+ if(!robot){
+  parts.push(part('Pupila esquerda','cube',head.id,[-.18,.34,.381],[0,0,0],[.055,.085,.04],creature?'#242c40':'#3e648a'));
+  parts.push(part('Pupila direita','cube',head.id,[.18,.34,.381],[0,0,0],[.055,.085,.04],creature?'#242c40':'#3e648a'));
  }
- return {format:FORMAT,name:robot?'Robô básico':creature?'Criatura fantástica':'Personagem básico',parts,animations:[],createdAt:new Date().toISOString()};
+ parts.push(part('Boca','cube',head.id,[0,.13,.34],[0,0,0],[robot?.19:.23,.055,.05],robot?'#70d8bf':'#795457'));
+ parts.push(part('Cinto','cube',torso.id,[0,-.52,.01],[0,0,0],[.8,.17,.55],robot?'#27364e':'#353746'));
+ parts.push(part('Placa de peito','cube',torso.id,[0,.10,.28],[0,0,0],[.56,.45,.09],robot?'#65c9d1':creature?'#86a875':'#608fc4'));
+ for(const [side,arm,leg] of [['esquerda',leftArm,leftLeg],['direita',rightArm,rightLeg]]){
+  parts.push(part('Luva '+side,'cube',arm.id,[0,-.84,0],[0,0,0],[.3,.22,.33],robot?'#9cb2cd':creature?'#638b7d':'#2d435a'));
+  parts.push(part('Bota '+side,'cube',leg.id,[0,-1.04,.14],[0,0,0],[.38,.22,.60],robot?'#4c5f78':creature?'#424764':'#253349'));
+ }
+ if(robot){
+  parts.push(part('Antena','cylinder',head.id,[0,.67,0],[0,.1,0],[.08,.36,.08],'#9fc2ce'));
+  parts.push(part('Luz da antena','sphere',head.id,[0,.93,0],[0,0,0],[.18,.18,.18],'#79ead5'));
+ }else if(creature){
+  parts.push(part('Chifre esquerdo','cone',head.id,[-.23,.55,0],[0,.15,0],[.24,.43,.24],hairColor));
+  parts.push(part('Chifre direito','cone',head.id,[.23,.55,0],[0,.15,0],[.24,.43,.24],hairColor));
+  parts.push(part('Cauda','capsule',torso.id,[0,-.52,-.3],[0,-.25,-.13],[.22,.65,.24],skin,[45,0,0]));
+ }else{
+  parts.push(part('Cabelo','cube',head.id,[0,.61,-.01],[0,0,0],[.72,.20,.63],hairColor));
+  parts.push(part('Franja esquerda','cube',head.id,[-.22,.53,.25],[0,0,0],[.29,.26,.18],hairColor,[0,0,-18]));
+  parts.push(part('Franja direita','cube',head.id,[.23,.53,.24],[0,0,0],[.27,.22,.18],hairColor,[0,0,14]));
+ }
+ return {format:FORMAT,name:robot?'Robô futurista':creature?'Criatura fantástica':'Herói low-poly',parts,animations:[],createdAt:new Date().toISOString()};
 }
 function validate(input){
  if(!input||typeof input!=='object'||input.format!==FORMAT)throw Error('Arquivo não é um personagem Aurenix compatível');
