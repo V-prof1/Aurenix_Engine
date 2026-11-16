@@ -1,0 +1,72 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"><meta name="theme-color" content="#101d2d"><title>Aurenix Model Studio — Personagens 3D</title>
+<style>
+:root{color-scheme:dark;--accent:#6de8d3;--bg:#0d1726;--surface:#19293c;--border:#3a5268;--text:#ebf8ff}
+*{box-sizing:border-box}html,body{height:100%;width:100%;margin:0;font:13px system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);overflow:hidden}
+button,input,select{font:inherit}button{color:#e9f8ff;background:#263b53;border:1px solid #476179;border-radius:10px;padding:9px 11px;min-height:45px;cursor:pointer;touch-action:manipulation}
+button:disabled{opacity:.4}button.active,.primary{background:#236f72;border-color:#69e6d0;color:#eefffb}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+#app{height:100dvh;display:flex;flex-direction:column;min-height:0}
+header{display:flex;align-items:center;gap:9px;padding:9px max(10px,env(safe-area-inset-right)) 9px max(10px,env(safe-area-inset-left));background:#142338;border-bottom:1px solid #36516c;flex:0 0 auto}
+.brand{display:flex;flex-direction:column;gap:2px;min-width:120px;flex:1}.brand b{font-size:15px;letter-spacing:.6px}.brand small{color:#9cbaca;font-size:10px}
+header button{white-space:nowrap}header #name{min-width:110px;max-width:190px;background:#0d1b2b;border:1px solid #37536c;border-radius:9px;padding:11px;color:#f3ffff;height:44px}
+.header-actions{display:flex;gap:5px;align-items:center;overflow-x:auto;scrollbar-width:thin;max-width:50vw}
+.body{flex:1;min-height:0;display:grid;grid-template-columns:265px minmax(0,1fr) 273px;overflow:hidden}
+aside{background:#15263b;border-right:1px solid #354b63;min-width:0;overflow-y:auto;overscroll-behavior:contain;padding:11px}
+aside.right{border-right:0;border-left:1px solid #354b63}
+aside h2{font-size:13px;color:#a7ece3;letter-spacing:1px;margin:6px 0 12px}
+aside h3{font-size:12px;color:#acccda;margin:16px 0 8px}
+aside p,.hint{font-size:11px;color:#a4bed0;line-height:1.5}
+aside button{width:100%;margin:3px 0;text-align:left}
+aside .row{display:flex;gap:6px}.row button{flex:1;min-width:0;text-align:center}
+.tree button{display:flex;gap:8px;align-items:center;text-align:left;background:#1e3347;overflow-wrap:anywhere}
+.tree button.active{background:#24505c;border-color:var(--accent)}
+.tree button .tag{margin-left:auto;color:#9fb5c7;font-size:10px}
+.group{padding:9px;background:#1a2d42;border:1px solid #3b5570;border-radius:11px;margin:9px 0}
+label{display:flex;flex-direction:column;gap:5px;margin:9px 0;color:#c5d9eb;font-size:11px}
+label input,label select{min-height:44px;background:#0b1c30;border:1px solid #45627b;border-radius:8px;color:#e5faff;padding:9px;width:100%;min-width:0}
+label input[type=color]{padding:3px;min-height:45px}
+.fieldgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px}
+.fieldgrid label{margin:6px 0}.fieldgrid input{padding:7px 5px;font-size:12px}
+.preview{position:relative;min-width:0;min-height:0;background:#0e1b2a;overflow:hidden;touch-action:none}
+#view{display:block;width:100%;height:100%;touch-action:none}
+.viewhint{position:absolute;left:10px;bottom:11px;right:10px;text-align:center;pointer-events:none;background:#071321c9;border-radius:10px;padding:7px;color:#b7d4e5;font-size:11px}
+.viewport-actions{position:absolute;left:10px;top:10px;display:flex;flex-direction:column;gap:6px}
+.viewport-actions button{background:#172b42d9}
+#axis{position:absolute;right:13px;top:15px;color:#9bd4e6;font:700 13px monospace;pointer-events:none}
+.timeline{flex:0 0 auto;background:#15243a;border-top:1px solid #39516b;padding:8px max(11px,env(safe-area-inset-left));display:flex;align-items:center;gap:9px;min-height:77px;flex-wrap:wrap}
+.timeline select{min-height:43px;min-width:110px;max-width:165px;background:#0e1d30;color:#e9f8ff;border:1px solid #4a6780;border-radius:8px;padding:7px}
+.timeline input[type=range]{flex:1;min-width:120px;height:35px;accent-color:var(--accent);touch-action:pan-y}
+.timeline #clock{font:700 12px monospace;color:#9bf4d8;min-width:72px}
+.timeline #markers{display:flex;gap:4px;max-width:200px;overflow-x:auto}
+.timeline #markers button{min-width:40px;min-height:40px;padding:5px;font-size:11px}
+#toast{position:absolute;left:50%;top:72px;transform:translateX(-50%);background:#15525b;border:1px solid #68d6ce;border-radius:11px;padding:11px 15px;z-index:999;display:none;max-width:90vw;text-align:center;font-size:12px}
+.bottomnav{display:none}
+.drawer-backdrop{display:none}
+#fileInput{display:none}
+@media(max-width:960px){.body{grid-template-columns:220px minmax(0,1fr) 230px}aside{padding:8px}header #name{max-width:120px}}
+@media(max-width:720px){header{gap:5px;padding:5px 7px;height:57px}.brand{min-width:70px}.brand b{font-size:12px}.brand small{font-size:9px}header #name{max-width:105px;min-width:60px;font-size:12px}.header-actions{max-width:52vw}header button{min-height:43px;padding:6px 9px}.body{grid-template-columns:minmax(0,1fr);position:relative}.body aside{position:absolute;top:0;bottom:0;width:min(330px,88vw);z-index:40;transition:transform .17s;box-shadow:0 5px 30px #0008}.body aside.left{left:0;transform:translateX(-105%)}.body aside.right{right:0;transform:translateX(105%)}.body aside.open{transform:translateX(0)}.body aside.right{border-left:1px solid #35536e}.drawer-backdrop{display:none;position:fixed;inset:57px 0 70px;background:#020912a9;z-index:30}.drawer-backdrop.open{display:block}.bottomnav{display:flex;gap:5px;overflow-x:auto;background:#17283d;justify-content:space-around;border-top:1px solid #3b5472;padding:5px max(7px,env(safe-area-inset-right)) calc(5px + env(safe-area-inset-bottom));flex:0 0 auto}.bottomnav button{flex:1;min-width:72px;min-height:46px;padding:4px 7px}.timeline{min-height:60px;padding:5px 8px;gap:5px}.timeline button{min-height:41px;padding:5px 8px}.timeline select{min-height:41px;max-width:115px}.timeline #markers{display:none}.viewhint{font-size:10px}}
+@media(pointer:coarse) and (orientation:landscape){header{height:51px}.timeline{min-height:54px;flex-wrap:nowrap}.timeline #clock{min-width:48px}.bottomnav{padding-top:2px;padding-bottom:calc(2px + env(safe-area-inset-bottom));min-height:48px}.bottomnav button{min-height:42px}.drawer-backdrop{inset:51px 0 102px}.viewhint{bottom:5px;padding:4px}}
+</style></head>
+<body><div id="app">
+<header><button id="back" title="Voltar à engine">⌂</button><div class="brand"><b>AURENIX MODEL STUDIO</b><small>MODELOS + ARTICULAÇÕES + ANIMAÇÕES</small></div>
+<input id="name" value="Personagem básico" aria-label="Nome do personagem"><div class="header-actions">
+<button id="undo" title="Desfazer">↶</button><button id="redo" title="Refazer">↷</button><button id="save" class="primary">▣ Salvar</button><button id="export">⬇ JSON</button><button id="exportOBJ">⬇ OBJ</button><button id="import">⇧ Abrir</button></div></header>
+<div class="body"><aside class="left" id="leftPanel"><h2>🧩 MODELO</h2><label>Começar por modelo<select id="preset"><option value="human">Humano</option><option value="robot">Robô</option><option value="creature">Criatura</option></select></label>
+<div class="row"><button id="newPreset">＋ Criar</button><button id="library">▣ Salvos</button></div><h3>PEÇAS E ARTICULAÇÕES</h3>
+<p>Selecione uma peça para editar. As peças filhas acompanham os movimentos dos pais.</p><div id="tree" class="tree"></div>
+<div class="row"><button id="addPart">＋ Peça</button><button id="clonePart">▣ Duplicar</button></div><div class="row"><button id="mirrorPart">⇄ Espelhar</button><button id="removePart">✕ Excluir</button></div>
+<p>Máximo de 80 peças. Use cubos, cápsulas, esferas, cones e mais. Toque no modelo para selecionar a peça.</p>
+<h3>ANIMAÇÕES PRONTAS</h3><div class="row"><button data-auto="idle">Respirar</button><button data-auto="walk">Andar</button></div><div class="row"><button data-auto="run">Correr</button><button data-auto="attack">Atacar</button></div>
+<h3>BIBLIOTECA LOCAL</h3><div id="libraryList"><p>Salve um modelo para encontrá-lo aqui.</p></div></aside>
+<div class="preview" id="preview"><canvas id="view" aria-label="Prévia 3D por toque"></canvas><div id="axis">X ↗ Y ↑ Z ↙</div>
+<div class="viewport-actions"><button id="frameModel">◎ Centralizar</button><button id="resetPose">↻ Pose original</button></div><div class="viewhint">☝ Arraste para orbitar • ✌ Dois dedos: zoom e mover • Toque para selecionar peça</div></div>
+<aside class="right" id="rightPanel"><h2>⚙ PEÇA SELECIONADA</h2><div id="inspector"></div>
+<h2>🎞 CRIADOR DE ANIMAÇÕES</h2><div id="clipEditor"><p>Crie uma animação para começar.</p></div>
+<h3>AJUDA</h3><p>1. Escolha um modelo pronto. 2. Edite tamanho e cores. 3. Gire braços, pernas e cabeça. 4. Capture poses na timeline. 5. Salve e use no seu jogo 3D!</p>
+</aside><div class="drawer-backdrop" id="shade"></div></div>
+<div class="timeline"><button id="newClip" class="primary">＋ Animação</button><select id="clip" aria-label="Animação ativa"><option value="">Sem animação</option></select>
+<button id="play">▶</button><button id="pause">❚❚</button><input id="scrub" type="range" min="0" max="1" step=".01" value="0" aria-label="Percorrer animação">
+<span id="clock">0.00s</span><button id="capture">◆ Pose</button><button id="deleteFrame">✕ Frame</button><div id="markers"></div></div>
+<nav class="bottomnav"><button id="openParts">🧩 Peças</button><button id="openProps">⚙ Editar</button><button id="openAnim">🎞 Animar</button><button id="mobileSave">▣ Salvar</button></nav>
+<div id="toast" role="status"></div><input type="file" id="fileInput" accept=".aurenix3d,.json" aria-label="Abrir personagem">
+</div><script src="js/character3d.js"></script><script src="js/runtime.js"></script><script src="js/file-save.js"></script><script src="js/modelstudio.js"></script></body></html>
