@@ -1,7 +1,7 @@
 {
   "name": "aurenix-engine",
   "private": true,
-  "version": "0.10.0",
+  "version": "0.11.0",
   "description": "Engine 3D 2D pixel mobile-first com gameplay por componentes, OBJ e cenários",
   "scripts": {
     "android:add": "cap add android",
@@ -15,7 +15,8 @@
     "@capacitor/status-bar": "8.0.4",
     "@capacitor/filesystem": "8.1.5",
     "@capacitor/share": "8.0.3",
-    "@capacitor/app": "8.1.2"
+    "@capacitor/app": "8.1.2",
+    "@capawesome/capacitor-google-sign-in": "0.1.4"
   },
   "devDependencies": {
     "@capacitor/cli": "8.6.2"

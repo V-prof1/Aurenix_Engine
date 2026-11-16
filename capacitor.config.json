@@ -1,6 +1,6 @@
 {
-  "appId": "com.aurenix.engine.alpha010",
-  "appName": "Aurenix Engine 0.10",
+  "appId": "com.aurenix.engine.cloud",
+  "appName": "Aurenix Engine Cloud 0.11",
   "webDir": "www",
   "server": {
     "androidScheme": "https"

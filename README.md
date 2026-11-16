@@ -175,3 +175,35 @@ Acesse **⋮ → 🐙 Publicar no GitHub e gerar APK** ou **🧰 Ferramentas →
 - Para jogos HTML5 externos, arquivos e dependências remotas ou recursos que exijam servidor podem precisar de adaptações para funcionar offline no Android.
 
 **Segurança:** toda autenticação usa HTTPS no GitHub. Os tokens nunca são escritos no Git do usuário. O fluxo de envio inclui confirmação e validação de caminhos. Se a publicação falhar, a cópia local do projeto Aurenix não é apagada. GitHub OAuth Client ID não é uma credencial secreta, mas precisa de registro oficial antes do login por dispositivo ficar ativo.
+
+## Alpha 0.11 — Aurenix Cloud com Google Drive (Android e futuro PC)
+
+Esta versão introduz **backup local-first** com sincronização de projetos entre celulares Android e navegadores de PC, usando a pasta privada `appDataFolder` do Google Drive e **o mesmo esquema de backup**. Pode recuperar projetos, desenhos do Pixel Studio, prefabs e temas (configurações por backup manual).
+
+### O que funciona após configurar OAuth
+- **Entrar com Google nativo no Android:** plugin livre `@capawesome/capacitor-google-sign-in` com Credential Manager e autorização `drive.appdata`. O login do Google não acontece dentro de WebView.
+- **Login na web e futuro editor para PC:** Google Identity Services no navegador, via popup e o mesmo projeto Google Cloud. A implementação usa tokens de acesso transitórios, sem salvar tokens.
+- **Backup de projetos e artes:** cada arquivo é salvo individualmente em `appDataFolder`, incluindo assets e scripts já presentes no JSON do projeto. Backups podem ser recuperados no outro dispositivo após entrar na mesma conta Google.
+- **Proteção contra conflitos:** arquivos locais e remotos divergentes nunca se sobrescrevem automaticamente. O usuário decide entre manter local, restaurar nuvem ou importar como cópia.
+- **Offline-first:** IndexedDB do aparelho continua sendo a fonte para criação/edição e a nuvem é opcional. Falhas de rede preservam os dados locais.
+- **Backup automático opcional** após salvar um projeto, somente enquanto o aplicativo está aberto e a sessão Google está válida.
+- **Aparência e prefabs** podem ter backup manual (reinicie a engine para aplicar a aparência recuperada).
+
+### Habilitar o login Google para todos (configuração obrigatória de distribuição)
+O Google exige que o mantenedor crie um projeto Google Cloud, ative a Google Drive API e registre um OAuth Consent Screen e credenciais OAuth 2.0.
+1. Crie um **cliente OAuth Web**, com origens JavaScript do editor web e URL de hospedagem verificadas.
+2. Crie um **cliente OAuth Android no mesmo projeto**, pacote `com.aurenix.engine.cloud`, SHA-1 da assinatura do APK distribuído. A pipeline mostra a SHA-1 nos logs.
+3. Adicione somente o **Client ID Web público** em `js/cloud-config.js`. Nunca adicione o Client Secret, credenciais privadas ou tokens do usuário ao repositório.
+4. Para permitir login em atualizações futuras da engine, configure **assinatura persistente** com um keystore Android de debug privado no segredo `AURENIX_DEBUG_KEYSTORE_BASE64` do GitHub. O keystore deve usar alias `androiddebugkey` e senha padrão `android` se for usado nessa etapa da pipeline. Não comite o arquivo de assinatura.
+5. Enquanto o Client ID não estiver no código da Aurenix, o mantenedor pode informá-lo no painel **☁ Aurenix Cloud → Configuração para desenvolvedor** do APK de teste. Ainda será necessário ter o cliente OAuth Android com pacote e SHA-1 corretos.
+6. Configure **Publishing status** e público do OAuth consent conforme as regras da Google. Usuários fora da lista de teste poderão receber bloqueio se o app estiver em modo teste.
+
+Veja também `docs/GOOGLE_CLOUD_SETUP.md`.
+
+### Segurança e limites
+- A engine solicita somente `https://www.googleapis.com/auth/drive.appdata` além das informações básicas de perfil e login. Não tem acesso aos outros arquivos do Drive.
+- Google Drive `appDataFolder` é oculto e isolado, mas compartilha o armazenamento da conta Google. Ao excluir o acesso/dados do app na conta, os backups podem desaparecer.
+- Backups individuais são limitados a 24 MB nesta alpha; acima de 5 MB usa upload retomável quando disponível.
+- Não é um multiplayer online. É **cross-save**: continuar editando o mesmo projeto entre aparelhos. Multiplayer cross-play exigirá rede/servidor próprios.
+- Assinaturas de APK anteriores não são reutilizadas; o pacote novo `com.aurenix.engine.cloud` instala ao lado da v0.10. Migre seus jogos via JSON antes de remover versões antigas.
+- Requer internet e credenciais OAuth ativas para sincronização. A falta do Client ID oficial impossibilita login até o cadastro pelo mantenedor da engine.

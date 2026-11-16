@@ -39,7 +39,7 @@ jobs:
           test -n "$SDK_BIN"
           "$SDK_BIN" "platforms;android-36" "build-tools;36.0.0"
       - name: Validar código JavaScript
-        run: node --check js/blocks.js && node --check js/editor-patch.js && node --check js/runtime.js && node --check js/editor.js && node --check js/home.js && node --check js/file-save.js && node --check js/gizmo3d.js && node --check js/audio.js && node --check js/theme.js && node --check js/back.js && node --check js/axis3d.js && node --check js/studio07.js && node --check js/studio08.js && node --check js/toolbox08.js && node --check js/mobile09.js && node --check js/github-build.js && node --check js/github-account.js && node --check js/github-publisher-ui.js && node --test tests/*.test.cjs
+        run: node --check js/blocks.js && node --check js/editor-patch.js && node --check js/runtime.js && node --check js/editor.js && node --check js/home.js && node --check js/file-save.js && node --check js/gizmo3d.js && node --check js/audio.js && node --check js/theme.js && node --check js/back.js && node --check js/axis3d.js && node --check js/studio07.js && node --check js/studio08.js && node --check js/toolbox08.js && node --check js/mobile09.js && node --check js/github-build.js && node --check js/github-account.js && node --check js/github-publisher-ui.js && node --check js/cloud-drive.js && node --check js/cloud-auth.js && node --check js/cloud-ui.js && node --test tests/*.test.cjs
       - name: Instalar Capacitor
         run: npm install --no-audit --no-fund
       - name: Preparar site da engine
@@ -49,8 +49,24 @@ jobs:
           cp -R js assets www/
       - name: Criar plataforma Android
         run: npx cap add android && npx cap sync android
+      - name: Restaurar assinatura Android estavel (opcional)
+        env:
+          AURENIX_KEYSTORE: ${{ secrets.AURENIX_DEBUG_KEYSTORE_BASE64 }}
+        run: |
+          if [ -n "$AURENIX_KEYSTORE" ]; then
+            mkdir -p "$HOME/.android"
+            printf '%s' "$AURENIX_KEYSTORE" | base64 -d > "$HOME/.android/debug.keystore"
+            chmod 600 "$HOME/.android/debug.keystore"
+            echo "Keystore persistente carregada de segredo do GitHub."
+          else
+            echo "Usando keystore de debug temporaria. Para login Google Android, configure o segredo com assinatura estavel."
+          fi
       - name: Compilar APK de testes
         run: cd android && chmod +x gradlew && ./gradlew assembleDebug --no-daemon
+      - name: Mostrar SHA-1 do APK para OAuth Google
+        run: |
+          echo "Fingerprint do APK Android (para cadastrar no Google Cloud):"
+          keytool -list -v -keystore "$HOME/.android/debug.keystore" -alias androiddebugkey -storepass android -keypass android | grep -E 'SHA1:|SHA256:' || true
       - uses: actions/upload-artifact@v4
         with:
           name: Aurenix-Engine-APK-debug

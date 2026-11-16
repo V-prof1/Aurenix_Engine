@@ -402,7 +402,7 @@ async function start(){
   onSceneChanged:()=>{selectedId=project.objects[0]?.id||'';camera2=initialCamera2(project);camera3={target:[0,0,0],yaw:.7,pitch:.63,distance:17};syncAll();}
  });
  window.AurenixAudio?.init({panelId:'audioPanel',getProject:()=>project,onChange:()=>{historyPush();markDirty();},importFiles,addAsset:asset=>{historyPush();project.assets.push(asset);markDirty();renderAssets();renderSummary();}});
- selectedId=project.objects.find(o=>o.type==='player2d')?.id||'';camera2=initialCamera2(project);wireEvents();ensurePixel();syncAll();renderPixel();try{db=await openDB();renderProjects();}catch(e){console.warn('IndexedDB não disponível:',e);toast('Salvamento local indisponível — use exportação JSON');}initializeHome();await loadRuntimeSource();drawLoop();if('serviceWorker'in navigator&&location.protocol.startsWith('http'))navigator.serviceWorker.register('sw.js').catch(console.warn);}
+ selectedId=project.objects.find(o=>o.type==='player2d')?.id||'';camera2=initialCamera2(project);wireEvents();ensurePixel();syncAll();renderPixel();try{db=await openDB();renderProjects();}catch(e){console.warn('IndexedDB não disponível:',e);toast('Salvamento local indisponível — use exportação JSON');}initializeHome();if(location.hash==='#cloud'){history.replaceState(null,'',location.pathname+location.search);window.AurenixCloud?.open();}await loadRuntimeSource();drawLoop();if('serviceWorker'in navigator&&location.protocol.startsWith('http'))navigator.serviceWorker.register('sw.js').catch(console.warn);}
 
 const oldNewProjectModal = newProjectModal;
 newProjectModal = function(){
