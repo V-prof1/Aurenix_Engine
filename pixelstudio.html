@@ -211,5 +211,21 @@ $('back').onclick=()=>{if(dirty&&!confirm('O desenho tem alterações sem salvar
 window.addEventListener('beforeunload',e=>{if(dirty){e.preventDefault();e.returnValue='';}});
 window.addEventListener('resize',draw);
 try{initDB().then(library).catch(e=>status('Falha no banco local: '+e.message));}catch(e){status('Salvamento local não disponível');}
+
+/* Um único desenho de treino para todas as lições de Pixel Art. */
+window.AurenixPixelTutorialBridge={
+ async openProject(){
+  for(let count=0;!db&&count<40;count++)await new Promise(resolve=>setTimeout(resolve,120));
+  if(!db)throw Error('A biblioteca de Pixel Art não está disponível');
+  const title='📘 Tutorial • Pixel Art';
+  const saved=(await records()).find(p=>p.name===title);
+  art=saved?clone(saved):initial();
+  art.name=title;fi=0;li=0;dirty=false;selection=null;undo=[];redo=[];
+  $('artName').value=title;refresh();
+ },
+ state(){return {frames:art.frames.length,layers:layers().length,drawn:frame().layers.some(l=>l.cells.some(Boolean))};},
+ async save(){const title='📘 Tutorial • Pixel Art';$('artName').value=title;art.name=title;await save();}
+};
+
 refresh();status('Pronto para desenhar!');})();
 </script></body></html>
