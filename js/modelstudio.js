@@ -110,6 +110,45 @@ function clonePart(mirror=false){
  else copy.position[0]+=.4;
  model.parts.push(copy);selectedId=copy.id;mark();renderAll();
 }
+function addAccessory(kind){
+ const head=model.parts.find(x=>/cabeça|head/i.test(x.name))||model.parts[0];
+ const torso=model.parts.find(x=>/tronco|torso/i.test(x.name))||model.parts[0];
+ const leftArm=model.parts.find(x=>/braço esquerdo/i.test(x.name))||torso;
+ const rightArm=model.parts.find(x=>/braço direito/i.test(x.name))||torso;
+ const parts=[];
+ const make=(name,type,parent,pos,offset,size,color,rotation)=>parts.push(C.part(name,type,parent.id,pos,offset,size,color,rotation||[0,0,0]));
+ if(kind==='hair'){
+  make('Cabelo estilizado','cube',head,[0,.6,0],[0,.12,0],[.72,.3,.63],'#293957');
+  make('Franja','cube',head,[0,.51,.28],[0,-.10,0],[.56,.27,.14],'#293957');
+ }else if(kind==='glasses'){
+  make('Lente esquerda','cube',head,[-.19,.34,.4],[0,0,0],[.27,.2,.06],'#273e59');
+  make('Lente direita','cube',head,[.19,.34,.4],[0,0,0],[.27,.2,.06],'#273e59');
+  make('Ponte do óculos','cube',head,[0,.34,.4],[0,0,0],[.14,.05,.065],'#9cb1cc');
+ }else if(kind==='hat'){
+  make('Aba do chapéu','cylinder',head,[0,.64,0],[0,0,0],[.97,.08,.9],'#2d4966');
+  make('Copa do chapéu','cylinder',head,[0,.77,0],[0,.1,0],[.59,.3,.58],'#395879');
+ }else if(kind==='horns'){
+  make('Chifre esquerdo','cone',head,[-.25,.56,0],[0,.18,0],[.2,.5,.2],'#d7d5dc');
+  make('Chifre direito','cone',head,[.25,.56,0],[0,.18,0],[.2,.5,.2],'#d7d5dc');
+ }else if(kind==='wings'){
+  make('Asa esquerda','cube',torso,[-.45,.34,-.35],[-.45,.12,-.15],[.82,1.22,.13],'#8199d4',[0,-10,-23]);
+  make('Asa direita','cube',torso,[.45,.34,-.35],[.45,.12,-.15],[.82,1.22,.13],'#8199d4',[0,10,23]);
+ }else if(kind==='tail'){
+  make('Cauda','capsule',torso,[0,-.42,-.34],[0,-.27,-.2],[.24,.7,.25],'#b796bc',[58,0,0]);
+ }else if(kind==='sword'){
+  make('Cabo da espada','cylinder',rightArm,[0,-.86,.15],[0,-.16,0],[.11,.36,.11],'#493d4b');
+  make('Lâmina da espada','cube',rightArm,[0,-1.23,.15],[0,-.3,0],[.14,.65,.09],'#b5e7ed');
+  make('Guarda da espada','cube',rightArm,[0,-1.05,.15],[0,0,0],[.4,.09,.16],'#d9b575');
+ }else if(kind==='shield'){
+  make('Escudo','cube',leftArm,[0,-.65,.34],[0,-.12,.05],[.68,.76,.16],'#4786ad');
+  make('Emblema','sphere',leftArm,[0,-.74,.45],[0,0,0],[.26,.28,.07],'#d7c282');
+ }
+ if(!parts.length)return;
+ if(model.parts.length+parts.length>C.MAX_PARTS){notify('Limite de 80 peças: não é possível adicionar esse acessório');return;}
+ snapshot();model.parts.push(...parts);selectedId=parts[0].id;
+ if(clip())for(const a of model.animations)for(const f of a.frames)for(const p of parts)f.pose[p.id]=[...p.rotation];
+ draftPose=clip()?C.getPose(model,clipId,time):null;mark();renderAll();notify('Acessório adicionado! Ajuste cores e tamanho como quiser.');
+}
 function removePart(){
  const p=selected();if(!p||model.parts.length<=1){notify('O modelo precisa ter ao menos uma peça');return;}
  const children=model.parts.filter(x=>x.parent===p.id);
@@ -317,6 +356,7 @@ async function onAction(e){
    model=C.validate(row.model);libId=row.id;selectedId=model.parts[0].id;clipId='';draftPose=null;time=0;playing=false;dirty=false;history=[];future=[];renderAll();closeDrawers();notify('Personagem carregado.');return;
   }
   if(b.dataset.del){if(confirm('Excluir este modelo salvo do aplicativo?')){await library.remove(b.dataset.del);if(b.dataset.del===libId)libId=null;await renderLibrary();}return;}
+  if(b.dataset.kit){addAccessory(b.dataset.kit);return;}
   if(b.dataset.auto){if(model.animations.length>=24){notify('Máximo de animações atingido');return;}autoMovement(b.dataset.auto);return;}
   if(id==='back'){if(dirty&&!confirm('Há alterações não salvas. Voltar à engine mesmo assim?'))return;location.href='index.html';return;}
   if(id==='undo')return undo();if(id==='redo')return redo();
