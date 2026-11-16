@@ -1,0 +1,43 @@
+/* Tutoriais contextuais: painel isolado do tema e seguro para telas pequenas */
+.ax-guide-hidden{display:none!important}
+.ax-academy-hub,.ax-academy-guide{font:14px system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#edfaff;color-scheme:dark}
+.ax-academy-hub *,.ax-academy-guide *{box-sizing:border-box}
+.ax-academy-hub{position:fixed;inset:0;z-index:29000;background:#050913e8;overflow:auto;overscroll-behavior:contain;padding:max(10px,env(safe-area-inset-top)) max(10px,env(safe-area-inset-right)) max(14px,env(safe-area-inset-bottom)) max(10px,env(safe-area-inset-left));backdrop-filter:blur(10px)}
+.ax-academy-window{max-width:980px;margin:auto;background:linear-gradient(155deg,#13243c,#0c1629 65%);border:1px solid #3c5f7a;border-radius:22px;padding:clamp(15px,4vw,28px);box-shadow:0 25px 80px #0009}
+.ax-academy-window header{display:flex;align-items:start;justify-content:space-between;gap:12px;background:none;border:0;padding:0;margin:0 0 17px;height:auto}
+.ax-academy-window header div{min-width:0}.ax-academy-window header small{font-weight:850;color:#76f1dc;letter-spacing:1.5px;font-size:10px}
+.ax-academy-window header h2{margin:7px 0;font-size:clamp(23px,4vw,32px);color:#f5fcff}
+.ax-academy-window header p{margin:0;color:#a5bfd3;line-height:1.55;font-size:13px;max-width:700px}
+.ax-academy-window button,.ax-academy-guide button{background:#1c3752;color:#eaffff;border:1px solid #40637e;min-height:43px;border-radius:11px;padding:9px 13px;font-weight:750;cursor:pointer;touch-action:manipulation}
+.ax-academy-window #axAcademyDismiss{font-size:18px;min-width:46px}
+.ax-academy-window #axAcademySearch{width:100%;height:48px;border-radius:12px;padding:10px 13px;background:#101f34;border:1px solid #426179;color:#edfaff;font-size:15px}
+.ax-academy-filters{display:flex;gap:7px;overflow-x:auto;padding:13px 0 8px;scrollbar-width:thin}
+.ax-academy-filters button{white-space:nowrap;background:#1d3046;color:#b9cbdc;min-height:38px;padding:7px 11px;font-size:11px}
+.ax-academy-filters button.active{background:#236763;color:#cffff8;border-color:#6cddc8}
+.ax-academy-total{color:#9eb7c9;font-size:12px;margin:8px 0 13px}
+.ax-academy-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:9px}
+.ax-academy-item{display:flex;gap:12px;align-items:flex-start;background:#12253a;border:1px solid #2d5066;border-radius:14px;padding:13px;min-width:0}
+.ax-course-icon{width:40px;height:40px;background:#253f53;border-radius:11px;display:grid;place-items:center;flex:0 0 40px;font-size:21px}
+.ax-academy-item>div{flex:1;min-width:0}.ax-academy-item small{display:block;color:#76dcca;font-size:10px;font-weight:750}
+.ax-academy-item strong{display:block;font-size:13px;line-height:1.25;margin:5px 0}
+.ax-academy-item p{font-size:11px;color:#abc0d0;margin:5px 0 0;line-height:1.3}
+.ax-academy-item button{align-self:center;min-width:87px;font-size:11px;min-height:40px;padding:7px 9px;background:#275858;border-color:#4cc5b7}
+.ax-academy-window footer{display:flex;flex-wrap:wrap;gap:10px;justify-content:space-between;align-items:center;color:#99b4c8;font-size:11px;padding-top:17px}
+.ax-academy-guide{position:fixed;z-index:30000;left:clamp(9px,3vw,24px);top:calc(10px + env(safe-area-inset-top));bottom:auto;width:min(400px,calc(100vw - 18px));max-height:min(48dvh,340px);overflow:auto;background:linear-gradient(155deg,#15384a,#0d2038);border:2px solid #64e2d1;border-radius:17px;padding:12px 14px;box-shadow:0 12px 38px #000c;overscroll-behavior:contain}
+.ax-academy-guide.ax-guide-at-bottom{top:auto;bottom:calc(10px + env(safe-area-inset-bottom))}
+.ax-guide-line{display:flex;align-items:center;justify-content:space-between;gap:10px}.ax-guide-line span{font-size:10px;letter-spacing:.8px;font-weight:900;color:#86efde}
+.ax-guide-line #axGuideExit{min-height:32px;padding:4px 9px;background:#3e3448;border-color:#705f78;font-size:11px}
+.ax-guide-progress{margin:10px 0;border-radius:99px;background:#2a4963;height:5px;overflow:hidden}
+.ax-guide-progress>div{height:100%;background:#67e7cf;transition:width .2s}
+.ax-academy-guide h3{font-size:16px;margin:4px 0;color:#fff}
+.ax-academy-guide p{font-size:13px;line-height:1.43;margin:8px 0;color:#d0ecf2}
+.ax-guide-hint{font-size:11px;color:#b2d4e6;padding:7px 9px;border-radius:8px;background:#132f43;min-height:30px}
+.ax-guide-actions{display:flex;gap:8px;margin-top:10px}
+.ax-guide-actions button{flex:1;min-width:0}
+.ax-guide-actions #axGuideNext{background:#41bba8;color:#041d25;border-color:#a7f5e4}
+.ax-guide-actions button:disabled{opacity:.36;filter:grayscale(.5);cursor:not-allowed}
+.ax-academy-homebutton{background:#1a6559!important;border-color:#70e5d1!important;color:#eafff9!important}
+.ax-academy-spot{outline:4px solid #6effda!important;outline-offset:3px!important;box-shadow:0 0 0 8px #65ffe33b,0 0 30px 8px #33ccb588!important;animation:axAcademyPulse 1.25s ease-in-out infinite alternate;position:relative;z-index:1010}
+@keyframes axAcademyPulse{from{outline-color:#65e9ce;filter:brightness(1)}to{outline-color:#ffee92;filter:brightness(1.15)}}
+@media(max-width:650px){.ax-academy-item{gap:8px;padding:10px}.ax-academy-item button{min-width:75px}.ax-academy-guide{padding:9px 11px;max-height:45dvh}.ax-academy-guide h3{font-size:14px}.ax-academy-guide p{font-size:12px}.ax-academy-window{border-radius:15px}.ax-academy-filters button{font-size:10px}}
+@media(prefers-reduced-motion:reduce){.ax-academy-spot{animation:none}}
