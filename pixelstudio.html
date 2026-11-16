@@ -81,7 +81,7 @@ html,body{overflow-x:hidden;min-width:0}
 }
 </style></head><body>
 <header class="ps-top"><button id="back">← Início</button><button id="psTheme" title="Mudar aparência">🎨 Tema</button><span class="ps-logo">AURENIX <b>PIXEL</b></span><input id="artName" value="Novo sprite" maxlength="70" aria-label="Nome do desenho"><button id="save">▣ Salvar no app</button><button id="exportPNG">⬇ PNG</button><button id="exportJSON">⬇ Projeto</button><button id="importBtn">⇧ Abrir</button></header>
-<nav class="ps-quicknav"><button id="psCloud">☁ Nuvem</button><button data-jump="#tools">✎ Ferramentas</button><button data-jump="#frames">▣ Quadros</button><button data-jump="#layers">▤ Camadas</button><button data-jump="#palette">🎨 Cores</button></nav><main class="ps-main">
+<nav class="ps-quicknav"><button id="psCloud">☁ Nuvem</button><button id="psModelStudio" title="Usar suas cores no criador de personagens e cenários 3D">🎭 Model Studio 3D</button><button data-jump="#tools">✎ Ferramentas</button><button data-jump="#frames">▣ Quadros</button><button data-jump="#layers">▤ Camadas</button><button data-jump="#palette">🎨 Cores</button></nav><main class="ps-main">
 <section class="ps-column ps-left">
 <div class="ps-card"><h3>FERRAMENTAS</h3><div class="ps-tools" id="tools">
 <button data-tool="pen" aria-pressed="true">✎ Lápis</button><button data-tool="erase">⌫ Borracha</button><button data-tool="fill">▨ Balde</button><button data-tool="pick">◉ Conta-gotas</button><button data-tool="line">╱ Linha</button><button data-tool="rect">□ Retângulo</button><button data-tool="ellipse">◯ Elipse</button><button data-tool="select">▧ Seleção</button>
@@ -205,6 +205,7 @@ $('psCloud').onclick=()=>{
  if(dirty){status('Salve seu desenho no app antes de ir para a nuvem.');return;}
  location.href='studio.html#cloud';
 };
+$('psModelStudio').onclick=async()=>{if(dirty){await save();if(dirty){status('Salve o desenho antes de abrir o Model Studio.');return;}}location.href='modelstudio.html';};
 $('psTheme').onclick=()=>window.AurenixTheme?.open();document.querySelectorAll('.ps-quicknav [data-jump]').forEach(b=>b.onclick=()=>document.querySelector(b.dataset.jump)?.scrollIntoView({behavior:'smooth',block:'start'}));
 $('back').onclick=()=>{if(dirty&&!confirm('O desenho tem alterações sem salvar. Voltar ao início?'))return;dirty=false;location.href='index.html';};
 window.addEventListener('beforeunload',e=>{if(dirty){e.preventDefault();e.returnValue='';}});
