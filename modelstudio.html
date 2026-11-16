@@ -18,6 +18,10 @@ aside h3{font-size:12px;color:#acccda;margin:16px 0 8px}
 aside p,.hint{font-size:11px;color:#a4bed0;line-height:1.5}
 aside button{width:100%;margin:3px 0;text-align:left}
 aside .row{display:flex;gap:6px}.row button{flex:1;min-width:0;text-align:center}
+.face-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px}
+.face-grid button{min-width:0;min-height:47px;text-align:center;padding:6px 2px;white-space:normal;font-size:11px}
+.face-grid button.active{outline:2px solid #7cf6db;outline-offset:-2px;border-color:#73e6dc;background:#246e6c}
+@media (max-width:720px){.face-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.face-grid button{min-height:48px}}
 .tree button{display:flex;gap:8px;align-items:center;text-align:left;background:#1e3347;overflow-wrap:anywhere}
 .tree button.active{background:#24505c;border-color:var(--accent)}
 .tree button .tag{margin-left:auto;color:#9fb5c7;font-size:10px}
@@ -51,16 +55,28 @@ label input[type=color]{padding:3px;min-height:45px}
 <header><button id="back" title="Voltar à engine">⌂</button><div class="brand"><b>AURENIX MODEL STUDIO</b><small>MODELOS + ARTICULAÇÕES + ANIMAÇÕES</small></div>
 <input id="name" value="Personagem básico" aria-label="Nome do personagem"><div class="header-actions">
 <button id="undo" title="Desfazer">↶</button><button id="redo" title="Refazer">↷</button><button id="save" class="primary">▣ Salvar</button><button id="export">⬇ JSON</button><button id="exportOBJ">⬇ OBJ</button><button id="import">⇧ Abrir</button></div></header>
-<div class="body"><aside class="left" id="leftPanel"><h2>🧩 MODELO</h2><label>Começar por modelo<select id="preset"><option value="human">Humano</option><option value="robot">Robô</option><option value="creature">Criatura</option></select></label>
+<div class="body"><aside class="left" id="leftPanel"><h2>🧩 MODELO</h2><label>Começar por modelo<select id="preset"><option value="human">Humano</option><option value="robot">Robô</option><option value="creature">Criatura</option><optgroup label="🏡 Objetos de cenário"><option value="crate">Caixote</option><option value="tree">Árvore</option><option value="lamp">Poste de luz</option><option value="door">Porta articulada</option><option value="chair">Cadeira</option></optgroup></select></label>
 <div class="row"><button id="newPreset">＋ Criar</button><button id="library">▣ Salvos</button></div><h3>PEÇAS E ARTICULAÇÕES</h3>
 <p>Selecione uma peça para editar. As peças filhas acompanham os movimentos dos pais.</p><div id="tree" class="tree"></div>
 <div class="row"><button id="addPart">＋ Peça</button><button id="clonePart">▣ Duplicar</button></div><div class="row"><button id="mirrorPart">⇄ Espelhar</button><button id="removePart">✕ Excluir</button></div><h3>⚡ ACESSÓRIOS COM 1 TOQUE</h3><div class="row"><button data-kit="hair">💈 Cabelo</button><button data-kit="glasses">◉ Óculos</button></div><div class="row"><button data-kit="hat">▣ Chapéu</button><button data-kit="horns">◆ Chifres</button></div><div class="row"><button data-kit="wings">✦ Asas</button><button data-kit="tail">➰ Cauda</button></div><div class="row"><button data-kit="sword">⚔ Espada</button><button data-kit="shield">◈ Escudo</button></div>
 <p>Máximo de 80 peças. Use cubos, cápsulas, esferas, cones e mais. Toque no modelo para selecionar a peça.</p>
+<h3>😄 EXPRESSÕES FACIAIS</h3><div class="face-grid" id="faceGrid">
+<button data-expression="neutral">😐 Neutro</button><button data-expression="happy">😄 Feliz</button>
+<button data-expression="sad">😢 Triste</button><button data-expression="angry">😠 Raiva</button>
+<button data-expression="surprised">😮 Surpresa</button><button data-expression="scared">😨 Medo</button>
+<button data-expression="sleepy">😴 Sono</button><button data-expression="blink">😑 Piscar</button>
+<button data-expression="wink">😉 Piscadela</button><button data-expression="suspicious">🤨 Desconfiado</button>
+<button data-expression="talk">🗣 Falando</button></div>
+<button id="addFace" title="Adicionar sobrancelhas, bochechas e cantos do sorriso a personagens antigos">＋ Melhorar rosto / Criar expressões</button>
+<p>Selecione uma expressão e toque em ◆ Pose para registrá-la na animação. Rostos de cenário não precisam de expressão.</p>
 <h3>ANIMAÇÕES PRONTAS</h3><div class="row"><button data-auto="idle">Respirar</button><button data-auto="walk">Andar</button></div><div class="row"><button data-auto="run">Correr</button><button data-auto="attack">Atacar</button></div>
+<div class="row"><button data-auto="wave">Acenar</button><button data-auto="jump">Pular</button></div>
+<div class="row"><button data-auto="hit">Levar dano</button><button data-auto="dance">Dançar</button></div>
+<div class="row"><button data-auto="blink">Piscar</button><button data-auto="talk">Conversar</button></div>
 <h3>BIBLIOTECA LOCAL</h3><div id="libraryList"><p>Salve um modelo para encontrá-lo aqui.</p></div></aside>
 <div class="preview" id="preview"><canvas id="view" aria-label="Prévia 3D por toque"></canvas><div id="axis">X ↗ Y ↑ Z ↙</div>
 <div class="viewport-actions"><button id="frameModel">◎ Centralizar</button><button id="resetPose">↻ Pose original</button></div><div class="viewhint">☝ Arraste para orbitar • ✌ Dois dedos: zoom e mover • Toque para selecionar peça</div></div>
-<aside class="right" id="rightPanel"><h2>⚙ PEÇA SELECIONADA</h2><div id="inspector"></div>
+<aside class="right" id="rightPanel"><h2>⚙ PEÇA SELECIONADA</h2><div id="inspector"></div><div class="group"><h3>😄 EXPRESSÃO ATUAL</h3><p id="faceStatus">Neutro</p><label>Força da expressão<input id="faceStrength" type="range" min="0" max="1" step=".05" value="1" aria-label="Intensidade da expressão"></label><p>Os olhos, sobrancelhas e boca se movem por peças. Não exige textura nem cabelo realista.</p></div>
 <h2>🎞 CRIADOR DE ANIMAÇÕES</h2><div id="clipEditor"><p>Crie uma animação para começar.</p></div>
 <h3>AJUDA</h3><p>1. Escolha um modelo pronto. 2. Edite tamanho e cores. 3. Gire braços, pernas e cabeça. 4. Capture poses na timeline. 5. Salve e use no seu jogo 3D!</p>
 </aside><div class="drawer-backdrop" id="shade"></div></div>
@@ -69,4 +85,4 @@ label input[type=color]{padding:3px;min-height:45px}
 <span id="clock">0.00s</span><button id="capture">◆ Pose</button><button id="deleteFrame">✕ Frame</button><div id="markers"></div></div>
 <nav class="bottomnav"><button id="openParts">🧩 Peças</button><button id="openProps">⚙ Editar</button><button id="openAnim">🎞 Animar</button><button id="mobileSave">▣ Salvar</button></nav>
 <div id="toast" role="status"></div><input type="file" id="fileInput" accept=".aurenix3d,.json" aria-label="Abrir personagem">
-</div><script src="js/character3d.js"></script><script src="js/runtime.js"></script><script src="js/file-save.js"></script><script src="js/modelstudio.js"></script></body></html>
+</div><script src="js/character3d.js"></script><script src="js/character-face13.js"></script><script src="js/runtime.js"></script><script src="js/file-save.js"></script><script src="js/modelstudio.js"></script></body></html>
