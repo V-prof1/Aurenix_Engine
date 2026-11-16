@@ -1,0 +1,38 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"><meta name="theme-color" content="#09152a"><title>Neon Rift | Aurenix Engine</title><style>
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#09152a;color:#e8fdf8;touch-action:none;font-family:system-ui,sans-serif}
+#game{width:100vw;height:100dvh;display:block;touch-action:none}.hud{position:fixed;inset:0;pointer-events:none;user-select:none}
+.joystick{position:absolute;left:24px;bottom:calc(32px + env(safe-area-inset-bottom,0px));width:122px;height:122px;border:2px solid #b9dded55;border-radius:50%;background:#ffffff17;pointer-events:auto;touch-action:none}
+.stick{position:absolute;left:35px;top:35px;width:48px;height:48px;border-radius:50%;background:#91f1ec88;border:2px solid #d5fffa88}
+.action{pointer-events:auto;position:absolute;right:25px;bottom:calc(54px + env(safe-area-inset-bottom,0px));width:79px;height:79px;border-radius:50%;background:#3e7d91a0;color:#f0ffff;border:2px solid #9be6ff70;font-size:21px;font-weight:800;touch-action:none}
+.action2{right:115px;bottom:calc(31px + env(safe-area-inset-bottom,0px));width:49px;height:49px;background:#60639a99;font-size:12px}
+.gameerror{position:absolute;top:10px;left:10px;right:10px;background:#742b3fe8;color:white;font-size:12px;white-space:pre-wrap;pointer-events:none;padding:8px;border-radius:7px}
+@media(hover:hover) and (pointer:fine){.joystick,.action{display:none}}
+#intro{position:fixed;inset:0;z-index:40;background:#080f21eb;display:grid;place-items:center;padding:18px;touch-action:manipulation}
+#intro article{max-width:440px;width:100%;border-radius:22px;padding:22px;background:linear-gradient(145deg,#152b46,#171638);border:1px solid #63fbe17d;box-shadow:0 20px 100px #0009}
+h1{font-size:clamp(25px,7vw,40px);margin:0;color:#64ffde;letter-spacing:1.5px}p{line-height:1.6;font-size:14px;opacity:.9}small{opacity:.68}
+#begin{border:0;border-radius:13px;background:#65f4d7;color:#0b2435;font-size:17px;font-weight:900;width:100%;padding:16px;margin:13px 0 6px;touch-action:manipulation}
+#testhint{position:fixed;right:12px;top:10px;z-index:30;font:700 11px system-ui;color:#c8ffedb0;pointer-events:none}
+</style></head><body>
+<canvas id="game"></canvas>
+<div id="hud" class="hud"><div id="joystick" class="joystick"><div id="stick" class="stick"></div></div><button id="jumpBtn" class="action" aria-label="Escudo">A</button><button id="actionBtn" class="action action2" aria-label="Turbo">B</button></div>
+<span id="testhint">AURENIX ENGINE • JOGO NATIVO</span>
+<div id="intro"><article><small>DEMO JOGÁVEL • ALPHA 0.10</small><h1>⚡ NEON RIFT</h1>
+<p>Sobreviva a <b>3 circuitos</b>, pegue <b>5 fragmentos em cada fase</b> e entre no portal à direita. Fuja das sentinelas vermelhas!</p>
+<p>📱 Analógico para mover · <b>A</b> escudo · <b>B</b> turbo<br>⌨️ WASD / setas · <b>Espaço</b> escudo · <b>F</b> turbo</p>
+<button id="begin">▶ COMEÇAR TESTE</button><small>Usa o motor oficial da Aurenix e o mesmo arquivo de projeto que pode ser editado na engine.</small></article></div>
+<script src="../../js/runtime.js"></script>
+<script>
+const intro=document.getElementById('intro');
+const begin=document.getElementById('begin');
+begin.onclick=async()=>{
+begin.disabled=true;begin.textContent='Carregando…';
+try{
+ const r=await fetch('./neon-rift.aurenix.json',{cache:'no-store'});
+ if(!r.ok)throw Error('HTTP '+r.status);
+ const project=await r.json();
+ if(!window.AurenixRuntime)throw Error('Runtime não carregou.');
+ window.AurenixRuntime.startGame(project);
+ intro.remove();
+}catch(e){begin.disabled=false;begin.textContent='TENTAR NOVAMENTE';alert('Falha ao iniciar: '+e.message);}
+};
+</script></body></html>
