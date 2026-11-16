@@ -6,7 +6,7 @@ test('Todos os módulos da alpha 0.5 têm JavaScript válido',()=>{
   assert.doesNotThrow(()=>new vm.Script(fs.readFileSync(file,'utf8'),{filename:file}),file);
  }
  const pixel=fs.readFileSync('pixelstudio.html','utf8');
- const start=pixel.indexOf('<script>'),end=pixel.lastIndexOf('</script>');
+ const start=pixel.indexOf('<script>'),end=pixel.indexOf('</script>',start);
  assert.ok(start>0&&end>start);
  assert.doesNotThrow(()=>new vm.Script(pixel.slice(start+8,end),{filename:'pixelstudio.inline.js'}));
 });
