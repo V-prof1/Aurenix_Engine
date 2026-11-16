@@ -277,7 +277,7 @@ function capturePose(){
 }
 function removeFrame(){
  const c=clip();if(!c)return;
- const frame=c.frames.find(f=>Math.abs(f.time-time)<.07);
+ commitDraft();const frame=c.frames.find(f=>Math.abs(f.time-time)<.07);
  if(!frame){notify('Arraste a timeline até uma pose salva');return;}
  snapshot();c.frames.splice(c.frames.indexOf(frame),1);mark();renderMarkers();notify('Frame removido');
 }
@@ -285,7 +285,7 @@ function autoMovement(kind){
  const labels={idle:'Respirar',walk:'Caminhar',run:'Corrida',attack:'Ataque',
   wave:'Acenar',jump:'Pular',hit:'Receber dano',dance:'Dançar',blink:'Piscar',talk:'Conversar'};
  if(model.animations.length>=C.MAX_CLIPS){notify('Máximo de 24 animações');return;}
- snapshot();const c=C.newClip(model,labels[kind]||'Movimento');
+ commitDraft();snapshot();const c=C.newClip(model,labels[kind]||'Movimento');
  const base=Object.fromEntries(model.parts.map(p=>[p.id,[...p.rotation]]));
  const leftArm=model.parts.find(p=>/braço esquerdo/i.test(p.name)),rightArm=model.parts.find(p=>/braço direito/i.test(p.name)),
   leftLeg=model.parts.find(p=>/perna esquerda/i.test(p.name)),rightLeg=model.parts.find(p=>/perna direita/i.test(p.name)),
@@ -337,7 +337,7 @@ function autoMovement(kind){
 async function saveModel(){
  try{
   model.name=$('name').value.trim().slice(0,72)||'Personagem';
-  const checked=C.validate(model);libId=await library.save(checked,libId||undefined);
+  commitDraft();const checked=C.validate(model);libId=await library.save(checked,libId||undefined);
   model=checked;dirty=false;draftExpression=null;updateClock();renderFace();await renderLibrary();
   notify('✓ Personagem salvo no aplicativo!');return true;
  }catch(e){notify('Erro ao salvar: '+e.message);return false;}
@@ -349,12 +349,12 @@ function exportFile(blob,filename){
  notify('Arquivo pronto para baixar.');
 }
 function slug(x){return String(x||'modelo').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-zA-Z0-9-]+/g,'-').slice(0,55).toLowerCase();}
-function exportJSON(){try{model.name=$('name').value.trim()||'Personagem';const checked=C.validate(model);
+function exportJSON(){try{model.name=$('name').value.trim()||'Personagem';commitDraft();const checked=C.validate(model);
  exportFile(new Blob([JSON.stringify(checked,null,2)],{type:'application/json'}),slug(checked.name)+'.aurenix3d');
  }catch(e){notify(e.message);}}
 function exportOBJ(){
  const root={id:'export',x:0,y:0,z:0,visible:true};
- const parts=C.expand(model,root,'',0,currentPose());
+ commitDraft();const parts=C.expand(model,root,clipId,time,currentPose(),draftExpression,currentTransforms());
  let vertices=[],faces=[],materials=['# Aurenix Model Studio — OBJ: malha estática, sem rig ou animações'],counter=1;
  for(const p of parts){
   const mesh=R.createGeometry(p.type);if(!mesh?.p)continue;
@@ -402,14 +402,20 @@ function editField(input,saveHistory=false){
   const m=key.match(/^(position|offset|size|rotation)([0-2])$/);if(!m)return;
   const axis=Number(m[2]),value=clamp(input.value,m[1]==='size'?.02:-500,m[1]==='size'?30:500);
   if(m[1]==='rotation'){
-   if(clip()){draftPose??=C.getPose(model,clipId,time);draftPose[p.id]??=[...p.rotation];draftPose[p.id][axis]=value;}
+   if(clip()){draftPose??=C.getPose(model,clipId,time);draftPose[p.id]??=[...p.rotation];draftPose[p.id][axis]=value;draftModified=true;}
    else p.rotation[axis]=value;
+  }else if(clip()){
+   draftTransforms??=C.getTransforms(model,clipId,time);
+   const base=partDisplay(p);
+   draftTransforms[p.id]??={position:[...base.position],offset:[...base.offset],size:[...base.size]};
+   draftTransforms[p.id][m[1]][axis]=value;draftModified=true;
   }else p[m[1]][axis]=value;
  }
  mark();renderTree();
 }
 function changeField(e){
  if(!e.target.matches('[data-field]'))return;
+ if(e.target.dataset.axTouched){delete e.target.dataset.axTouched;renderInspector();return;}
  snapshot();editField(e.target,true);renderInspector();
 }
 function visualEdit(e){
@@ -467,11 +473,12 @@ function loop(now){
  const dt=clamp((now-lastFrame)*.001,0,.1);lastFrame=now;
  const c=clip();
  if(playing&&c){time+=dt*(c.speed||1);if(c.loop)time%=c.duration;else if(time>=c.duration){time=c.duration;playing=false;}
-  draftPose=C.getPose(model,c.id,time);draftExpression=null;updateClock();renderFace();}
+  draftPose=C.getPose(model,c.id,time);draftTransforms=C.getTransforms(model,c.id,time);draftExpression=null;updateClock();renderFace();}
  const root={id:'preview',type:'character3d',visible:true,x:0,y:0,z:0,ry:0,rx:0,rz:0,modelScale:1};
  const pose=currentPose();
- previewParts=C.expand(model,root,clipId,time,pose,draftExpression);
+ previewParts=C.expand(model,root,clipId,time,pose,draftExpression,currentTransforms());
  if(renderer)renderer.render({mode:'3d',background:'#102032',objects:previewParts,assets:[]},camera,{grid:true,selectedId:root.id+'::'+selectedId});
+ if(now-lastOverlay>95){renderTouchMarkers();lastOverlay=now;}
  requestAnimationFrame(loop);
 }
 async function onAction(e){
