@@ -64,9 +64,17 @@ function mergedPart(part,transform){
 }
 function expand(model,root,animation='',time=0,poseOverride=null,faceOverride=null,partOverride=null){
  const overrides=partOverride&&Object.keys(partOverride).length?partOverride:sample(model,animation,time);
- if(!Object.keys(overrides).length)return oldExpand(model,root,animation,time,poseOverride,faceOverride);
+ if(!Object.keys(overrides).length){
+  const meshes=oldExpand(model,root,animation,time,poseOverride,faceOverride);
+  const byId=new Map(model.parts.map(p=>[p.id,p.faceRole||'']));
+  for(const mesh of meshes)mesh._faceRole=byId.get(mesh._partId)||'';
+  return meshes;
+ }
  const parts=model.parts.map(part=>overrides[part.id]?mergedPart(part,overrides[part.id]):part);
- return oldExpand({...model,parts},root,animation,time,poseOverride,faceOverride);
+ const meshes=oldExpand({...model,parts},root,animation,time,poseOverride,faceOverride);
+ const byId=new Map(model.parts.map(p=>[p.id,p.faceRole||'']));
+ for(const mesh of meshes)mesh._faceRole=byId.get(mesh._partId)||'';
+ return meshes;
 }
 function capture(model,clip,t,poseOverride=null,faceOverride=null,transformsOverride=null){
  oldCapture(model,clip,t,poseOverride,faceOverride);
