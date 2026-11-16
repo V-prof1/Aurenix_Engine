@@ -99,7 +99,7 @@ add('prefabs','Jogo 2D','Salvar um objeto reutilizável','2d',[
  s('[data-tab="prefabs"]','Abra Prefabs.','click','','objects'),
  s('#axPrefabs [data-action="savePrefab"]','Grave o objeto para reutilizá-lo.','click','','prefabs')
 ]);
-add('animacao2d','Animação 2D','Criar animação por keyframes','2d',[
+add('animacao2d','Animação 2D','Criar animação por keyframes','animation2d',[
  s('#objectList [data-id]','Selecione o objeto que vai animar.','click','','objects'),
  s('[data-tab="animation"]','Abra a timeline de animação.','click','','objects'),
  s('#axAnimations [data-action="addClip"]','Crie um novo clipe de animação.','click','','animation'),
@@ -107,7 +107,7 @@ add('animacao2d','Animação 2D','Criar animação por keyframes','2d',[
  s('#axAnimations [data-action="captureKey"]','Capture a pose do objeto neste instante.','click','','animation'),
  s('#axAnimations [data-action="playPreview"]','Veja a animação rodando.','click','','animation')
 ]);
-add('animacao2d-loop','Animação 2D','Loop e velocidade','2d',[
+add('animacao2d-loop','Animação 2D','Loop e velocidade','animation2d',[
  s('[data-tab="animation"]','Abra a timeline.','click','','objects'),
  s('#axClipLoop','Ative ou desative a repetição.','change','','animation'),
  s('#axClipSpeed','Troque a velocidade.','change','','animation'),
