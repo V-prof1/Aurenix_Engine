@@ -185,7 +185,7 @@ function attachButtons(){
  if(page==='editor'){
   if(!$('#axAcademyButton')){
    const home=document.querySelector('.ax-homeactions');
-   if(home){const b=document.createElement('button');b.id='axAcademyButton';b.type='button';b.className='ax-academy-homebutton';b.textContent='🎓 Tutoriais práticos';home.appendChild(b);b.onclick=openHub;}
+   if(home){const existing=home.querySelector('[data-home="tutorials"]');if(existing){existing.id='axAcademyButton';}else{const b=document.createElement('button');b.id='axAcademyButton';b.type='button';b.className='ax-academy-homebutton';b.textContent='🎓 Tutoriais práticos';home.appendChild(b);b.onclick=openHub;}}
   }
   const top=$('#menuPopover');if(top&&!$('#axAcademyMenu')){const b=document.createElement('button');b.id='axAcademyMenu';b.textContent='🎓 Tutoriais práticos';top.prepend(b);b.onclick=()=>{top.classList.add('hidden');openHub();};}
  }else {
