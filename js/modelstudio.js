@@ -625,5 +625,25 @@ function init(){
  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')playing=false;});
  touchCanvas();renderAll();renderLibrary();setTool('orbit');requestAnimationFrame(loop);
 }
+
+/* Um único personagem local para todos os tutoriais de animação 3D. */
+window.AurenixModelTutorialBridge={
+ async openProject(){
+  const trainingName='📘 Tutorial • Animações 3D';
+  const records=await library.list(),found=records.find(row=>row.name===trainingName);
+  if(found){const row=await library.load(found.id);if(row){model=C.validate(row.model);libId=row.id;}}
+  else{model=C.preset('blocky');model.name=trainingName;libId=null;}
+  C.ensureFace(model);selectedId=model.parts[0]?.id||'';clipId='';time=0;
+  draftPose=null;draftExpression=null;draftTransforms=null;draftModified=false;history=[];future=[];playing=false;dirty=false;
+  $('name').value=trainingName;model.name=trainingName;renderAll();await renderLibrary();
+ },
+ drawer(side){
+  if(!matchMedia('(max-width:720px)').matches)return;
+  const target=$(side==='left'?'leftPanel':'rightPanel');if(target.classList.contains('open'))return;
+  closeDrawers();target.classList.add('open');$('shade').classList.add('open');
+ },
+ state(){return {parts:model.parts.length,clips:model.animations.length,selected:selectedId,expression:currentExpression()};},
+ async save(){const title='📘 Tutorial • Animações 3D';$('name').value=title;model.name=title;return await saveModel();}
+};
 init();
 })();
