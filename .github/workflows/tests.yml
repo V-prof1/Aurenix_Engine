@@ -17,6 +17,8 @@ jobs:
           node --check js/editor.js
           node --check js/tutorials-data.js
           node --check js/tutorials.js
+          node --check js/character-tracks16.js
+          node --check js/character-symmetry16.js
           node --check js/blocks.js
           node --check js/editor-patch.js
           node --test tests/*.test.cjs
