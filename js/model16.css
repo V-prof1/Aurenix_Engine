@@ -1,0 +1,46 @@
+/* Aurenix 0.16 — timeline multitrilha móvel e seleção vinculada */
+.ax16-pair-status{font-size:11px;line-height:1.45;color:#a6c6d7;background:#122d3e;border:1px solid #3b596e;border-radius:9px;padding:9px;margin:8px 0}
+#ax16PairSelect.active,#ax16PairLock.active{background:#226b63;border-color:#89ecda}
+#ax16PairLock:disabled{opacity:.37}
+#tree button.ax16-pending{box-shadow:inset 3px 0 #ffdf7b;background:#504929}
+#tree button.ax16-locked{border-color:#57eaca!important;box-shadow:inset 3px 0 #66eed7;background:#1c5154}
+#tree button.ax16-locked.active{background:#286269}
+.ax16-timeline-intro{flex:0 0 auto;font-size:9px;color:#9fbed5;text-align:center;letter-spacing:.25px;margin:0 0 3px}
+.ax14-timeline{min-height:192px;max-height:min(49dvh,350px);overflow:visible;padding-bottom:calc(7px + env(safe-area-inset-bottom))}
+.ax14-track-rows{min-height:101px;overflow-y:auto;overflow-x:hidden;flex:1;gap:5px}
+.ax14-track{grid-template-columns:71px minmax(0,1fr) 37px;gap:5px;min-height:33px}
+.ax14-track-label{font-size:10px;font-weight:800;padding:4px 3px;border-radius:6px;color:#c8e5ef;white-space:nowrap}
+.ax14-track.active>.ax14-track-label{background:#205654;color:#b6ffef}
+.ax14-track-content{height:30px;min-height:30px;touch-action:pan-y;cursor:crosshair;background:repeating-linear-gradient(90deg,#102338 0px,#102338 calc(25% - 1px),#2e4e63 25%)}
+.ax14-track.active>.ax14-track-content{outline:2px solid #68decf;outline-offset:-2px}
+.ax14-track-dot{min-width:24px;width:25px;height:23px;top:3px;touch-action:none;cursor:ew-resize;z-index:3}
+.ax14-track-dot.current{background:#bc8d3b;border:2px solid #ffe397;z-index:4}
+.ax14-track-dot.ax16-selected-frame{outline:2px solid #fff;outline-offset:-1px}
+.ax16-add-to-row{min-width:34px;min-height:30px;padding:4px;font-size:14px;background:#194c51;border:1px solid #55bfb5}
+.ax16-track-controls{display:flex;gap:5px;align-items:center;overflow-x:auto;flex:0 0 auto;padding:5px 0 2px;min-height:42px;scrollbar-width:thin}
+.ax16-track-controls button{padding:4px 8px;min-height:35px;flex:0 0 auto;font-size:11px}
+.ax16-track-controls button:disabled{opacity:.4}
+.ax16-track-controls .ax16-selected-track{font-weight:850;font-size:11px;color:#9ff2e8;white-space:nowrap;min-width:78px}
+.ax16-track-controls input{height:36px;min-width:55px;width:67px;padding:4px 6px;border:1px solid #466986;border-radius:7px;background:#101e33;color:#fff;font-size:12px}
+.ax16-track-controls label{display:flex;align-items:center;gap:3px;font-size:10px;white-space:nowrap}
+#ax16CaptureAll{background:#28445a}
+.ax14-track-playhead{z-index:2;background:#ffe2a0}
+@media(max-width:720px){
+ .ax14-timeline{min-height:189px;max-height:min(48dvh,310px)}
+ .ax14-track-rows{min-height:102px}
+ .ax14-track{grid-template-columns:61px minmax(0,1fr) 34px;min-height:33px;gap:3px}
+ .ax14-track-label{font-size:9px}
+ .ax16-timeline-intro{font-size:8px;letter-spacing:0}
+ .ax16-track-controls .ax16-selected-track{min-width:65px}
+ .ax16-track-controls{padding-bottom:2px}
+ .ax14-timeline-actions #scrub{min-width:58px}
+ .ax14-timeline-actions #ax16CaptureAll{font-size:10px}
+}
+@media(max-width:720px) and (orientation:landscape){
+ .ax14-timeline{min-height:154px;max-height:175px}
+ .ax14-track{min-height:30px}
+ .ax14-track-content{height:27px;min-height:27px}
+ .ax16-timeline-intro{display:none}
+ .ax16-track-controls{min-height:32px}
+ .ax16-track-controls button{min-height:30px}
+}
