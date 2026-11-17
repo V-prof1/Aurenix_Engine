@@ -44,3 +44,5 @@
  .ax16-track-controls{min-height:32px}
  .ax16-track-controls button{min-height:30px}
 }
+
+.ax14-face-point.ax16-linked-point{border-color:#64eacc;background:#17645bda;color:#eaffff;box-shadow:0 0 0 4px #3cffbb55}
