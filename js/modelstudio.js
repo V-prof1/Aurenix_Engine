@@ -387,7 +387,7 @@ function removePart(){
  const children=model.parts.filter(x=>x.parent===p.id);
  if(children.length&&!confirm('Esta peça tem '+children.length+' peça(s) filha(s). Elas serão ligadas ao pai da peça excluída. Excluir?'))return;
  snapshot();for(const c of children)c.parent=p.parent||null;
- model.parts=model.parts.filter(x=>x.id!==p.id);
+ model.parts=model.parts.filter(x=>x.id!==p.id);Sym.clean(model);pendingPair=pendingPair.filter(id=>id!==p.id);
  for(const a of model.animations)for(const f of a.frames)delete f.pose[p.id];
  selectedId=p.parent||model.parts[0].id;mark();renderAll();
 }
@@ -539,7 +539,7 @@ async function importFile(file){
  if(!file||file.size>900000){notify('Arquivo muito grande (máximo 900 KB)');return;}
  try{
   const doc=C.validate(JSON.parse(await file.text()));if(dirty&&!confirm('Substituir o personagem atual por '+doc.name+'?'))return;
-  snapshot();model=doc;libId=null;selectedId=model.parts[0].id;clipId='';draftPose=null;draftTransforms=null;draftModified=false;draftExpression=null;time=0;playing=false;dirty=true;renderAll();notify('Personagem importado!');
+  snapshot();model=doc;pairSelecting=false;pendingPair=[];selectedKey=null;activeTrack='body';libId=null;selectedId=model.parts[0].id;clipId='';draftPose=null;draftTransforms=null;draftModified=false;draftExpression=null;time=0;playing=false;dirty=true;renderAll();notify('Personagem importado!');
  }catch(e){notify('Erro ao importar: '+e.message);}
 }
 function editField(input,saveHistory=false){
@@ -550,11 +550,11 @@ function editField(input,saveHistory=false){
  if(key.startsWith('clip')){
   const c=clip();if(!c)return;
   if(key==='clipName')c.name=String(input.value).slice(0,50);
-  if(key==='clipDuration'){c.duration=clamp(input.value,.1,120);for(const f of c.frames)f.time=clamp(f.time,0,c.duration);time=clamp(time,0,c.duration);}
+  if(key==='clipDuration'){c.duration=clamp(input.value,.1,120);for(const f of c.frames)f.time=clamp(f.time,0,c.duration);for(const frames of Object.values(Tracks.ensure(c)))for(const f of frames)f.time=clamp(f.time,0,c.duration);selectedKey=null;time=clamp(time,0,c.duration);}
   if(key==='clipSpeed')c.speed=clamp(input.value,.1,4);
   if(key==='clipEase')c.ease=input.value;
   if(key==='clipLoop')c.loop=input.checked;
-  mark();renderClips();return;
+  mark();renderClips();renderMarkers();return;
  }
  if(key==='name'){p.name=input.value.slice(0,60);}
  else if(key==='type'){p.type=input.value;}
@@ -728,7 +728,7 @@ async function onAction(e){
   if(b.dataset.load){
    const row=await library.load(b.dataset.load);if(!row)return;
    if(dirty&&!confirm('Abrir '+row.name+' e substituir as alterações não salvas?'))return;
-   model=C.validate(row.model);libId=row.id;selectedId=model.parts[0].id;clipId='';draftPose=null;draftTransforms=null;draftModified=false;draftExpression=null;time=0;playing=false;dirty=false;history=[];future=[];renderAll();closeDrawers();notify('Personagem carregado.');return;
+   model=C.validate(row.model);pairSelecting=false;pendingPair=[];selectedKey=null;activeTrack='body';libId=row.id;selectedId=model.parts[0].id;clipId='';draftPose=null;draftTransforms=null;draftModified=false;draftExpression=null;time=0;playing=false;dirty=false;history=[];future=[];renderAll();closeDrawers();notify('Personagem carregado.');return;
   }
   if(b.dataset.del){if(confirm('Excluir este modelo salvo do aplicativo?')){await library.remove(b.dataset.del);if(b.dataset.del===libId)libId=null;await renderLibrary();}return;}
   if(b.dataset.expression){setExpression(b.dataset.expression);return;}
@@ -746,7 +746,7 @@ async function onAction(e){
   if(id==='export')return exportJSON();if(id==='exportOBJ')return exportOBJ();
   if(id==='import')return $('fileInput').click();
   if(id==='newPreset'){if(dirty&&!confirm('Criar um personagem novo e descartar alterações atuais?'))return;
-   snapshot();model=C.preset($('preset').value);libId=null;selectedId=model.parts[0].id;clipId='';time=0;draftPose=null;draftTransforms=null;draftModified=false;draftExpression=null;playing=false;mark();renderAll();notify('Novo personagem criado!');return;}
+   snapshot();pairSelecting=false;pendingPair=[];selectedKey=null;activeTrack='body';model=C.preset($('preset').value);libId=null;selectedId=model.parts[0].id;clipId='';time=0;draftPose=null;draftTransforms=null;draftModified=false;draftExpression=null;playing=false;mark();renderAll();notify('Novo personagem criado!');return;}
   if(id==='library'){await renderLibrary();return;}
   if(id==='addPart')return addPart();if(id==='clonePart')return clonePart();if(id==='mirrorPart')return clonePart(true);if(id==='removePart')return removePart();
   if(id==='frameModel'){camera={yaw:.65,pitch:.32,distance:7.5,target:[0,1.3,0]};return;}
