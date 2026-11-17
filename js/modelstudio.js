@@ -5,18 +5,30 @@ const C=window.AurenixCharacters,R=window.AurenixRuntime,T=window.AurenixModelTo
 const clone=C.copy,clamp=(x,a,b)=>Math.min(b,Math.max(a,Number(x)||0));
 const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const types=[['cube','▣ Cubo'],['sphere','● Esfera'],['capsule','⬟ Cápsula'],['cylinder','⬢ Cilindro'],['cone','▲ Cone'],['pyramid','◆ Pirâmide'],['torus','◎ Anel']];
-const library=C.library(),canvas=$('view'),renderer=new R.Renderer3D(canvas);
+const library=C.library(),canvas=$('view'),renderer=new R.Renderer3D(canvas),Tracks=C.AurenixTracks,Sym=C.AurenixSymmetry;
 let model=C.preset('blocky'),libId=null,selectedId=model.parts[0].id,clipId='',time=0,draftPose=null,draftExpression=null,draftTransforms=null,draftModified=false,playing=false,dirty=false,tool='orbit',snapToGrid=false,depthAxis=false;
+let activeTrack='body',pairSelecting=false,pendingPair=[],movingKey=null,skipKeyClick=false;
 let history=[],future=[],camera={yaw:.65,pitch:.32,distance:7.5,target:[0,1.3,0]},pointers=new Map(),lastTouch=null,lastFrame=performance.now(),toastId=0,previewParts=[],lastOverlay=0,draggedPart=null;
 const selected=()=>model.parts.find(p=>p.id===selectedId)||null;
 const clip=()=>model.animations.find(c=>c.id===clipId)||null;
 const canRedo=()=>future.length>0;
 const currentTransforms=()=>draftTransforms||C.getTransforms(model,clipId,time);
+function dataAtTrack(channel){
+ if(channel==='body')return {pose:clone(currentPose())};
+ if(channel==='face')return {expression:currentExpression()};
+ return {transforms:clone(currentTransforms())};
+}
 function commitDraft(){
  if(!clip()||!draftModified)return;
- C.capture(model,clip(),time,currentPose(),currentExpression(),currentTransforms());
+ Tracks.capture(model,clip(),activeTrack,time,dataAtTrack(activeTrack));
  draftModified=false;mark();renderMarkers();
 }
+function switchTrack(channel){
+ if(!Tracks.groups.includes(channel))return;
+ if(activeTrack!==channel)commitDraft();
+ activeTrack=channel;renderMarkers();
+}
+
 function loadDraft(t){
  const c=clip();
  time=clamp(t,0,c?.duration||1);
@@ -91,7 +103,31 @@ function undo(){if(!history.length)return;const prev=history.pop();future.push({
 function redo(){if(!future.length)return;history.push({model:clone(model),selectedId,clipId,time,dirty,draftPose:clone(draftPose),draftTransforms:clone(draftTransforms),draftExpression,draftModified});restore(future.pop());}
 function updateUndo(){$('undo').disabled=!history.length;$('redo').disabled=!canRedo();}
 function mark(){dirty=true;updateClock();}
-function setSelected(id){selectedId=id;renderTree();renderInspector();}
+function setSelected(id){
+ if(pairSelecting){
+  const part=model.parts.find(p=>p.id===id);
+  if(!part)return;
+  if(pendingPair.includes(id))pendingPair=pendingPair.filter(x=>x!==id);
+  else if(pendingPair.length<2)pendingPair.push(id);
+  else{notify('Selecione somente duas peças. Toque numa das escolhidas para removê-la.');return;}
+  selectedId=id;
+ }else selectedId=id;
+ renderTree();renderInspector();renderPairStatus();
+}
+function renderPairStatus(){
+ const hint=$('ax16PairStatus'),lock=$('ax16PairLock'),toggle=$('ax16PairSelect');
+ if(!hint)return;
+ const selectedParts=pendingPair.map(id=>model.parts.find(p=>p.id===id)).filter(Boolean);
+ const pair=selectedParts.length===2&&Sym.compatible(model,...selectedParts);
+ const linked=Sym.partner(model,selectedId);
+ hint.textContent=pairSelecting?(selectedParts.length<2?'Selecione duas peças da mesma família (ex.: os dois olhos).':
+ pair?'✓ Par válido: '+selectedParts.map(x=>x.name).join(' + ')+'. Aperte Bloquear.':'⚠ Pares diferentes não podem ser vinculados. Escolha dois olhos, dois braços etc.') :
+ linked?'🔒 '+model.parts.find(x=>x.id===selectedId)?.name+' ↔ '+linked.name+' • alterações espelhadas.':
+ 'Toque em Selecionar 2, escolha os dois membros correspondentes e pressione Bloquear.';
+ lock.disabled=!pair;
+ toggle.classList.toggle('active',pairSelecting);
+ $('ax16PairUnlock').disabled=!linked;
+}
 function closeDrawers(){
  $('leftPanel').classList.remove('open');$('rightPanel').classList.remove('open');$('shade').classList.remove('open');
 }
@@ -108,7 +144,7 @@ function renderTree(){
  const box=$('tree'),map=new Map(model.parts.map(p=>[p.id,p]));
  box.innerHTML=model.parts.map(p=>{
   let depth=0,x=p;while(x?.parent&&depth<8){x=map.get(x.parent);depth++;}
-  return '<button data-part="'+esc(p.id)+'" class="'+(selectedId===p.id?'active':'')+'" style="padding-left:'+(9+depth*10)+'px"><span>◇</span><span>'+esc(p.name)+'</span><span class="tag">'+esc(p.type)+'</span></button>';
+  return '<button data-part="'+esc(p.id)+'" class="'+(selectedId===p.id?'active ':'')+(pendingPair.includes(p.id)?'ax16-pending ':'')+(Sym.partner(model,selectedId)?.id===p.id||p.id===selectedId&&Sym.partner(model,selectedId)?'ax16-locked':'')+'" style="padding-left:'+(9+depth*10)+'px"><span>◇</span><span>'+esc(p.name)+'</span><span class="tag">'+esc(p.type)+'</span></button>';
  }).join('');
 }
 function field(key,label,val,type='number',extra=''){
@@ -126,7 +162,7 @@ function renderInspector(){
   while(walk){if(walk.id===p.id)return true;walk=map.get(walk.parent);}return false;
  };
  const shown=partDisplay(p),angles=shown.rotation;
- box.innerHTML='<div class="group">'+field('name','Nome da peça',p.name,'text','maxlength="60"')+
+ box.innerHTML=(Sym.partner(model,p.id)?'<div class="ax16-pair-status">🔒 Vinculado a <b>'+esc(Sym.partner(model,p.id).name)+'</b>. Movimentos X e rotações espelhados. <button type="button" id="ax16PairUnlockInspector">🔓 Desbloquear</button></div>':'')+'<div class="group">'+field('name','Nome da peça',p.name,'text','maxlength="60"')+
  '<label>Formato<select data-field="type">'+types.map(([key,name])=>'<option value="'+key+'" '+(key===p.type?'selected':'')+'>'+name+'</option>').join('')+'</select></label>'+
  '<label>Ligada à peça<select data-field="parent"><option value="">— Centro do personagem —</option>'+
  parents.filter(x=>!disabled(x)).map(x=>'<option value="'+esc(x.id)+'" '+(p.parent===x.id?'selected':'')+'>'+esc(x.name)+'</option>').join('')+'</select></label>'+
@@ -195,7 +231,7 @@ function setExpression(expression){
  mark();renderFace();notify(clip()?'Expressão pronta. Toque em ◆ Pose para gravar.':'Expressão aplicada ao modelo.');
 }
 function renderAll(){
- $('name').value=model.name;renderTree();renderInspector();renderClips();renderFace();updateClock();updateUndo();
+ $('name').value=model.name;renderTree();renderInspector();renderClips();renderFace();updateClock();updateUndo();renderPairStatus();
 }
 function applyFramePreview(t){
  commitDraft();loadDraft(t);renderMarkers();
