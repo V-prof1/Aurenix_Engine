@@ -72,14 +72,18 @@ function renderTouchMarkers(){
  const panel=$('ax14TouchMarkers');if(!panel)return;
  panel.replaceChildren();
  if(tool!=='face'&&tool!=='select'&&tool!=='move'&&tool!=='rotate'&&tool!=='scale')return;
+ const linkedId=Sym.partner(model,selectedId)?.id||'';
  const points=tool==='face'?T.faceMarkers(previewParts,point=>renderer.project(point)):
-  (()=>{const p=previewParts.find(p=>p._partId===selectedId);if(!p)return [];
-   const point=renderer.project([p.x,p.y,p.z]);return point?[{id:p._partId,role:'selected',symbol:'✥',x:point.x,y:point.y}]:[];})();
+  [selectedId,linkedId].filter(Boolean).map(id=>{
+   const p=previewParts.find(p=>p._partId===id);
+   if(!p)return null;const point=renderer.project([p.x,p.y,p.z]);
+   return point?{id,role:id===linkedId?'vinculado':'selecionado',symbol:id===linkedId?'⇄':'✥',x:point.x,y:point.y}:null;
+  }).filter(Boolean);
  const width=canvas.clientWidth,height=canvas.clientHeight;
  for(const p of points){
   if(p.x<25||p.y<35||p.x>width-25||p.y>height-25)continue;
   const el=document.createElement('div');
-  el.className='ax14-face-point'+(p.id===selectedId?' selected':'');
+  el.className='ax14-face-point'+(p.id===selectedId?' selected':'')+(p.id===linkedId?' ax16-linked-point':'');
   el.style.left=p.x+'px';el.style.top=p.y+'px';
   el.textContent=p.symbol;el.title=p.role;
   panel.appendChild(el);
@@ -697,6 +701,7 @@ async function onAction(e){
  try{
   if(id==='ax16PairSelect'){
    pairSelecting=!pairSelecting;pendingPair=[];
+   if(pairSelecting)setTool('select');
    renderTree();renderPairStatus();
    notify(pairSelecting?'Escolha duas peças equivalentes na lista ou toque nelas no personagem.':'Seleção dupla cancelada.');return;
   }
