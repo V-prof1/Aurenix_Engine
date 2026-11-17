@@ -695,6 +695,27 @@ async function onAction(e){
  const b=e.target.closest('button');if(!b)return;
  const id=b.id;
  try{
+  if(id==='ax16PairSelect'){
+   pairSelecting=!pairSelecting;pendingPair=[];
+   renderTree();renderPairStatus();
+   notify(pairSelecting?'Escolha duas peças equivalentes na lista ou toque nelas no personagem.':'Seleção dupla cancelada.');return;
+  }
+  if(id==='ax16PairLock'){
+   if(pendingPair.length!==2){notify('Selecione exatamente duas peças.');return;}
+   try{snapshot();Sym.link(model,pendingPair[0],pendingPair[1]);}catch(error){history.pop();notify(error.message);return;}
+   selectedId=pendingPair[0];pairSelecting=false;pendingPair=[];
+   mark();renderTree();renderInspector();renderPairStatus();notify('🔒 Par vinculado! Edite qualquer lado para espelhar o outro.');return;
+  }
+  if(id==='ax16PairUnlock'||id==='ax16PairUnlockInspector'){
+   snapshot();if(!Sym.unlink(model,selectedId)){history.pop();notify('Nenhuma peça vinculada selecionada.');return;}
+   pairSelecting=false;pendingPair=[];mark();renderTree();renderInspector();renderPairStatus();notify('🔓 Peças desbloqueadas e independentes.');return;
+  }
+  if(b.dataset.trackAdd){trackCreate(b.dataset.trackAdd);return;}
+  if(b.hasAttribute('data-track-create')){trackCreate(activeTrack);return;}
+  if(b.hasAttribute('data-track-delete')){trackDelete();return;}
+  if(b.hasAttribute('data-track-copy')){trackCopy();return;}
+  if(b.dataset.trackNav){trackNavigate(Number(b.dataset.trackNav));return;}
+  if(id==='ax16CaptureAll'){captureAllTracks();return;}
   if(b.dataset.tool14){setTool(b.dataset.tool14);return;}
   if(id==='ax14Snap'){snapToGrid=!snapToGrid;b.classList.toggle('active',snapToGrid);b.setAttribute('aria-pressed',String(snapToGrid));notify(snapToGrid?'Encaixe ativado: 0,05 unidade e 5°':'Encaixe desativado');return;}
   if(id==='ax14Depth'){depthAxis=!depthAxis;b.classList.toggle('active',depthAxis);b.setAttribute('aria-pressed',String(depthAxis));notify(depthAxis?'Movimento/rotação no eixo Z':'Movimento na superfície XY');return;}
@@ -702,7 +723,7 @@ async function onAction(e){
   if(b.dataset.palcolor){const p=selected();if(p){snapshot();p.color=b.dataset.palcolor;mark();renderInspector();notify('Cor aplicada à peça');}return;}
   if(id==='goPixel'){await leaveStudio('pixelstudio.html');return;}
   if(id==='goEditor'){await leaveStudio('index.html');return;}
-  if(b.dataset.part){setSelected(b.dataset.part);if(matchMedia('(max-width:720px)').matches)closeDrawers();return;}
+  if(b.dataset.part){setSelected(b.dataset.part);if(!pairSelecting&&matchMedia('(max-width:720px)').matches)closeDrawers();return;}
   if(b.dataset.time){applyFramePreview(Number(b.dataset.time));renderInspector();return;}
   if(b.dataset.load){
    const row=await library.load(b.dataset.load);if(!row)return;
