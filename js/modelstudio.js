@@ -724,7 +724,7 @@ async function onAction(e){
   if(id==='goPixel'){await leaveStudio('pixelstudio.html');return;}
   if(id==='goEditor'){await leaveStudio('index.html');return;}
   if(b.dataset.part){setSelected(b.dataset.part);if(!pairSelecting&&matchMedia('(max-width:720px)').matches)closeDrawers();return;}
-  if(b.dataset.time){applyFramePreview(Number(b.dataset.time));renderInspector();return;}
+  if(b.dataset.time&&!b.dataset.track){applyFramePreview(Number(b.dataset.time));renderInspector();return;}
   if(b.dataset.load){
    const row=await library.load(b.dataset.load);if(!row)return;
    if(dirty&&!confirm('Abrir '+row.name+' e substituir as alterações não salvas?'))return;
@@ -766,6 +766,25 @@ function init(){
  $('clip').addEventListener('change',e=>selectClip(e.target.value));
  $('scrub').addEventListener('input',e=>{playing=false;applyFramePreview(Number(e.target.value));renderInspector();});
  $('fileInput').addEventListener('change',async e=>{await importFile(e.target.files?.[0]);e.target.value='';});
+ const trackElement=$('ax14Tracks');
+ trackElement.addEventListener('click',trackSeek);
+ trackElement.addEventListener('pointerdown',trackPointerDown);
+ trackElement.addEventListener('pointermove',trackPointerMove);
+ trackElement.addEventListener('pointerup',trackPointerUp);
+ trackElement.addEventListener('pointercancel',()=>{movingKey=null;renderMarkers();});
+ document.addEventListener('change',e=>{
+  if(e.target.id!=='ax16FrameTime')return;
+  const c=clip();if(!c)return;
+  const to=Tracks.normalizedTime(c,e.target.value);
+  if(selectedKey&&selectedKey.channel===activeTrack){
+   snapshot();
+   if(!Tracks.move(c,activeTrack,selectedKey.time,to)){
+    history.pop();notify('Já existe um frame nesse instante. Escolha outro tempo.');renderMarkers();return;
+   }
+   selectedKey={channel:activeTrack,time:to};mark();
+  }else selectedKey=null;
+  playing=false;applyFramePreview(to);renderMarkers();
+ });
  document.addEventListener('click',onAction);
  document.addEventListener('change',changeField);
  document.addEventListener('input',visualEdit);
