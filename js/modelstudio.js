@@ -301,8 +301,8 @@ function updateTrackPlayhead(){
 
 function currentExpression(){
  if(typeof draftExpression==='string')return draftExpression;
- const c=clip();
- if(!c)return model.face?.expression||'neutral';
+ const c=clip();if(!c)return model.face?.expression||'neutral';
+ if(c.tracks)return Tracks.getChannel(model,c,time,'face').expression;
  const prev=c.frames.filter(f=>f.time<=time+.001).at(-1)||c.frames[0];
  return prev?.expression||model.face?.expression||'neutral';
 }
@@ -317,6 +317,7 @@ function renderFace(){
 }
 function setExpression(expression){
  if(!C.FACE_EXPRESSIONS.some(([id])=>id===expression))return;
+ if(clip())switchTrack('face');
  snapshot();playing=false;
  if(clip()){draftExpression=expression;draftModified=true;}
  else{model.face??={expression:'neutral',intensity:1};model.face.expression=expression;draftExpression=null;}
@@ -328,7 +329,7 @@ function renderAll(){
 function applyFramePreview(t){
  commitDraft();loadDraft(t);renderMarkers();
 }
-function resetPose(){commitDraft();playing=false;clipId='';time=0;draftPose=null;draftExpression=null;draftTransforms=null;draftModified=false;renderAll();}
+function resetPose(){commitDraft();playing=false;clipId='';selectedKey=null;activeTrack='body';time=0;draftPose=null;draftExpression=null;draftTransforms=null;draftModified=false;renderAll();}
 function addPart(){
  if(model.parts.length>=C.MAX_PARTS){notify('Limite de 80 peças');return;}
  snapshot();const parent=selected(),p=C.part('Nova peça','cube',parent?.id||null,parent?[0,.8,0]:[0,1.5,0],[0,.1,0],[.42,.42,.42],'#81c7e8');
@@ -391,24 +392,27 @@ function removePart(){
  selectedId=p.parent||model.parts[0].id;mark();renderAll();
 }
 function selectClip(id){
- commitDraft();playing=false;clipId=id;time=0;draftPose=id?C.getPose(model,id,0):null;draftTransforms=id?C.getTransforms(model,id,0):null;draftExpression=null;draftModified=false;
+ commitDraft();playing=false;clipId=id;selectedKey=null;activeTrack='body';time=0;draftPose=id?C.getPose(model,id,0):null;draftTransforms=id?C.getTransforms(model,id,0):null;draftExpression=null;draftModified=false;
  renderInspector();renderClips();renderFace();
 }
 function createClip(){
  const name=prompt('Nome do movimento','Minha animação');if(!name)return;
- commitDraft();snapshot();const c=C.newClip(model,name);clipId=c.id;time=0;draftPose=C.getPose(model,c.id,0);draftTransforms=C.getTransforms(model,c.id,0);draftExpression=null;draftModified=false;
+ commitDraft();snapshot();const c=C.newClip(model,name);Tracks.ensure(c);activeTrack='body';selectedKey=null;clipId=c.id;time=0;draftPose=C.getPose(model,c.id,0);draftTransforms=C.getTransforms(model,c.id,0);draftExpression=null;draftModified=false;
  mark();renderAll();notify('Gire as peças e capture poses em tempos diferentes.');
 }
 function capturePose(){
  const c=clip();if(!c){notify('Crie ou selecione uma animação');return;}
- snapshot();C.capture(model,c,time,currentPose(),currentExpression(),currentTransforms());draftExpression=null;draftModified=false;mark();renderMarkers();renderFace();notify('Corpo + rosto + peças gravados aos '+time.toFixed(2)+'s');
+ trackCreate(activeTrack);
 }
-function removeFrame(){
- const c=clip();if(!c)return;
- commitDraft();const frame=c.frames.find(f=>Math.abs(f.time-time)<.07);
- if(!frame){notify('Arraste a timeline até uma pose salva');return;}
- snapshot();c.frames.splice(c.frames.indexOf(frame),1);mark();renderMarkers();notify('Frame removido');
+function captureAllTracks(){
+ const c=clip();if(!c){notify('Crie uma animação primeiro');return;}
+ snapshot();Tracks.ensure(c);
+ for(const channel of Tracks.groups)Tracks.capture(model,c,channel,time,dataAtTrack(channel));
+ selectedKey={channel:activeTrack,time};draftModified=false;mark();renderMarkers();
+ notify('✓ Corpo, rosto e objetos gravados em '+time.toFixed(2)+'s!');
 }
+function removeFrame(){trackDelete();}
+
 function autoMovement(kind){
  const labels={idle:'Respirar',walk:'Caminhar',run:'Corrida',attack:'Ataque',
   wave:'Acenar',jump:'Pular',hit:'Receber dano',dance:'Dançar',blink:'Piscar',talk:'Conversar'};
