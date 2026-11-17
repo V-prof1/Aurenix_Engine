@@ -150,7 +150,7 @@ function library(){
   req.onerror=()=>reject(req.error);req.onsuccess=()=>resolve(req.result);
  });
  const tx=async(mode,callback)=>{const db=await open();try{return await new Promise((res,rej)=>{const t=db.transaction('characters',mode),store=t.objectStore('characters'),req=callback(store);req.onsuccess=()=>res(req.result);req.onerror=()=>rej(req.error);});}finally{db.close();}};
- return {save:async(model,id=uid())=>{const checked=validate(model);await tx('readwrite',store=>store.put({id,model:checked,name:checked.name,updated:Date.now()}));return id;},
+ return {save:async(model,id=uid())=>{const checked=global.AurenixCharacters.validate(model);await tx('readwrite',store=>store.put({id,model:checked,name:checked.name,updated:Date.now()}));return id;},
   list:()=>tx('readonly',store=>store.getAll()),load:id=>tx('readonly',store=>store.get(id)),remove:id=>tx('readwrite',store=>store.delete(id))};
 }
 global.AurenixCharacters={FORMAT,MAX_PARTS,preset,validate,expand,getPose,newClip,capture,part,copy,uid,mul,translate,rotate,scale,transformPoint,library};
