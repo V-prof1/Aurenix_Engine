@@ -7,7 +7,7 @@ const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 const types=[['cube','▣ Cubo'],['sphere','● Esfera'],['capsule','⬟ Cápsula'],['cylinder','⬢ Cilindro'],['cone','▲ Cone'],['pyramid','◆ Pirâmide'],['torus','◎ Anel']];
 const library=C.library(),canvas=$('view'),renderer=new R.Renderer3D(canvas),Tracks=C.AurenixTracks,Sym=C.AurenixSymmetry;
 let model=C.preset('blocky'),libId=null,selectedId=model.parts[0].id,clipId='',time=0,draftPose=null,draftExpression=null,draftTransforms=null,draftModified=false,playing=false,dirty=false,tool='orbit',snapToGrid=false,depthAxis=false;
-let activeTrack='body',pairSelecting=false,pendingPair=[],movingKey=null,skipKeyClick=false;
+let activeTrack='body',pairSelecting=false,pendingPair=[],movingKey=null,skipKeyClick=false,selectedKey=null;
 let history=[],future=[],camera={yaw:.65,pitch:.32,distance:7.5,target:[0,1.3,0]},pointers=new Map(),lastTouch=null,lastFrame=performance.now(),toastId=0,previewParts=[],lastOverlay=0,draggedPart=null;
 const selected=()=>model.parts.find(p=>p.id===selectedId)||null;
 const clip=()=>model.animations.find(c=>c.id===clipId)||null;
@@ -186,21 +186,113 @@ function renderClips(){
  updateClock();renderMarkers();
 }
 function renderMarkers(){
- const box=$('markers'),c=clip();box.innerHTML=c?c.frames.map(f=>'<button data-time="'+f.time+'">◆ '+f.time.toFixed(1)+'</button>').join(''):'';
- const tracks=$('ax14Tracks');if(!tracks)return;
- if(!c){tracks.innerHTML='<div class="ax14-help">＋ Crie uma animação: corpo 🦴, rosto 😄 e objetos 🧱 usarão a mesma timeline.</div>';return;}
+ const box=$('markers'),c=clip(),tracks=$('ax14Tracks'),controls=$('ax16TrackControls');
+ if(!tracks)return;
+ if(!c){box.innerHTML='';tracks.innerHTML='<div class="ax14-help">Crie uma animação para editar Corpo, Rosto e Objetos de modo independente.</div>';if(controls)controls.innerHTML='';return;}
+ const channels=Tracks.ensure(c);
+ box.innerHTML=c.frames.map(f=>'<button data-time="'+f.time+'">◆ '+f.time.toFixed(1)+'</button>').join('');
  const names=[['body','🦴 Corpo'],['face','😄 Rosto'],['objects','🧱 Objetos']];
  tracks.innerHTML=names.map(([channel,label])=>{
-  const dots=c.frames.map(f=>{
-   if(channel==='objects'&&!Object.keys(f.transforms||{}).length)return '';
-   const caption=channel==='body'?'◆':channel==='face'?'☺':'▣';
-   const percentage=clamp(f.time/c.duration*100,0,100);
-   const selected=Math.abs(f.time-time)<.025?' current':'';
-   return '<button class="ax14-track-dot'+selected+'" data-track="'+channel+'" data-time="'+f.time+'" style="left:'+percentage+'%" title="'+label+' aos '+f.time.toFixed(2)+'s">'+caption+'</button>';
+  const dots=channels[channel].map(f=>{
+   const pct=clamp(f.time/c.duration*100,0,100);
+   const current=Math.abs(f.time-time)<.013?' current':'';
+   const selected=selectedKey?.channel===channel&&Math.abs(selectedKey.time-f.time)<.004?' ax16-selected-frame':'';
+   const symbol=channel==='body'?'◆':channel==='face'?'☺':'▣';
+   return '<button type="button" class="ax14-track-dot'+current+selected+'" data-track="'+channel+'" data-time="'+f.time+'" style="left:'+pct+'%" title="Arraste este frame para mudar o tempo ou toque para selecionar" aria-label="Frame '+label+' em '+f.time.toFixed(2)+' segundos">'+symbol+'</button>';
   }).join('');
-  return '<div class="ax14-track"><span class="ax14-track-label">'+label+'</span><div class="ax14-track-content">'+dots+'<div class="ax14-track-playhead" style="left:'+clamp(time/c.duration*100,0,100)+'%"></div></div></div>';
+  return '<div class="ax14-track'+(channel===activeTrack?' active':'')+'" data-track-row="'+channel+'"><span class="ax14-track-label">'+label+'</span>'+
+  '<div class="ax14-track-content" data-track-area="'+channel+'" role="slider" aria-label="Tempo: '+label+'" aria-valuemin="0" aria-valuemax="'+c.duration+'" aria-valuenow="'+time.toFixed(2)+'">'+
+  dots+'<div class="ax14-track-playhead" style="left:'+clamp(time/c.duration*100,0,100)+'%"></div></div>'+
+  '<button type="button" class="ax16-add-to-row" data-track-add="'+channel+'" title="Gravar um frame apenas nesta trilha">＋</button></div>';
  }).join('');
+ if(!controls)return;
+ const label={body:'🦴 Corpo',face:'😄 Rosto',objects:'🧱 Objetos'}[activeTrack];
+ const hasSelected=!!selectedKey&&selectedKey.channel===activeTrack&&channels[activeTrack].some(f=>Math.abs(f.time-selectedKey.time)<.004);
+ const displayTime=hasSelected?selectedKey.time:time;
+ controls.innerHTML='<span class="ax16-selected-track">'+label+'</span>'+
+ '<button type="button" data-track-nav="-1" title="Frame anterior nesta trilha">◀</button>'+
+ '<button type="button" data-track-create title="Gravar quadro apenas nesta trilha">◆＋</button>'+
+ '<button type="button" data-track-copy '+(!hasSelected?'disabled':'')+' title="Duplicar quadro nesta trilha">⧉</button>'+
+ '<button type="button" data-track-delete '+(!hasSelected?'disabled':'')+' title="Apagar apenas o frame selecionado">✕</button>'+
+ '<button type="button" data-track-nav="1" title="Próximo frame nesta trilha">▶</button>'+
+ '<label>Tempo <input id="ax16FrameTime" type="number" min="0" max="'+c.duration+'" step=".01" value="'+displayTime.toFixed(2)+'" aria-label="Tempo deste frame em segundos"></label>';
 }
+function selectTrackFrame(channel,t){
+ if(!clip())return;
+ switchTrack(channel);
+ selectedKey={channel,time:Number(t)};
+ playing=false;applyFramePreview(Number(t));renderMarkers();
+}
+function trackCreate(channel=activeTrack){
+ const c=clip();if(!c)return;
+ switchTrack(channel);snapshot();
+ Tracks.capture(model,c,channel,time,dataAtTrack(channel));selectedKey={channel,time};
+ draftModified=false;mark();renderMarkers();notify('◆ Frame adicionado somente na trilha '+({body:'Corpo',face:'Rosto',objects:'Objetos'}[channel]));
+}
+function trackDelete(){
+ const c=clip();if(!c||!selectedKey||selectedKey.channel!==activeTrack){notify('Selecione um frame nesta trilha antes de excluir');return;}
+ snapshot();
+ if(!Tracks.erase(c,activeTrack,selectedKey.time)){history.pop();return;}
+ selectedKey=null;loadDraft(time);mark();renderMarkers();notify('Frame excluído apenas desta trilha.');
+}
+function trackCopy(){
+ const c=clip(),selected=selectedKey;
+ if(!c||!selected||selected.channel!==activeTrack)return;
+ const item=Tracks.ensure(c)[activeTrack].find(f=>Math.abs(f.time-selected.time)<.004);if(!item)return;
+ const next=Tracks.normalizedTime(c,Math.min(c.duration,item.time+.12));
+ if(Math.abs(next-item.time)<.01){notify('Sem espaço ao final da timeline');return;}
+ snapshot();Tracks.capture(model,c,activeTrack,next,Object.fromEntries(Object.entries(item).filter(([k])=>k!=='time')));
+ selectedKey={channel:activeTrack,time:next};applyFramePreview(next);mark();renderMarkers();
+}
+function trackNavigate(dir){
+ const c=clip();if(!c)return;
+ const frames=Tracks.ensure(c)[activeTrack],sorted=frames.map(f=>f.time).sort((a,b)=>a-b);
+ if(!sorted.length){notify('Esta trilha não possui frames. Toque em ◆＋.');return;}
+ const next=dir>0?sorted.find(v=>v>time+.003):sorted.slice().reverse().find(v=>v<time-.003);
+ selectTrackFrame(activeTrack,next??(dir>0?sorted[0]:sorted[sorted.length-1]));
+}
+function trackSeek(e){
+ const c=clip(),dot=e.target.closest('[data-track][data-time]');
+ if(!c)return;
+ if(dot){
+  if(skipKeyClick){skipKeyClick=false;return;}
+  selectTrackFrame(dot.dataset.track,Number(dot.dataset.time));return;
+ }
+ const area=e.target.closest('[data-track-area]');if(!area)return;
+ const rect=area.getBoundingClientRect();
+ const next=Tracks.normalizedTime(c,Math.max(0,Math.min(1,(e.clientX-rect.left)/Math.max(1,rect.width)))*c.duration);
+ switchTrack(area.dataset.trackArea);selectedKey=null;
+ playing=false;applyFramePreview(next);renderMarkers();
+}
+function trackPointerDown(e){
+ const dot=e.target.closest('.ax14-track-dot');if(!dot||!clip())return;
+ movingKey={channel:dot.dataset.track,from:Number(dot.dataset.time),id:e.pointerId,x:e.clientX,y:e.clientY,dragged:false,dot};
+ try{dot.setPointerCapture(e.pointerId);}catch(_){}
+}
+function trackPointerMove(e){
+ const drag=movingKey;if(!drag||drag.id!==e.pointerId)return;
+ if(!drag.dragged&&Math.hypot(e.clientX-drag.x,e.clientY-drag.y)<6)return;
+ drag.dragged=true;
+ const area=drag.dot.closest('[data-track-area]'),rect=area.getBoundingClientRect(),c=clip();
+ drag.to=Tracks.normalizedTime(c,(e.clientX-rect.left)/Math.max(1,rect.width)*c.duration);
+ drag.dot.style.left=(drag.to/c.duration*100)+'%';
+}
+function trackPointerUp(e){
+ const drag=movingKey;if(!drag||drag.id!==e.pointerId)return;
+ movingKey=null;
+ if(!drag.dragged)return;
+ skipKeyClick=true;setTimeout(()=>{skipKeyClick=false;},160);
+ const c=clip();if(!c)return;
+ switchTrack(drag.channel);
+ snapshot();
+ if(!Tracks.move(c,drag.channel,drag.from,drag.to)){
+  history.pop();notify('Já existe um frame neste tempo ou a posição é inválida.');
+ }else{
+  selectedKey={channel:drag.channel,time:drag.to};time=drag.to;loadDraft(drag.to);mark();notify('Frame movido apenas na trilha selecionada.');
+ }
+ renderMarkers();
+}
+
 function updateTrackPlayhead(){
  const c=clip(),tracks=$('ax14Tracks');if(!c||!tracks)return;
  const v=clamp(time/c.duration*100,0,100);
