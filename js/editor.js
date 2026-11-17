@@ -86,13 +86,15 @@ function download(blob,name){if(window.AurenixFiles){window.AurenixFiles.save(bl
 const slug=(s)=>String(s).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9-]/g,'-').replace(/--+/g,'-').replace(/^-|-$/g,'').slice(0,35)||'meu-jogo';
 function exportProject(){prepareProject();download(new Blob([JSON.stringify(project,null,2)],{type:'application/json'}),`${slug(project.name)}.aurenix.json`);toast('Backup do projeto exportado');}
 function runtimeBase(){return new URL('./',location.href).href;}
-function gameFiles(){prepareProject();if(project.mode==='html5'){const map=project.external?.files||{};if(!Object.keys(map).length)throw Error('Sem arquivos HTML5 importados');return Object.entries(map).map(([name,data])=>({name:name.replace(/^\/+/,''),data:dataURLBytes(data)}));}const index=R.gameHTML(project);return [{name:'index.html',data:index},{name:'js/runtime.js',data:characterSrc+'\n'+faceSrc+'\n'+motionSrc+'\n'+runtimeSrc}];}
-let runtimeSrc='',characterSrc='',faceSrc='',motionSrc='';
+function gameFiles(){prepareProject();if(project.mode==='html5'){const map=project.external?.files||{};if(!Object.keys(map).length)throw Error('Sem arquivos HTML5 importados');return Object.entries(map).map(([name,data])=>({name:name.replace(/^\/+/,''),data:dataURLBytes(data)}));}const index=R.gameHTML(project);return [{name:'index.html',data:index},{name:'js/runtime.js',data:characterSrc+'\n'+faceSrc+'\n'+motionSrc+'\n'+tracksSrc+'\n'+symmetrySrc+'\n'+runtimeSrc}];}
+let runtimeSrc='',characterSrc='',faceSrc='',motionSrc='',tracksSrc='',symmetrySrc='';
 async function loadRuntimeSource(){
  try{
   const source=await fetch('js/character3d.js');if(source.ok)characterSrc=await source.text();
   const face=await fetch('js/character-face13.js');if(face.ok)faceSrc=await face.text();
   const motion=await fetch('js/character-motion14.js');if(motion.ok)motionSrc=await motion.text();
+   const tracks=await fetch('js/character-tracks16.js');if(tracks.ok)tracksSrc=await tracks.text();
+   const symmetry=await fetch('js/character-symmetry16.js');if(symmetry.ok)symmetrySrc=await symmetry.text();
  }catch(e){console.warn('Não foi possível carregar o sistema de personagem 3D e expressões',e);}if(window.__AURENIX_RUNTIME_SOURCE__){runtimeSrc=window.__AURENIX_RUNTIME_SOURCE__;return;}try{const res=await fetch('js/runtime.js');if(!res.ok)throw Error('HTTP '+res.status);runtimeSrc=await res.text();}catch(e){console.warn('Falha ao carregar fonte de runtime por fetch:',e);runtimeSrc='';}}
 function requireRuntime(){if(project.mode!=='html5'&&!runtimeSrc)throw Error('Para exportar, abra o editor por um servidor HTTP/HTTPS (GitHub Pages ou localhost), não diretamente por file://.');}
 function exportGame(){try{requireRuntime();download(Z.pack(gameFiles()),`${slug(project.name)}-html5.zip`);toast('Jogo HTML5 exportado! Extraia o ZIP para jogar.');}catch(e){toast(e.message);}}
