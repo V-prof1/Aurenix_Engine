@@ -463,7 +463,7 @@ function autoMovement(kind){
   }
   return {time:Number((c.duration*step).toFixed(4)),pose,expression};
  });
- clipId=c.id;time=0;draftPose=C.getPose(model,c.id,0);draftTransforms=C.getTransforms(model,c.id,0);draftExpression=null;draftModified=false;mark();renderAll();
+ Tracks.ensure(c);activeTrack='body';selectedKey=null;clipId=c.id;time=0;draftPose=C.getPose(model,c.id,0);draftTransforms=C.getTransforms(model,c.id,0);draftExpression=null;draftModified=false;mark();renderAll();
  notify('Animação '+labels[kind]+' pronta! Ajuste movimentos e expressões.');
 }
 async function saveModel(){
