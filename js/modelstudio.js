@@ -545,6 +545,8 @@ async function importFile(file){
 function editField(input,saveHistory=false){
  const p=selected();if(!p)return;
  const key=input.dataset.field;if(!key)return;
+ if(clip()&&/^(position|offset|size|rotation)[0-2]$/.test(key))switchTrack(key.startsWith('rotation')?'body':'objects');
+ const before=Sym.snapshot(p,partDisplay(p));
  if(key.startsWith('clip')){
   const c=clip();if(!c)return;
   if(key==='clipName')c.name=String(input.value).slice(0,50);
@@ -571,7 +573,9 @@ function editField(input,saveHistory=false){
    draftTransforms[p.id][m[1]][axis]=value;draftModified=true;
   }else p[m[1]][axis]=value;
  }
- mark();renderTree();
+ const after=Sym.snapshot(p,partDisplay(p));
+ Sym.mirror(model,p.id,before,after,{clip:!!clip(),pose:draftPose,transforms:draftTransforms});
+ mark();renderTree();renderPairStatus();
 }
 function changeField(e){
  if(!e.target.matches('[data-field]'))return;
@@ -625,8 +629,10 @@ function touchCanvas(){
    const mx=e.clientX-draggedPart.sx,my=e.clientY-draggedPart.sy;
    if(!draggedPart.didMove&&Math.hypot(mx,my)<6)return;
    if(!draggedPart.didMove){snapshot();draggedPart.didMove=true;}
+   if(clip())switchTrack(tool==='rotate'?'body':'objects');
    const part=model.parts.find(p=>p.id===draggedPart.id);
    if(!part)return;
+   const beforeMirror=Sym.snapshot(part,partDisplay(part));
    const value=T.transform({tool,start:draggedPart.start,dx:mx,dy:my,camera,snapToGrid,depth:depthAxis});
    if(!value)return;
    if(tool==='rotate'){
@@ -644,6 +650,7 @@ function touchCanvas(){
     else part.position=value.position;
    }
    if(lastTouch)lastTouch.moved=true;
+   Sym.mirror(model,part.id,beforeMirror,Sym.snapshot(part,partDisplay(part)),{clip:!!clip(),pose:draftPose,transforms:draftTransforms});
    playing=false;mark();return;
   }
   if(lastTouch&&Math.hypot(e.clientX-p.startX,e.clientY-p.startY)>8)lastTouch.moved=true;
