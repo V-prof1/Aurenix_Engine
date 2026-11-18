@@ -152,7 +152,7 @@ async function parseFile(file,files={}){
  const buffers=await resources(json,files,baseDir(file.name),binary);
  const geometry=convert(json,buffers),clips=animations(json,buffers),skins=(json.skins||[]).map(s=>({name:s.name||'Esqueleto',joints:(s.joints||[]).map(i=>({node:i,name:json.nodes?.[i]?.name||'Osso '+i})),skeleton:s.skeleton??null}));
  const textures=(json.images||[]).map(img=>({name:fileName(img.name||img.uri||'Textura'),uri:img.uri||null,mimeType:img.mimeType||'image/png'}));
- return {geometry,clips,skins,textures,source:json};
+ return {geometry,clips,skins,textures,source:json,buffers};
 }
 async function fromZip(file,Zip=global.AurenixZip){
  if(!Zip?.unpack)throw Error('Extrator ZIP não disponível');
@@ -160,5 +160,5 @@ async function fromZip(file,Zip=global.AurenixZip){
  if(entries.length>160)throw Error('Pacote muito grande: limite 160 recursos reconhecidos');
  return {contents,entries,modelPaths:entries.filter(x=>/\.(glb|gltf|obj)$/i.test(x))};
 }
-global.AurenixImport17={parseGLB,resources,accessor,convert,animations,parseFile,fromZip,allowed,fileName};
+global.AurenixImport17={parseGLB,resources,accessor,convert,animations,parseFile,fromZip,allowed,fileName,nodeMatrix,mul,point};
 })(window);
