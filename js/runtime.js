@@ -542,6 +542,24 @@ function startGame(scene){const canvas=document.getElementById('game');if(!canva
  playAnimation:(o,name)=>{const target=typeof o==='string'?objects.find(x=>x.id===o||x.name===o):o;if(!target)return false;if(target.type==='character3d'){const doc=characterAsset((scene.assets||[]).find(a=>a.id===target.assetId));const rig=doc?.animations.find(c=>c.name===name||c.id===name);if(!rig)return false;if(target.rigClip===rig.id&&target.rigPlaying!==false)return true;target.rigClip=rig.id;target.rigTime=0;target.rigPlaying=true;return true;}const clip=(target.animations||[]).find(c=>c.id===name||c.name===name);if(!clip)return false;const current=animClocks.get(target.id);if(current?.playing&&current.clipId===clip.id)return true;target.activeAnimation=clip.id;animClocks.set(target.id,{clipId:clip.id,time:0,playing:true});return true;},
  stopAnimation:o=>{const target=typeof o==='string'?objects.find(x=>x.id===o||x.name===o):o;if(!target)return false;if(target.type==='character3d'){target.rigPlaying=false;return true;}const st=animClocks.get(target.id);if(st)st.playing=false;return true;},
  playSound:(name,options={})=>playAsset(name,options),stopMusic:()=>{bgMusic?.pause();bgMusic=null;},sound:(freq=440,duration=.1)=>{try{const ac=api.audio||(api.audio=new (window.AudioContext||window.webkitAudioContext)());const osc=ac.createOscillator(),gain=ac.createGain();osc.frequency.value=Number(freq)||440;osc.connect(gain);gain.connect(ac.destination);gain.gain.setValueAtTime(.06,ac.currentTime);gain.gain.exponentialRampToValueAtTime(.001,ac.currentTime+Math.max(.03,duration));osc.start();osc.stop(ac.currentTime+Math.max(.03,duration));}catch(e){}}};
+ if(runState){
+  Object.assign(api,{
+   inventory:()=>runState.run.inventory,
+   coins:()=>advanced.economy.coins,
+   addCoins:n=>(advanced.economy.coins=Math.max(0,advanced.economy.coins+Math.round(Number(n)||0))),
+   makeItem:(type,rarity=1,power=1)=>ADV.makeItem(type,rarity,power),
+   buyItem:item=>ADV.buy(runState.run.inventory,advanced.economy,item,runState.permanent.unlocks),
+   shopItems:(day=runState.run.day)=>ADV.restock(advanced.economy,day),
+   hit:(target,value,type='physical')=>target?ADV.damage(target,value,type):null,
+   applyStatus:(entity,type,duration=3,potency=1)=>ADV.status(entity,type,duration,potency),
+   repair:(target,value=25)=>{if(!target)return false;target.health=Math.min(target.maxHealth||1000,(target.health||0)+Math.max(0,value));return true;},
+   saveGame,worldHeight:(x,z)=>advanced.world.enabled?ADV.elevation(advanced.world,x,z):null,
+   worldTime:()=>advanced.world.time,
+   unlock:key=>{if(!runState.permanent.unlocks.includes(key))runState.permanent.unlocks.push(key);},
+   permanentProgress:()=>runState.permanent,
+   runProgress:()=>runState.run,
+  });
+ }
  function scriptTick(o,dt){if(!o.script)return;let entry=playscript.get(o.id);if(!entry||entry.code!==o.script){try{entry={code:o.script,fn:new Function('self','scene','api','dt',`'use strict';\n${o.script}`)};playscript.set(o.id,entry);}catch(e){showError(`${o.name}: ${e.message}`);return;}}try{entry.fn(o,scene,api,dt);}catch(e){if(!scriptErrors.has(o.id)){showError(`${o.name}: ${e.message}`);scriptErrors.add(o.id);}}}
  function showError(s){let el=document.querySelector('.gameerror');if(!el){el=document.createElement('div');el.className='gameerror';document.body.appendChild(el);}el.textContent='Erro no script: '+s;}
  window.addEventListener('keydown',e=>{if(['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.code))e.preventDefault();keys.add(e.key.toLowerCase());if(e.key===' '||e.key==='ArrowUp')controls.jump=true;});window.addEventListener('keyup',e=>{keys.delete(e.key.toLowerCase());if(e.key===' ')controls.jump=false;});window.addEventListener('blur',()=>{keys.clear();controls.x=0;controls.y=0;controls.jump=false;});
