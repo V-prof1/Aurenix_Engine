@@ -9,7 +9,7 @@ const colors=['#89949d','#51b57f','#4298e5','#a173e7','#e1ab42','#f0688e','#f5df
 const defaults=()=>({
  world:{enabled:false,seed:17,size:25,cell:2,heights:[],density:.08,dayLength:360,time:.25,fog:0,atmosphere:true,revision:0,renderRadius:9,biome:'grass'},
  camera:{mode:'third',yaw:.8,pitch:.55,distance:16,offset:[0,1,0],smooth:.1,zoomMin:3,zoomMax:45,obstacleFade:true},
- controls:{sensitivity:1,deadzone:.18,gamepad:true,keyboard:true,touch:true,bindings:{forward:'w',back:'s',left:'a',right:'d',attack:'f',jump:' '}},
+ controls:{sensitivity:1,deadzone:.18,gamepad:true,keyboard:true,touch:true,profile:'default',layout:{stickLeft:24,stickBottom:32,actionRight:25,actionBottom:54},bindings:{forward:'w',back:'s',left:'a',right:'d',attack:'f',jump:' '}},
  combat:{enabled:false,playerMaxHealth:100,playerMaxStamina:100,staminaRegen:12,enemyLimit:35,spawnRadius:24,showHitboxes:false},
  economy:{enabled:false,coins:0,marketSeed:31,restockDay:0,licenseDivine:false},
  graphics:{quality:'balanced',maxVisible:220,maxNpcs:35,maxParticles:180,shadows:false,lod:1,fps:true},
