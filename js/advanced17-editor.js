@@ -37,7 +37,12 @@ function render(){
  if(page==='controls')body=block('🎮 Entrada multiplataforma','Touch, teclado físico e gamepad pela API Gamepad; suporte depende do navegador.',
  checkbox('controls','touch','Controles touchscreen')+checkbox('controls','keyboard','Teclado e mouse')+checkbox('controls','gamepad','Gamepads USB / Bluetooth')+
  '<div class="ax17-grid">'+field('controls','sensitivity','Sensibilidade',.2,4,.1)+field('controls','deadzone','Zona morta',0,.6,.02)+'</div>'+
- '<button data-ax17-action="gamepad">🎮 Detectar controles</button><p id="ax17Pads"></p>');
+ '<button data-ax17-action="gamepad">🎮 Detectar controles</button><p id="ax17Pads"></p>'+
+ '<label class="ax17-field">Perfil do HUD<select data-ax17-profile>'+
+ [['default','Padrão'],['compact','Compacto'],['lefty','Canhoto']].map(x=>'<option value="'+x[0]+'" '+(config()?.controls?.profile===x[0]?'selected':'')+'>'+x[1]+'</option>').join('')+'</select></label>'+
+ '<div class="ax17-grid">'+[['stickLeft','Analógico: margem esquerda'],['stickBottom','Analógico: margem inferior'],['actionRight','Ataque: margem direita'],['actionBottom','Ataque: margem inferior']].map(x=>'<label class="ax17-field">'+x[1]+' (px)<input type="number" min="0" max="280" step="5" data-ax17-layout="'+x[0]+'" value="'+esc(config().controls.layout[x[0]])+'"></label>').join('')+'</div>'+
+ '<p>Remapear teclas: escreva o nome da tecla (ex.: w, q, espaço, arrowup). Controles físicos usam o layout padrão do navegador.</p>'+
+ '<div class="ax17-grid">'+[['forward','Frente'],['back','Trás'],['left','Esquerda'],['right','Direita'],['attack','Ação / atacar'],['jump','Pular']].map(x=>'<label class="ax17-field">'+x[1]+'<input type="text" maxlength="16" data-ax17-bind="'+x[0]+'" value="'+esc(config().controls.bindings[x[0]]===' '?'space':config().controls.bindings[x[0]])+'"></label>').join('')+'</div>');
  if(page==='combat')body=block('⚔️ Personagens e construções','Vida, resistência, NPCs, estruturas e torretas por componentes. Componentes ficam editáveis em ⚡.',
  checkbox('combat','enabled','Habilitar combate')+
  '<div class="ax17-grid">'+field('combat','playerMaxHealth','Vida',1,10000,1)+field('combat','playerMaxStamina','Resistência',1,10000,1)+field('combat','staminaRegen','Regeneração/s',0,100,.5)+field('combat','enemyLimit','Inimigos ativos',1,150,1)+'</div>'+
@@ -132,6 +137,27 @@ function init(options){
   else action(b.dataset.ax17Action);
  });
  document.addEventListener('change',e=>{
+  const el=e.target,adv=config();
+  if(el.dataset?.ax17Profile){
+   const profile=el.value;
+   const presets={default:{stickLeft:24,stickBottom:32,actionRight:25,actionBottom:54},
+    compact:{stickLeft:12,stickBottom:16,actionRight:12,actionBottom:25},
+    lefty:{stickLeft:185,stickBottom:25,actionRight:180,actionBottom:54}};
+   if(!presets[profile])return;
+   bridge.history?.();adv.controls.profile=profile;adv.controls.layout={...presets[profile]};
+   bridge.changed?.();render();return;
+  }
+  if(el.dataset?.ax17Layout){
+   const key=el.dataset.ax17Layout;if(!Object.hasOwn(adv.controls.layout,key))return;
+   bridge.history?.();adv.controls.layout[key]=Math.max(0,Math.min(280,Number(el.value)||0));
+   adv.controls.profile='custom';bridge.changed?.();render();return;
+  }
+  if(el.dataset?.ax17Bind){
+   const key=el.dataset.ax17Bind;if(!Object.hasOwn(adv.controls.bindings,key))return;
+   bridge.history?.();const value=String(el.value||'').trim().toLowerCase();
+   adv.controls.bindings[key]=value==='space'?' ':value.slice(0,16)||adv.controls.bindings[key];
+   bridge.changed?.();render();return;
+  }
   const path=e.target.dataset?.ax17Field;if(!path)return;
   const [section,key]=path.split('.'),a=config();if(!a?.[section]||!Object.hasOwn(a[section],key))return;
   bridge.history?.();a[section][key]=e.target.type==='checkbox'?e.target.checked:e.target.type==='number'?Number(e.target.value):e.target.value;
