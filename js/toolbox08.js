@@ -21,6 +21,7 @@ const links=[
  ['pixelStudio','✎','Pixel Studio completo','Desenhar sprites, quadros e camadas'],
  ['modelStudio','🎭','Model Studio 3D','Montar e animar personagens com articulações'],
  ['models','♟','Personagens 3D','Inserir personagens animados no jogo'],
+ ['advanced17','🌍','Mundos & Sistemas','Terrenos, vegetação, câmeras, NPCs, torretas, lojas e otimização'],
  ['play','▶','Testar jogo','Executar a cena atual'],
  ['save','▣','Salvar projeto','Guardar no aplicativo'],
  ['export','⬇','Exportar jogo','HTML5 e template para APK'],
