@@ -1,0 +1,30 @@
+/* Aurenix Alpha 0.17 - ferramentas para mundo aberto */
+#axAdvanced17Panel{display:flex;flex-direction:column;gap:10px;padding:1px 0 26px;color:#dcf5f6;font:12px system-ui,sans-serif}
+.ax17-head{border-radius:12px;padding:12px;background:linear-gradient(135deg,#193d4d,#17314c);border:1px solid #416579}
+.ax17-head h3{font-size:14px;margin:0 0 5px;letter-spacing:.05em}
+.ax17-head small{display:block;color:#9fd5d2;line-height:1.45}
+.ax17-nav{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px}
+.ax17-nav button{min-height:39px;white-space:normal;font-size:11px;padding:6px 3px;color:#e9f9ff;background:#20354c;border:1px solid #45647b;border-radius:8px}
+.ax17-nav button.active,.ax17-brushes button.active{background:#1c6a69;border-color:#92f1e1;color:#fff}
+.ax17-block{border:1px solid #38566b;border-radius:12px;background:#152b3e;padding:10px;min-width:0;display:flex;flex-direction:column;gap:9px}
+.ax17-block h4{font-size:13px;color:#9df6e2;margin:0}
+.ax17-block p{color:#b4cdd7;margin:0;font-size:11px;line-height:1.5}
+.ax17-field{display:flex;flex-direction:column;gap:5px;min-width:0;font-size:11px}
+.ax17-field span{color:#b5dbe2}
+.ax17-field input,.ax17-field select{background:#0d1f30;border:1px solid #4b7180;border-radius:8px;padding:8px;color:#f4ffff;min-height:40px;width:100%;min-width:0;font:12px system-ui}
+.ax17-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;min-width:0}
+.ax17-grid label:not(.ax17-field){font-size:11px;display:flex;flex-direction:column;gap:5px}
+.ax17-grid input[type=range]{width:100%;min-height:26px;accent-color:#74edcb}
+.ax17-toggle{display:flex;align-items:center;gap:8px;background:#1b3c46;border-radius:8px;padding:8px;font-size:12px;line-height:1.4}
+.ax17-toggle input{accent-color:#41cfad;min-width:20px;height:20px}
+.ax17-block button{min-height:42px;padding:7px 9px;border-radius:9px;background:#27505d;color:#e3ffff;border:1px solid #4e98a2;font:700 11px system-ui;cursor:pointer}
+.ax17-actions,.ax17-brushes{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+.ax17-actions button,.ax17-brushes button{min-width:0}
+#ax17Terrain{width:100%;height:auto;aspect-ratio:1;border:2px solid #5faaa3;border-radius:11px;touch-action:none;image-rendering:pixelated;background:#29483c}
+#ax17HeightInfo{color:#9bedd9;min-height:19px;line-height:1.5}
+#ax17Stock{display:grid;gap:5px}
+.ax17-item{display:flex;align-items:center;gap:7px;padding:7px;border-radius:7px;background:#0e2235;font-size:10px}
+.ax17-item i{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.ax17-asset{display:flex;flex-direction:column;gap:6px;padding:10px;border:1px solid #426778;border-radius:9px;margin:7px 0;background:#183248;word-break:break-word}
+.ax17-asset small{font-size:10px;color:#cce3eb}
+@media(max-width:720px){#axAdvanced17Panel{padding-bottom:32px}.ax17-nav button{min-height:43px}.ax17-block{padding:9px}}
