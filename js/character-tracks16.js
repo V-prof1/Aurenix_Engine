@@ -11,6 +11,7 @@ const groups=['body','face','objects'], MAX=100;
 const expressionIds=new Set((C.FACE_EXPRESSIONS||[]).map(x=>x[0]));
 const round=n=>Math.round(n*1000)/1000;
 function normalizedTime(c,t){return round(clamp(t,0,clamp(c.duration||1,.1,120)));}
+function snapTime(c,t){const fps=Math.max(1,Math.min(120,Math.round(c.fps||24)));return normalizedTime(c,Math.round((Number(t)||0)*fps)/fps);}
 function defaults(model){return Object.fromEntries(model.parts.map(p=>[p.id,[...p.rotation]]));}
 function initial(c){
  return {
@@ -19,7 +20,7 @@ function initial(c){
  objects:(c.frames||[]).map(f=>({time:f.time,transforms:cp(f.transforms||{})}))
  };
 }
-function ensure(c){if(!c.tracks||typeof c.tracks!=='object')c.tracks=initial(c);for(const channel of groups)if(!Array.isArray(c.tracks[channel]))c.tracks[channel]=[];return c.tracks;}
+function ensure(c){if(!c.tracks||typeof c.tracks!=='object')c.tracks=initial(c);for(const channel of groups)if(!Array.isArray(c.tracks[channel]))c.tracks[channel]=[];c.fps=clamp(Math.round(c.fps||24),1,120);c.events??=[];return c.tracks;}
 function sanitize(model,clip,tracks){
  const ids=new Set(model.parts.map(p=>p.id)),out={};
  for(const type of groups){
@@ -127,6 +128,10 @@ C.validate=function(input){
  for(let i=0;i<checked.animations.length;i++){
   const source=input.animations?.[i];
   if(source?.tracks)checked.animations[i].tracks=sanitize(checked,checked.animations[i],source.tracks);
+  checked.animations[i].fps=clamp(Math.round(source?.fps||24),1,120);
+  checked.animations[i].events=(Array.isArray(source?.events)?source.events:[]).slice(0,100).filter(x=>x&&typeof x.name==='string'&&x.name.trim()).map(x=>({
+   time:normalizedTime(checked.animations[i],x.time),name:x.name.trim().slice(0,60)
+  })).sort((a,b)=>a.time-b.time);
  }
  return checked;
 };
@@ -153,5 +158,5 @@ C.expand=function(model,root,animation='',time=0,poseOverride=null,faceOverride=
  if(!Object.keys(mapped).length)mapped=Object.fromEntries(model.parts.map(p=>[p.id,{position:[...p.position],offset:[...p.offset],size:[...p.size]}]));
  return previous.expand(model,root,animation,time,pose,faceArg,mapped);
 };
-C.AurenixTracks={groups,ensure,initial,capture,erase,move,normalizedTime,getChannel,sampleBody:body,sampleFace:face,sampleObjects:objects,sanitize};
+C.AurenixTracks={groups,ensure,initial,capture,erase,move,normalizedTime,snapTime,getChannel,sampleBody:body,sampleFace:face,sampleObjects:objects,sanitize};
 })(window);
