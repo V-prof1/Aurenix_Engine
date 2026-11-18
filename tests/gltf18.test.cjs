@@ -33,6 +33,19 @@ test('Articulação deforma vértices entre 0 e 0.5 segundos',()=>{
  assert.ok(Math.abs((b.p[0]-a.p[0])-.5)<1e-5,'deslocamento inválido: '+(b.p[0]-a.p[0]));
  assert.ok(b.n.every(Number.isFinite));
 });
+test('Primitives de roupa e corpo com a mesma skin permanecem presentes',()=>{
+ const {AurenixImport17:I,AurenixGLTFRig18:R}=api(),{json,bytes}=synthetic();
+ json.meshes[0].primitives.push({...json.meshes[0].primitives[0]});
+ const rig=R.build(json,[bytes],I);
+ assert.ok(rig);assert.equal(rig.vertices.length,6);assert.equal(rig.triangles.length,6);
+ const geo=R.sample(rig,'Movimento',.5);
+ assert.equal(geo.triangles,2);assert.equal(geo.p.length,18);
+});
+test('Quando loop desativado, último quadro não retrocede para início',()=>{
+ const {AurenixImport17:I,AurenixGLTFRig18:R}=api(),{json,bytes}=synthetic(),rig=R.build(json,[bytes],I);
+ const first=R.sample(rig,'Movimento',0,false),last=R.sample(rig,'Movimento',1,false);
+ assert.ok(Math.abs((last.p[0]-first.p[0])-1)<1e-5);
+});
 test('Matrizes inversas e quaternion de animação estáveis',()=>{
  const {AurenixGLTFRig18:R}=api();
  const a=R.trs([2,4,6],[0,0,0,1],[1,1,1]),id=R.mul(R.inverse(a),a);
