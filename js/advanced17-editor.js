@@ -32,6 +32,7 @@ function render(){
  if(page==='camera')body=block('🎥 Câmera individual por jogo','Altere distância, inclinação e acompanhamento. A câmera isométrica mantém posição elevada.',
  select('camera','mode','Projeção',[['third','Terceira pessoa'],['isometric','Isométrica'],['fixed','Fixa']])+
  '<div class="ax17-grid">'+field('camera','yaw','Ângulo horizontal',-6.3,6.3,.05)+field('camera','pitch','Inclinação',.1,1.5,.05)+field('camera','distance','Distância',3,90,.5)+field('camera','smooth','Suavização',0,1,.05)+'</div>'+
+ '<div class="ax17-grid">'+['X','Y','Z'].map((axis,i)=>'<label class="ax17-field">Deslocamento '+axis+'<input data-ax17-offset="'+i+'" type="number" min="-50" max="50" step=".5" value="'+(config()?.camera?.offset?.[i]||0)+'"></label>').join('')+'</div>'+
  checkbox('camera','obstacleFade','Ocultação de obstáculos (experimental)')+
  '<button data-ax17-action="applyCamera">🎥 Aplicar câmera no editor</button>');
  if(page==='controls')body=block('🎮 Entrada multiplataforma','Touch, teclado físico e gamepad pela API Gamepad; suporte depende do navegador.',
@@ -39,7 +40,7 @@ function render(){
  '<div class="ax17-grid">'+field('controls','sensitivity','Sensibilidade',.2,4,.1)+field('controls','deadzone','Zona morta',0,.6,.02)+'</div>'+
  '<button data-ax17-action="gamepad">🎮 Detectar controles</button><p id="ax17Pads"></p>'+
  '<label class="ax17-field">Perfil do HUD<select data-ax17-profile>'+
- [['default','Padrão'],['compact','Compacto'],['lefty','Canhoto']].map(x=>'<option value="'+x[0]+'" '+(config()?.controls?.profile===x[0]?'selected':'')+'>'+x[1]+'</option>').join('')+'</select></label>'+
+ [['default','Padrão'],['compact','Compacto'],['lefty','Canhoto'],['custom','Personalizado']].map(x=>'<option value="'+x[0]+'" '+(config()?.controls?.profile===x[0]?'selected':'')+'>'+x[1]+'</option>').join('')+'</select></label>'+
  '<div class="ax17-grid">'+[['stickLeft','Analógico: margem esquerda'],['stickBottom','Analógico: margem inferior'],['actionRight','Ataque: margem direita'],['actionBottom','Ataque: margem inferior']].map(x=>'<label class="ax17-field">'+x[1]+' (px)<input type="number" min="0" max="280" step="5" data-ax17-layout="'+x[0]+'" value="'+esc(config().controls.layout[x[0]])+'"></label>').join('')+'</div>'+
  '<p>Remapear teclas: escreva o nome da tecla (ex.: w, q, espaço, arrowup). Controles físicos usam o layout padrão do navegador.</p>'+
  '<div class="ax17-grid">'+[['forward','Frente'],['back','Trás'],['left','Esquerda'],['right','Direita'],['attack','Ação / atacar'],['jump','Pular']].map(x=>'<label class="ax17-field">'+x[1]+'<input type="text" maxlength="16" data-ax17-bind="'+x[0]+'" value="'+esc(config().controls.bindings[x[0]]===' '?'space':config().controls.bindings[x[0]])+'"></label>').join('')+'</div>');
@@ -138,6 +139,11 @@ function init(options){
  });
  document.addEventListener('change',e=>{
   const el=e.target,adv=config();
+  if(el.dataset?.ax17Offset!==undefined){
+   const i=Number(el.dataset.ax17Offset);if(!Number.isInteger(i)||i<0||i>2)return;
+   bridge.history?.();adv.camera.offset[i]=Math.max(-50,Math.min(50,Number(el.value)||0));
+   bridge.changed?.();render();return;
+  }
   if(el.dataset?.ax17Profile){
    const profile=el.value;
    const presets={default:{stickLeft:24,stickBottom:32,actionRight:25,actionBottom:54},
