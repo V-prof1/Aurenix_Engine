@@ -235,7 +235,7 @@ function startGame(scene){const canvas=document.getElementById('game');if(!canva
   camera3d.projection=cfg.mode==='isometric'?'orthographic':'perspective';
  }
  let score=0,health=Number(player?.health??100),maxHealth=Math.max(1,Number(player?.maxHealth??100)),checkpoint=null,messageTimeout=0,cameraShake=0;
- let particles=[],particleAccumulator=new Map(),componentStates=new Map(),hudBox=null,gameMessage=null,hudScore=null,hudHealth=null,shopPopup=null;
+ let particles=[],particleAccumulator=new Map(),componentStates=new Map(),hudBox=null,gameMessage=null,hudScore=null,hudHealth=null,hudStamina=null,hudCoins=null,shopPopup=null;
  const saveDB=runState?ADV.gameSaveDB():null;
  let lastGameSave=performance.now(),gamepadInput={x:0,y:0,jump:false,action:false},actionThisFrame=false;
  const isColliding=(a,b)=>a&&b&&(is3d?Math.abs((a.x||0)-(b.x||0))<((a.w||1)+(b.w||1))/2&&Math.abs((a.y||0)-(b.y||0))<((a.h||1)+(b.h||1))/2&&Math.abs((a.z||0)-(b.z||0))<((a.d||1)+(b.d||1))/2:intersect2d(a,b));
@@ -252,6 +252,8 @@ function startGame(scene){const canvas=document.getElementById('game');if(!canva
  function updateHud(){
   if(hudScore)hudScore.textContent='✦ '+score;
   if(hudHealth){const pct=Math.round(100*health/maxHealth);hudHealth.style.width=pct+'%';hudHealth.title=health+' / '+maxHealth;}
+  if(hudStamina&&runState)hudStamina.style.width=Math.round(100*(runState.run.stamina||0)/Math.max(1,advanced.combat.playerMaxStamina||100))+'%';
+  if(hudCoins&&advanced)hudCoins.textContent='🪙 '+Math.round(advanced.economy.coins||0)+' moedas';
  }
  function spawnParticles(x,y,count=8,color='#73e2ce',speed=80,life=1,size=5){
   const max=Math.max(10,Math.min(800,Number(settings.maxParticles)||220));
@@ -443,6 +445,12 @@ function startGame(scene){const canvas=document.getElementById('game');if(!canva
   hudBox.style.cssText='position:fixed;z-index:10;left:max(12px,env(safe-area-inset-left));top:max(12px,env(safe-area-inset-top));pointer-events:none;color:#f0ffff;font:800 13px system-ui;text-shadow:0 1px 4px #000;padding:8px;background:#0a1922bb;border-radius:10px;min-width:100px';
   if(settings.showScore!==false){hudScore=document.createElement('div');hudScore.textContent='✦ 0';hudBox.appendChild(hudScore);}
   if(settings.showHealth!==false){const bar=document.createElement('div');bar.style.cssText='height:10px;margin-top:7px;min-width:110px;border-radius:8px;background:#752c38;overflow:hidden';hudHealth=document.createElement('div');hudHealth.style.cssText='width:100%;height:100%;background:#62d8ad;transition:width .15s';bar.appendChild(hudHealth);hudBox.appendChild(bar);}
+  if(runState){
+   hudCoins=document.createElement('div');hudCoins.style.cssText='font-size:11px;margin-top:6px;color:#ffe5a0';hudBox.appendChild(hudCoins);
+   const staminaFrame=document.createElement('div');staminaFrame.style.cssText='height:7px;margin-top:6px;background:#263a57;border-radius:5px;overflow:hidden';
+   hudStamina=document.createElement('div');hudStamina.style.cssText='height:100%;background:#e6b76a;width:100%;transition:width .2s';
+   staminaFrame.appendChild(hudStamina);hudBox.appendChild(staminaFrame);
+  }
   document.body.appendChild(hudBox);
  }
  gameMessage=document.createElement('div');gameMessage.id='ax08Message';
@@ -476,6 +484,34 @@ function startGame(scene){const canvas=document.getElementById('game');if(!canva
   const btn=document.createElement('button');btn.id='ax17SaveGame';btn.textContent='💾';btn.title='Salvar progresso local';
   btn.style.cssText='position:fixed;z-index:30;right:12px;top:12px;border:1px solid #75f1d2;border-radius:10px;background:#173a42e8;color:#fff;padding:8px 11px;font:800 15px system-ui;min-height:40px;pointer-events:auto;touch-action:manipulation';
   btn.addEventListener('click',saveGame);document.body.appendChild(btn);
+  const backup=document.createElement('button');backup.id='ax17ExportSave';backup.textContent='⬇';backup.title='Exportar save em JSON';
+  backup.setAttribute('aria-label','Exportar save em JSON');
+  backup.style.cssText=btn.style.cssText+';right:59px';
+  backup.addEventListener('click',()=>{
+   const content=JSON.stringify({format:'aurenix-save-v1',projectId:scene.id||scene.name||'game',savedAt:new Date().toISOString(),state:snapshotGame()},null,2);
+   const blob=new Blob([content],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');
+   a.href=url;a.download='aurenix-save-'+String(scene.id||'game').replace(/[^a-zA-Z0-9-]/g,'')+'.json';
+   document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),5000);
+   showMessage('⬇ Backup do save gerado',1.8);
+  });document.body.appendChild(backup);
+  const restore=document.createElement('button');restore.id='ax17ImportSave';restore.textContent='⬆';restore.title='Importar save JSON';
+  restore.setAttribute('aria-label','Importar save JSON');restore.style.cssText=btn.style.cssText+';right:107px';
+  const picker=document.createElement('input');picker.type='file';picker.accept='.json,application/json';picker.style.display='none';
+  restore.addEventListener('click',()=>picker.click());
+  picker.addEventListener('change',async()=>{
+   try{
+    const file=picker.files?.[0];if(!file)return;
+    if(file.size>4*1024*1024)throw Error('Save maior que 4 MB');
+    const parsed=JSON.parse(await file.text());
+    if(parsed?.format!=='aurenix-save-v1'||parsed.projectId!==(scene.id||scene.name||'game')||!parsed.state?.run)throw Error('Save incompatível com este jogo');
+    if(!confirm('Substituir o progresso desta partida por este save?'))return;
+    if(!restoreGame(parsed.state))throw Error('Save inválido');
+    await saveDB.put(scene.id||scene.name||'game',snapshotGame());
+    showMessage('⬆ Progresso importado com sucesso',2);
+   }catch(e){showMessage('Erro ao importar: '+e.message,3);}
+   finally{picker.value='';}
+  });
+  document.body.appendChild(restore);document.body.appendChild(picker);
  }
  function gameShop(merchant){
   if(!runState)return;
@@ -604,7 +640,7 @@ function startGame(scene){const canvas=document.getElementById('game');if(!canva
    if(impact.dead){target.visible=false;runState.run.kills++;advanced.economy.coins+=4;showMessage('☠ Criatura derrotada! +4 moedas');}
   }
  }
- if(runState)runState.run.stamina=clamp(runState.run.stamina+(advanced.combat.staminaRegen||12)*dt,0,advanced.combat.playerMaxStamina||100);
+ if(runState){runState.run.stamina=clamp(runState.run.stamina+(advanced.combat.staminaRegen||12)*dt,0,advanced.combat.playerMaxStamina||100);if(now-fpsTime>350)updateHud();}
  lastJump=jumpNow;lastAction=actionNow;
  if(Math.hypot(dx,dy)>1){const mag=Math.hypot(dx,dy);dx/=mag;dy/=mag;}
  if(player&&!player.anchored){if(is3d){const yaw=camera3d.yaw;const vel=velocities.get(player.id)||{vy:0,ground:false};const vx=(Math.cos(yaw)*dx+Math.sin(yaw)*dy)*(player.speed||5)*dt,vz=(-Math.sin(yaw)*dx+Math.cos(yaw)*dy)*(player.speed||5)*dt;
@@ -622,7 +658,7 @@ function startGame(scene){const canvas=document.getElementById('game');if(!canva
  }
  fpsFrames++;if(debugOverlay&&now-fpsTime>=500){debugOverlay.textContent=Math.round(fpsFrames*1000/(now-fpsTime))+' FPS • '+objects.length+' objetos • '+api.sceneName;fpsFrames=0;fpsTime=now;}
  requestAnimationFrame(tick);}
- if(renderer?.error){showError(renderer.error);return;}requestAnimationFrame(tick);return ()=>{dead=true;if(saveDB)saveGame();shopPopup?.remove();document.getElementById('ax17SaveGame')?.remove();for(const snd of audioPlaying)snd.pause();audioPlaying.clear();clearTimeout(messageTimeout);hudBox?.remove();gameMessage?.remove();};
+ if(renderer?.error){showError(renderer.error);return;}requestAnimationFrame(tick);return ()=>{dead=true;if(saveDB)saveGame();shopPopup?.remove();document.getElementById('ax17SaveGame')?.remove();document.getElementById('ax17ExportSave')?.remove();document.getElementById('ax17ImportSave')?.remove();for(const snd of audioPlaying)snd.pause();audioPlaying.clear();clearTimeout(messageTimeout);hudBox?.remove();gameMessage?.remove();};
 }
 const Runtime={makeTemplate,makeObj,draw2D,Renderer3D,parseOBJ,createGeometry,gameHTML,startGame,imgMap,clamp,uid,expandedSceneObjects,characterAsset};global.AurenixRuntime=Runtime;if(global.__AURENIX_GAME__)document.addEventListener('DOMContentLoaded',()=>startGame(global.__AURENIX_GAME__));
 })(window);
