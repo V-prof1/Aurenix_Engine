@@ -18,6 +18,7 @@ jobs:
           node --check js/advanced17-core.js
           node --check js/advanced17-editor.js
           node --check js/import17.js
+          node --check js/gltf18-rig.js
           node --check js/tutorials-data.js
           node --check js/tutorials.js
           node --check js/character-tracks16.js
