@@ -431,6 +431,11 @@ function startGame(scene){const canvas=document.getElementById('game');if(!canva
   stickKnob.style.width=stickKnob.style.height=Math.round(diameter*.4)+'px';
   stickKnob.style.left=stickKnob.style.top=Math.round(diameter*.3)+'px';
   joystick.style.opacity=clamp(settings.controlOpacity||.8,.2,1);
+   if(advanced?.controls?.layout){
+    const l=advanced.controls.layout;
+    joystick.style.left=clamp(l.stickLeft,0,280)+'px';
+    joystick.style.bottom='calc('+clamp(l.stickBottom,0,280)+'px + env(safe-area-inset-bottom,0px))';
+   }
  }
  for(const btn of [jumpCtrl,actionCtrl])if(btn){
   const diameter=btn===actionCtrl?Math.round(clamp(settings.actionSize||78,45,150)*.64):clamp(settings.actionSize||78,45,150);
@@ -438,6 +443,12 @@ function startGame(scene){const canvas=document.getElementById('game');if(!canva
   btn.style.opacity=clamp(settings.controlOpacity||.8,.2,1);
  }
  if(actionCtrl)actionCtrl.style.right=Math.round(clamp(settings.actionSize||78,45,150)*1.5)+'px';
+  if(advanced?.controls?.layout){
+   const l=advanced.controls.layout,right=clamp(l.actionRight,0,280),bottom=clamp(l.actionBottom,0,280);
+   if(jumpCtrl){jumpCtrl.style.right=right+'px';jumpCtrl.style.bottom='calc('+bottom+'px + env(safe-area-inset-bottom,0px))';}
+   if(actionCtrl){actionCtrl.style.right=(right+Math.round(clamp(settings.actionSize||78,45,150)*1.15))+'px';
+    actionCtrl.style.bottom='calc('+Math.max(0,bottom-23)+'px + env(safe-area-inset-bottom,0px))';}
+  }
  camera2d.zoom=clamp(settings.cameraZoom||1,.35,3);
  if(settings.pixelPerfect)canvas.style.imageRendering='pixelated';
  if(settings.hud!==false){
@@ -623,10 +634,10 @@ function startGame(scene){const canvas=document.getElementById('game');if(!canva
    if(is3d&&advanced.camera.mode!=='isometric'){camera3d.yaw-=axis(pad.axes[2])*.045;camera3d.pitch=clamp(camera3d.pitch+axis(pad.axes[3])*.03,.1,1.4);}
   }
  }
- const keyboardEnabled=advanced?.controls?.keyboard!==false;
- const kx=keyboardEnabled?((keys.has('d')||keys.has('arrowright')?1:0)-(keys.has('a')||keys.has('arrowleft')?1:0)):0;
- const ky=keyboardEnabled?((keys.has('s')||keys.has('arrowdown')?1:0)-(keys.has('w')||keys.has('arrowup')?1:0)):0;let dx=clamp(kx+controls.x+gamepadInput.x,-1,1),dy=clamp(ky+controls.y+gamepadInput.y,-1,1);
- const jumpNow=!!(controls.jump||gamepadInput.jump||keys.has(' ')||(!is3d&&keys.has('w'))),actionNow=!!(controls.action||gamepadInput.action||keys.has('f'));
+ const keyboardEnabled=advanced?.controls?.keyboard!==false,binding=advanced?.controls?.bindings||{forward:'w',back:'s',left:'a',right:'d',attack:'f',jump:' '};
+ const kx=keyboardEnabled?((keys.has(binding.right)||keys.has('arrowright')?1:0)-(keys.has(binding.left)||keys.has('arrowleft')?1:0)):0;
+ const ky=keyboardEnabled?((keys.has(binding.back)||keys.has('arrowdown')?1:0)-(keys.has(binding.forward)||keys.has('arrowup')?1:0)):0;let dx=clamp(kx+controls.x+gamepadInput.x,-1,1),dy=clamp(ky+controls.y+gamepadInput.y,-1,1);
+ const jumpNow=!!(controls.jump||gamepadInput.jump||(keyboardEnabled&&keys.has(binding.jump))||(!is3d&&keyboardEnabled&&keys.has(binding.forward))),actionNow=!!(controls.action||gamepadInput.action||(keyboardEnabled&&keys.has(binding.attack)));
  if(jumpNow&&!lastJump&&audioConfig.jumpAssetId)playAsset(audioConfig.jumpAssetId);
  actionThisFrame=actionNow&&!lastAction;
  if(actionNow&&!lastAction&&audioConfig.actionAssetId)playAsset(audioConfig.actionAssetId);
