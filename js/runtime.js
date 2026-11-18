@@ -395,6 +395,18 @@ function startGame(scene){const canvas=document.getElementById('game');if(!canva
   return pose;
  }
  function animateObject(o,dt){
+  if(o.type==='model3d'){
+   const asset=(scene.assets||[]).find(a=>a.id===o.assetId),rig=asset?.gltfRig;
+   if(rig?.clips?.length){
+    if(!rig.clips.some(c=>c.name===o.gltfClip))o.gltfClip=rig.clips[0].name;
+    const c=rig.clips.find(c=>c.name===o.gltfClip),duration=Math.max(.001,c.duration||1);
+    if(o.gltfPlaying!==false){
+     const next=(Number(o.gltfTime)||0)+dt*clamp(o.gltfSpeed??1,.1,4);
+     o.gltfTime=o.gltfLoop===false?Math.min(duration,next):next%duration;
+     if(o.gltfLoop===false&&next>=duration)o.gltfPlaying=false;
+    }
+   }
+  }
   const clips=o.animations||[],clip=clips.find(c=>c.id===o.activeAnimation);
   if(o.type==='character3d'){
    const asset=(scene.assets||[]).find(a=>a.id===o.assetId),model=characterAsset(asset);
@@ -632,8 +644,8 @@ function startGame(scene){const canvas=document.getElementById('game');if(!canva
  loadScene:name=>requestScene(name),nextScene:()=>nextScene(),
  getTile:(x,y)=>scene.tilemap?.cells?.[Math.floor(x)+','+Math.floor(y)]||null,
  setTile:(x,y,color='#5aa78b',solid=false)=>{scene.tilemap||={size:32,cells:{}};scene.tilemap.cells[Math.floor(x)+','+Math.floor(y)]={color,solid:!!solid};},
- playAnimation:(o,name)=>{const target=typeof o==='string'?objects.find(x=>x.id===o||x.name===o):o;if(!target)return false;if(target.type==='character3d'){const doc=characterAsset((scene.assets||[]).find(a=>a.id===target.assetId));const rig=doc?.animations.find(c=>c.name===name||c.id===name);if(!rig)return false;if(target.rigClip===rig.id&&target.rigPlaying!==false)return true;target.rigClip=rig.id;target.rigTime=0;target.rigPlaying=true;return true;}const clip=(target.animations||[]).find(c=>c.id===name||c.name===name);if(!clip)return false;const current=animClocks.get(target.id);if(current?.playing&&current.clipId===clip.id)return true;target.activeAnimation=clip.id;animClocks.set(target.id,{clipId:clip.id,time:0,playing:true});return true;},
- stopAnimation:o=>{const target=typeof o==='string'?objects.find(x=>x.id===o||x.name===o):o;if(!target)return false;if(target.type==='character3d'){target.rigPlaying=false;return true;}const st=animClocks.get(target.id);if(st)st.playing=false;return true;},
+ playAnimation:(o,name)=>{const target=typeof o==='string'?objects.find(x=>x.id===o||x.name===o):o;if(!target)return false;if(target.type==='model3d'){const asset=(scene.assets||[]).find(a=>a.id===target.assetId);if(asset?.gltfRig?.clips?.some(c=>c.name===name)){target.gltfClip=name;target.gltfTime=0;target.gltfPlaying=true;return true;}}if(target.type==='character3d'){const doc=characterAsset((scene.assets||[]).find(a=>a.id===target.assetId));const rig=doc?.animations.find(c=>c.name===name||c.id===name);if(!rig)return false;if(target.rigClip===rig.id&&target.rigPlaying!==false)return true;target.rigClip=rig.id;target.rigTime=0;target.rigPlaying=true;return true;}const clip=(target.animations||[]).find(c=>c.id===name||c.name===name);if(!clip)return false;const current=animClocks.get(target.id);if(current?.playing&&current.clipId===clip.id)return true;target.activeAnimation=clip.id;animClocks.set(target.id,{clipId:clip.id,time:0,playing:true});return true;},
+ stopAnimation:o=>{const target=typeof o==='string'?objects.find(x=>x.id===o||x.name===o):o;if(!target)return false;if(target.type==='character3d'){target.rigPlaying=false;return true;}if(target.type==='model3d'){target.gltfPlaying=false;return true;}const st=animClocks.get(target.id);if(st)st.playing=false;return true;},
  playSound:(name,options={})=>playAsset(name,options),stopMusic:()=>{bgMusic?.pause();bgMusic=null;},sound:(freq=440,duration=.1)=>{try{const ac=api.audio||(api.audio=new (window.AudioContext||window.webkitAudioContext)());const osc=ac.createOscillator(),gain=ac.createGain();osc.frequency.value=Number(freq)||440;osc.connect(gain);gain.connect(ac.destination);gain.gain.setValueAtTime(.06,ac.currentTime);gain.gain.exponentialRampToValueAtTime(.001,ac.currentTime+Math.max(.03,duration));osc.start();osc.stop(ac.currentTime+Math.max(.03,duration));}catch(e){}}};
  if(runState){
   Object.assign(api,{
