@@ -182,16 +182,32 @@ class Renderer3D{
  for(const o of expandedSceneObjects(scene,camera).slice().sort((a,b)=>(a.y||0)-(b.y||0))){if(!o.visible||!frustumVisible(vp,o))continue;
   if(scene.advanced?.graphics&&camera?.target&&Math.hypot((o.x||0)-camera.target[0],(o.z||0)-camera.target[2])>Math.max(26,(camera.distance||16)*4*Number(scene.advanced.graphics.lod||1)))continue;let mesh=this.meshes[o.type]||this.meshes.cube;
  if(o.type==='model3d'&&o.assetId){
-  if(!this.customMeshes.has(o.assetId)){
-   const asset=(scene.assets||[]).find(a=>a.id===o.assetId),geo=objFromAsset(asset);
-   if(geo){
-    const vb=gl.createBuffer(),nb=gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER,vb);gl.bufferData(gl.ARRAY_BUFFER,geo.p,gl.STATIC_DRAW);
-    gl.bindBuffer(gl.ARRAY_BUFFER,nb);gl.bufferData(gl.ARRAY_BUFFER,geo.n,gl.STATIC_DRAW);
-    this.customMeshes.set(o.assetId,{vb,nb,count:geo.p.length/3});
-   }else this.customMeshes.set(o.assetId,null);
+  const asset=(scene.assets||[]).find(a=>a.id===o.assetId),rig=asset?.gltfRig,Rig=global.AurenixGLTFRig18;
+  if(rig&&Rig){
+   const key='rig:'+o.id+':'+o.assetId,clock=Math.round((Number(o.gltfTime)||0)*24)/24;
+   let dynamic=this.customMeshes.get(key);
+   if(!dynamic){dynamic={vb:gl.createBuffer(),nb:gl.createBuffer(),count:0,clock:null,clip:null};this.customMeshes.set(key,dynamic);}
+   if(dynamic.clock!==clock||dynamic.clip!==o.gltfClip){
+    try{
+     const geometry=Rig.sample(rig,o.gltfClip||'',clock);
+     gl.bindBuffer(gl.ARRAY_BUFFER,dynamic.vb);gl.bufferData(gl.ARRAY_BUFFER,geometry.p,gl.DYNAMIC_DRAW);
+     gl.bindBuffer(gl.ARRAY_BUFFER,dynamic.nb);gl.bufferData(gl.ARRAY_BUFFER,geometry.n,gl.DYNAMIC_DRAW);
+     dynamic.count=geometry.p.length/3;dynamic.clock=clock;dynamic.clip=o.gltfClip;
+    }catch(e){console.warn('GLTF animado:',e.message);dynamic.count=0;}
+   }
+   if(dynamic.count)mesh=dynamic;
+  }else{
+   if(!this.customMeshes.has(o.assetId)){
+    const geo=objFromAsset(asset);
+    if(geo){
+     const vb=gl.createBuffer(),nb=gl.createBuffer();
+     gl.bindBuffer(gl.ARRAY_BUFFER,vb);gl.bufferData(gl.ARRAY_BUFFER,geo.p,gl.STATIC_DRAW);
+     gl.bindBuffer(gl.ARRAY_BUFFER,nb);gl.bufferData(gl.ARRAY_BUFFER,geo.n,gl.STATIC_DRAW);
+     this.customMeshes.set(o.assetId,{vb,nb,count:geo.p.length/3});
+    }else this.customMeshes.set(o.assetId,null);
+   }
+   mesh=this.customMeshes.get(o.assetId)||this.meshes.cube;
   }
-  mesh=this.customMeshes.get(o.assetId)||this.meshes.cube;
  }
  let model=o._modelMatrix?new Float32Array(o._modelMatrix):matMove(o.x||0,o.y||0,o.z||0);if(!o._modelMatrix){model=matMul(model,matRotY((o.ry||0)*Math.PI/180));model=matMul(model,matRotX((o.rx||0)*Math.PI/180));model=matMul(model,matRotZ((o.rz||o.rotation||0)*Math.PI/180));model=matMul(model,matScale(o.w||1,o.h||1,o.d||1));}draw(mesh,model,rgbaNorm(o.color));if(o.id===opts.selectedId||o._parentId===opts.selectedId||(opts.hitboxes&&o.solid)){const border=matMul(model,matScale(1.055,1.055,1.055));gl.enable(gl.BLEND);gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);gl.depthFunc(gl.ALWAYS);draw(mesh,border,[.24,1,.88],1,gl.LINE_LOOP);gl.depthFunc(gl.LEQUAL);gl.disable(gl.BLEND);}}
  this.lastCamera=camera;}
@@ -207,10 +223,18 @@ class Renderer3D{
  const faces=[];
  for(const o of expandedSceneObjects(scene,camera)){if(!o.visible||!frustumVisible(vp,o))continue;let mesh=this.cpuMeshes[o.type]||this.cpuMeshes.cube;
  if(o.type==='model3d'&&o.assetId){
-  if(!this.customMeshes.has(o.assetId)){
-   this.customMeshes.set(o.assetId,objFromAsset((scene.assets||[]).find(a=>a.id===o.assetId)));
+  const asset=(scene.assets||[]).find(a=>a.id===o.assetId),rig=asset?.gltfRig,Rig=global.AurenixGLTFRig18;
+  if(rig&&Rig){
+   const key='cpu-rig:'+o.id+':'+o.assetId,clock=Math.round((Number(o.gltfTime)||0)*24)/24,prior=this.customMeshes.get(key);
+   if(!prior||prior.clock!==clock||prior.clip!==o.gltfClip){
+    try{this.customMeshes.set(key,{geo:Rig.sample(rig,o.gltfClip||'',clock),clock,clip:o.gltfClip});}
+    catch(e){console.warn('GLTF CPU:',e.message);}
+   }
+   mesh=this.customMeshes.get(key)?.geo||this.cpuMeshes.cube;
+  }else{
+   if(!this.customMeshes.has(o.assetId))this.customMeshes.set(o.assetId,objFromAsset(asset));
+   mesh=this.customMeshes.get(o.assetId)||this.cpuMeshes.cube;
   }
-  mesh=this.customMeshes.get(o.assetId)||this.cpuMeshes.cube;
  }
  let model=o._modelMatrix?new Float32Array(o._modelMatrix):matMove(o.x||0,o.y||0,o.z||0);if(!o._modelMatrix){model=matMul(model,matRotY((o.ry||0)*Math.PI/180));model=matMul(model,matRotX((o.rx||0)*Math.PI/180));model=matMul(model,matRotZ((o.rz||o.rotation||0)*Math.PI/180));model=matMul(model,matScale(o.w||1,o.h||1,o.d||1));}
  const base=rgbaNorm(o.color);
