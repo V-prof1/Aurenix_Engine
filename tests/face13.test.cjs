@@ -78,7 +78,7 @@ test('Aplicativo e exportação carregam plugin de rosto antes do motor 3D',()=>
  assert.ok(html.includes('js/character-face13.js'));
  assert.ok(modelHTML.includes('js/character-face13.js'));
  assert.ok(editor.includes("fetch('js/character-face13.js')"));
- assert.ok(editor.includes("characterSrc+'\\n'+faceSrc+'\\n'+motionSrc+'\\n'+tracksSrc+'\\n'+symmetrySrc+'\\n'+advancedSrc+'\\n'+runtimeSrc"));
+ assert.ok(editor.includes("characterSrc+'\\n'+faceSrc+'\\n'+motionSrc+'\\n'+tracksSrc+'\\n'+symmetrySrc+'\\n'+advancedSrc+'\\n'+rigSrc+'\\n'+runtimeSrc"));
  assert.ok(cache.includes('character-face13.js'));
  const config=JSON.parse(read('capacitor.config.json'));
  assert.equal(config.appId,'com.aurenix.engine.alpha014');
