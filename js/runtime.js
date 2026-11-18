@@ -235,7 +235,9 @@ function startGame(scene){const canvas=document.getElementById('game');if(!canva
   camera3d.projection=cfg.mode==='isometric'?'orthographic':'perspective';
  }
  let score=0,health=Number(player?.health??100),maxHealth=Math.max(1,Number(player?.maxHealth??100)),checkpoint=null,messageTimeout=0,cameraShake=0;
- let particles=[],particleAccumulator=new Map(),componentStates=new Map(),hudBox=null,gameMessage=null,hudScore=null,hudHealth=null;
+ let particles=[],particleAccumulator=new Map(),componentStates=new Map(),hudBox=null,gameMessage=null,hudScore=null,hudHealth=null,shopPopup=null;
+ const saveDB=runState?ADV.gameSaveDB():null;
+ let lastGameSave=performance.now(),gamepadInput={x:0,y:0,jump:false,action:false};
  const isColliding=(a,b)=>a&&b&&(is3d?Math.abs((a.x||0)-(b.x||0))<((a.w||1)+(b.w||1))/2&&Math.abs((a.y||0)-(b.y||0))<((a.h||1)+(b.h||1))/2&&Math.abs((a.z||0)-(b.z||0))<((a.d||1)+(b.d||1))/2:intersect2d(a,b));
  function checkpointAt(){if(player)checkpoint={sceneId:scene.activeSceneId,x:player.x||0,y:player.y||0,z:player.z||0};}
  function setHealth(value){health=clamp(value,0,maxHealth);if(health<=0&&player){health=maxHealth;const fallback=checkpoint?.sceneId===scene.activeSceneId?checkpoint:null;player.x=fallback?.x||0;player.y=fallback?.y??(is3d?3:0);player.z=fallback?.z||0;velocities.delete(player.id);showMessage('Você renasceu!',2);}updateHud();return health;}
@@ -423,6 +425,54 @@ function startGame(scene){const canvas=document.getElementById('game');if(!canva
  gameMessage.style.cssText='position:fixed;z-index:20;top:15%;left:50%;transform:translateX(-50%);max-width:80vw;border:1px solid #9af4dd;padding:12px 17px;border-radius:14px;background:#122c41e9;color:white;font:800 14px system-ui;text-align:center;pointer-events:none;display:none';
  document.body.appendChild(gameMessage);
  if(settings.showGameTips&&player){showMessage('Use o analógico ou WASD para mover',2);}
+ function snapshotGame(){
+  if(!runState)return null;
+  runState.run.health=health;runState.run.coins=advanced.economy.coins;
+  runState.run.location=player?{x:player.x,y:player.y,z:player.z}:null;
+  runState.run.time=advanced.world.time;return runState;
+ }
+ async function saveGame(){
+  if(!saveDB)return false;
+  try{await saveDB.put(scene.id||scene.name||'game',snapshotGame());showMessage('💾 Save local concluído',1.5);return true;}
+  catch(e){showMessage('Erro ao salvar: '+e.message,2);return false;}
+ }
+ function restoreGame(data){
+  if(!runState||!data?.run)return false;
+  runState.permanent=data.permanent||runState.permanent;
+  runState.run.inventory=data.run.inventory||runState.run.inventory;
+  advanced.economy.coins=Math.max(0,Number(data.run.coins)||0);
+  advanced.world.time=clamp(data.run.time??advanced.world.time,0,1);
+  runState.run.day=data.run.day||1;runState.run.kills=data.run.kills||0;
+  health=clamp(data.run.health??health,1,maxHealth);
+  if(player&&data.run.location){player.x=Number(data.run.location.x)||0;player.y=Number(data.run.location.y)||0;player.z=Number(data.run.location.z)||0;}
+  updateHud();return true;
+ }
+ if(saveDB){
+  saveDB.get(scene.id||scene.name||'game').then(saved=>{if(saved&&restoreGame(saved))showMessage('💾 Progresso recuperado',2);}).catch(console.warn);
+  const btn=document.createElement('button');btn.id='ax17SaveGame';btn.textContent='💾';btn.title='Salvar progresso local';
+  btn.style.cssText='position:fixed;z-index:30;right:12px;top:12px;border:1px solid #75f1d2;border-radius:10px;background:#173a42e8;color:#fff;padding:8px 11px;font:800 15px system-ui;min-height:40px;pointer-events:auto;touch-action:manipulation';
+  btn.addEventListener('click',saveGame);document.body.appendChild(btn);
+ }
+ function gameShop(merchant){
+  if(!runState)return;
+  if(shopPopup){shopPopup.remove();shopPopup=null;return;}
+  const component=(merchant.components||[]).find(c=>c.type==='merchant'),stock=ADV.restock(advanced.economy,runState.run.day,component?.slots||6);
+  shopPopup=document.createElement('div');
+  shopPopup.style.cssText='position:fixed;z-index:80;left:8%;right:8%;top:12%;max-height:74dvh;overflow-y:auto;background:#10283bf5;border:2px solid #62dcb9;border-radius:16px;padding:14px;color:#eefaff;pointer-events:auto;font:13px system-ui;touch-action:pan-y';
+  const title=document.createElement('h3');title.textContent='🛒 Mercador — '+advanced.economy.coins+' moedas';shopPopup.appendChild(title);
+  const exit=document.createElement('button');exit.textContent='✕ Fechar';exit.style.cssText='min-height:40px;padding:8px;color:white;background:#514854;border-radius:7px';
+  exit.onclick=()=>{shopPopup.remove();shopPopup=null;};shopPopup.appendChild(exit);
+  for(const item of stock){
+   const button=document.createElement('button');
+   button.style.cssText='display:block;width:100%;min-height:50px;margin-top:7px;border-radius:8px;border:1px solid #537b8b;background:#18364d;color:white;text-align:left;padding:9px';
+   button.textContent=item.name+' — '+item.price+' moedas';
+   button.onclick=()=>{const result=ADV.buy(runState.run.inventory,advanced.economy,item,runState.permanent.unlocks);
+    showMessage(result.ok?'✓ Comprado: '+item.name:result.reason);
+    title.textContent='🛒 Mercador — '+advanced.economy.coins+' moedas';if(result.ok)button.disabled=true;};
+   shopPopup.appendChild(button);
+  }
+  document.body.appendChild(shopPopup);
+ }
  checkpointAt();
  const audioConfig=scene.audio||{},audioAssets=(scene.assets||[]).filter(a=>String(a.type||'').startsWith('audio/')),audioPlaying=new Set(),soundCooldown=new Map();
  let bgMusic=null,lastJump=false,lastAction=false;
