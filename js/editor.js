@@ -86,8 +86,8 @@ function download(blob,name){if(window.AurenixFiles){window.AurenixFiles.save(bl
 const slug=(s)=>String(s).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9-]/g,'-').replace(/--+/g,'-').replace(/^-|-$/g,'').slice(0,35)||'meu-jogo';
 function exportProject(){prepareProject();download(new Blob([JSON.stringify(project,null,2)],{type:'application/json'}),`${slug(project.name)}.aurenix.json`);toast('Backup do projeto exportado');}
 function runtimeBase(){return new URL('./',location.href).href;}
-function gameFiles(){prepareProject();if(project.mode==='html5'){const map=project.external?.files||{};if(!Object.keys(map).length)throw Error('Sem arquivos HTML5 importados');return Object.entries(map).map(([name,data])=>({name:name.replace(/^\/+/,''),data:dataURLBytes(data)}));}const index=R.gameHTML(project);return [{name:'index.html',data:index},{name:'js/runtime.js',data:characterSrc+'\n'+faceSrc+'\n'+motionSrc+'\n'+tracksSrc+'\n'+symmetrySrc+'\n'+advancedSrc+'\n'+runtimeSrc}];}
-let runtimeSrc='',characterSrc='',faceSrc='',motionSrc='',tracksSrc='',symmetrySrc='',advancedSrc='';
+function gameFiles(){prepareProject();if(project.mode==='html5'){const map=project.external?.files||{};if(!Object.keys(map).length)throw Error('Sem arquivos HTML5 importados');return Object.entries(map).map(([name,data])=>({name:name.replace(/^\/+/,''),data:dataURLBytes(data)}));}const index=R.gameHTML(project);return [{name:'index.html',data:index},{name:'js/runtime.js',data:characterSrc+'\n'+faceSrc+'\n'+motionSrc+'\n'+tracksSrc+'\n'+symmetrySrc+'\n'+advancedSrc+'\n'+rigSrc+'\n'+runtimeSrc}];}
+let runtimeSrc='',characterSrc='',faceSrc='',motionSrc='',tracksSrc='',symmetrySrc='',advancedSrc='',rigSrc='';
 async function loadRuntimeSource(){
  try{
   const source=await fetch('js/character3d.js');if(source.ok)characterSrc=await source.text();
@@ -96,6 +96,7 @@ async function loadRuntimeSource(){
    const tracks=await fetch('js/character-tracks16.js');if(tracks.ok)tracksSrc=await tracks.text();
    const symmetry=await fetch('js/character-symmetry16.js');if(symmetry.ok)symmetrySrc=await symmetry.text();
    const advanced=await fetch('js/advanced17-core.js');if(advanced.ok)advancedSrc=await advanced.text();
+   const rig=await fetch('js/gltf18-rig.js');if(rig.ok)rigSrc=await rig.text();
  }catch(e){console.warn('Não foi possível carregar o sistema de personagem 3D e expressões',e);}if(window.__AURENIX_RUNTIME_SOURCE__){runtimeSrc=window.__AURENIX_RUNTIME_SOURCE__;return;}try{const res=await fetch('js/runtime.js');if(!res.ok)throw Error('HTTP '+res.status);runtimeSrc=await res.text();}catch(e){console.warn('Falha ao carregar fonte de runtime por fetch:',e);runtimeSrc='';}}
 function requireRuntime(){if(project.mode!=='html5'&&!runtimeSrc)throw Error('Para exportar, abra o editor por um servidor HTTP/HTTPS (GitHub Pages ou localhost), não diretamente por file://.');}
 function exportGame(){try{requireRuntime();download(Z.pack(gameFiles()),`${slug(project.name)}-html5.zip`);toast('Jogo HTML5 exportado! Extraia o ZIP para jogar.');}catch(e){toast(e.message);}}
@@ -146,7 +147,7 @@ jobs:
           if-no-files-found: error
 `;
 function exportAPK(){try{requireRuntime();const name=project.name||'Meu jogo',appId='com.aurenix.'+slug(name).replace(/-/g,'').slice(0,35);const files=gameFiles().map(f=>({...f,name:'www/'+f.name}));files.push({name:'package.json',data:templateCapPackage(name,appId)},{name:'capacitor.config.json',data:capConfig(name,appId)},{name:'.github/workflows/gerar-apk.yml',data:gameWorkflow},{name:'README-APK.txt',data:'COMO GERAR O APK GRATUITAMENTE\n\n1. Crie um repositório GitHub e envie TODOS os arquivos deste ZIP, inclusive a pasta .github.\n2. No GitHub, abra Actions > Gerar APK do jogo > Run workflow.\n3. Ao final, baixe o artifact jogo-aurenix-apk e extraia app-debug.apk.\n4. Instale o APK no Android, autorizando instalação de aplicativos externos se necessário.\n\nEste é um APK de TESTE (debug), não está assinado com sua chave de distribuição para a Play Store.\nVersões de Capacitor são open source; o build baixa dependências gratuitas.\nPara publicação, gere um APK/AAB release assinado e mantenha sua chave privada fora do GitHub.\n\nOBS: alguns jogos HTML5 importados dependem de HTTPS, servidor ou cabeçalhos especiais; nesse caso exigem adaptação.\n'});download(Z.pack(files),`${slug(name)}-template-apk.zip`);toast('Template de APK com GitHub Actions exportado');}catch(e){toast(e.message);}}
-function play(){prepareProject();if(project.mode==='html5'&&!project.external){toast('Não há projeto HTML5');return;}let html=project.mode==='html5'?bundleExternal():R.gameHTML(JSON.parse(JSON.stringify(project)),{inlineRuntime:characterSrc+'\n'+faceSrc+'\n'+motionSrc+'\n'+tracksSrc+'\n'+symmetrySrc+'\n'+advancedSrc+'\n'+runtimeSrc,baseHref:runtimeSrc?'':runtimeBase()});const axExit=`<button onclick="parent.postMessage({type:'AURENIX_EXIT_PLAY'},'*')" style="position:fixed;top:calc(8px + env(safe-area-inset-top,0px));right:calc(8px + env(safe-area-inset-right,0px));z-index:2147483647;border:2px solid #89d6d0;border-radius:12px;background:#112d3fe8;color:white;padding:10px 14px;font:700 14px system-ui;min-height:46px;touch-action:manipulation">✕ Sair do teste</button>`;html=html.includes('</body>')?html.replace('</body>',axExit+'</body>'):html+axExit;$('playTitle').textContent=project.name+' • '+project.mode.toUpperCase();$('playFrame').srcdoc=html;$('playOverlay').classList.remove('hidden');closePanels();}
+function play(){prepareProject();if(project.mode==='html5'&&!project.external){toast('Não há projeto HTML5');return;}let html=project.mode==='html5'?bundleExternal():R.gameHTML(JSON.parse(JSON.stringify(project)),{inlineRuntime:characterSrc+'\n'+faceSrc+'\n'+motionSrc+'\n'+tracksSrc+'\n'+symmetrySrc+'\n'+advancedSrc+'\n'+rigSrc+'\n'+runtimeSrc,baseHref:runtimeSrc?'':runtimeBase()});const axExit=`<button onclick="parent.postMessage({type:'AURENIX_EXIT_PLAY'},'*')" style="position:fixed;top:calc(8px + env(safe-area-inset-top,0px));right:calc(8px + env(safe-area-inset-right,0px));z-index:2147483647;border:2px solid #89d6d0;border-radius:12px;background:#112d3fe8;color:white;padding:10px 14px;font:700 14px system-ui;min-height:46px;touch-action:manipulation">✕ Sair do teste</button>`;html=html.includes('</body>')?html.replace('</body>',axExit+'</body>'):html+axExit;$('playTitle').textContent=project.name+' • '+project.mode.toUpperCase();$('playFrame').srcdoc=html;$('playOverlay').classList.remove('hidden');closePanels();}
 function stop(){$('playFrame').srcdoc='<!doctype html><title>Parado</title>';$('playOverlay').classList.add('hidden');}
 async function importFiles(files){
  const arr=Array.from(files||[]),Importer=window.AurenixImport17;
@@ -159,11 +160,12 @@ async function importFiles(files){
   if(/\.aurenix3d$/i.test(name)){await window.AurenixModelBridge.importFile(f);return;}
   if(isGLTF){
    const result=await Importer.parseFile(f,packageFiles),obj=result.geometry.obj;
+   const rig=window.AurenixGLTFRig18?.build(result.source,result.buffers,Importer)||null;
    if(obj.length>2900000)throw Error('Malha excedeu o limite do renderizador OBJ. Reduza a quantidade de triângulos.');
    const objName=name.replace(/\.(glb|gltf)$/i,'')+' (GLTF).obj';
    addAsset({name:objName,type:'model/obj',data:Z.asDataURL(new TextEncoder().encode(obj),'model/obj'),
     gltf:{source:name,triangles:result.geometry.triangles,nodes:result.geometry.nodes,joints:result.skins.reduce((s,x)=>s+x.joints.length,0),
-     clips:result.clips.map(clip=>({name:clip.name,duration:clip.duration,channels:clip.channels.length})),textures:result.textures}});
+     clips:result.clips.map(clip=>({name:clip.name,duration:clip.duration,channels:clip.channels.length})),textures:result.textures,animated:!!rig},gltfRig:rig});
    if(f.size<=6*1024*1024)addAsset({name:name,type:Z.mime(name),data:await readAsDataURL(f)});
    return;
   }
@@ -185,7 +187,7 @@ async function importFiles(files){
  }
  images=R.imgMap(project);renderAssets();renderSummary();markDirty();
  window.AurenixAudio?.render();window.AurenixAdvancedEditor17?.render?.();
- toast(imported+' recurso(s) importado(s) e salvo(s) no projeto. GLTF usa malha OBJ convertida.');
+ toast(imported+' recurso(s) importado(s). GLTF com rig compatível permite animação de ossos.');
 }
 function readAsDataURL(file){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=()=>rej(r.error);r.readAsDataURL(file);});}
 function normalizeEntry(name){return name.replaceAll('\\','/').replace(/^\.\//,'').replace(/^\/+/, '');}
