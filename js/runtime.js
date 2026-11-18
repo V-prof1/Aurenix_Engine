@@ -370,7 +370,21 @@ function startGame(scene){const canvas=document.getElementById('game');if(!canva
     const rigClip=model.animations.find(c=>c.id===o.rigClip||c.name===o.rigClip)||model.animations[0];
     if(rigClip){
      if(o.rigPlaying!==false){
-      o.rigClip=rigClip.id;o.rigTime=(o.rigTime||0)+dt*(rigClip.speed||1);
+      const previous=Number(o.rigTime)||0;
+      o.rigClip=rigClip.id;o.rigTime=previous+dt*(rigClip.speed||1);
+      if(Array.isArray(rigClip.events)&&rigClip.events.length){
+       const duration=Math.max(.1,rigClip.duration||1),before=rigClip.loop?previous%duration:Math.min(previous,duration);
+       const nowTime=rigClip.loop?o.rigTime%duration:Math.min(o.rigTime,duration);
+       const loopCrossed=rigClip.loop&&Math.floor(o.rigTime/duration)>Math.floor(previous/duration);
+       for(const ev of rigClip.events){
+        const at=Number(ev.time)||0;
+        if(loopCrossed?(at>=before||at<=nowTime):(at>before&&at<=nowTime)){
+         o.lastAnimationEvent=String(ev.name||'');o.animationEventCount=(o.animationEventCount||0)+1;
+         o.animationEventTime=at;o.animationEventClip=rigClip.name;
+         if(o.lastAnimationEvent.startsWith('sound:'))playAsset(o.lastAnimationEvent.slice(6));
+        }
+       }
+      }
       if(!rigClip.loop&&o.rigTime>=rigClip.duration){o.rigTime=rigClip.duration;o.rigPlaying=false;}
      }
     }
