@@ -63,10 +63,10 @@ function valueAt(channel,time){
  if(channel.path==='rotation')return qlerp(values[low],values[high],weight);
  return values[low].map((v,i)=>v+(values[high][i]-v)*weight);
 }
-function animationPose(rig,clipId,time){
+function animationPose(rig,clipId,time,loop=true){
  const clip=rig.clips.find(c=>c.name===clipId)||rig.clips[0];
  if(!clip)return {};
- const t=clip.duration?((Number(time)||0)%clip.duration+clip.duration)%clip.duration:0;
+ const t=clip.duration?(loop?((Number(time)||0)%clip.duration+clip.duration)%clip.duration:clamp(time,0,clip.duration)):0;
  const nodeValues={};
  for(const channel of clip.channels){
   const value=valueAt(channel,t);
@@ -74,9 +74,9 @@ function animationPose(rig,clipId,time){
  }
  return nodeValues;
 }
-function sample(rig,clipName='',time=0){
+function sample(rig,clipName='',time=0,loop=true){
  if(!rig?.vertices?.length||!rig.triangles?.length)throw Error('Rig importado inválido');
- const pose=animationPose(rig,clipName,time),world=globals(rig.nodes,pose),nodeWorld=world[rig.meshNode];
+ const pose=animationPose(rig,clipName,time,loop),world=globals(rig.nodes,pose),nodeWorld=world[rig.meshNode];
  const invertNode=inverse(nodeWorld),skinMatrices=rig.joints.map((j,i)=>mul(mul(invertNode,world[j]),rig.inverseBind[i]));
  const transformed=new Array(rig.vertices.length);
  for(let i=0;i<rig.vertices.length;i++){
