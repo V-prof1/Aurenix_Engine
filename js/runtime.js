@@ -189,7 +189,7 @@ class Renderer3D{
    if(!dynamic){dynamic={vb:gl.createBuffer(),nb:gl.createBuffer(),count:0,clock:null,clip:null};this.customMeshes.set(key,dynamic);}
    if(dynamic.clock!==clock||dynamic.clip!==o.gltfClip){
     try{
-     const geometry=Rig.sample(rig,o.gltfClip||'',clock);
+     const geometry=Rig.sample(rig,o.gltfClip||'',clock,o.gltfLoop!==false);
      gl.bindBuffer(gl.ARRAY_BUFFER,dynamic.vb);gl.bufferData(gl.ARRAY_BUFFER,geometry.p,gl.DYNAMIC_DRAW);
      gl.bindBuffer(gl.ARRAY_BUFFER,dynamic.nb);gl.bufferData(gl.ARRAY_BUFFER,geometry.n,gl.DYNAMIC_DRAW);
      dynamic.count=geometry.p.length/3;dynamic.clock=clock;dynamic.clip=o.gltfClip;
@@ -227,7 +227,7 @@ class Renderer3D{
   if(rig&&Rig){
    const key='cpu-rig:'+o.id+':'+o.assetId,clock=Math.round((Number(o.gltfTime)||0)*24)/24,prior=this.customMeshes.get(key);
    if(!prior||prior.clock!==clock||prior.clip!==o.gltfClip){
-    try{this.customMeshes.set(key,{geo:Rig.sample(rig,o.gltfClip||'',clock),clock,clip:o.gltfClip});}
+    try{this.customMeshes.set(key,{geo:Rig.sample(rig,o.gltfClip||'',clock,o.gltfLoop!==false),clock,clip:o.gltfClip});}
     catch(e){console.warn('GLTF CPU:',e.message);}
    }
    mesh=this.customMeshes.get(key)?.geo||this.cpuMeshes.cube;
