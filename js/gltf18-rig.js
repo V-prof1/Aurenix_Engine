@@ -112,13 +112,22 @@ function build(json,buffers,Importer=global.AurenixImport17){
  if(meshNode<0)return null;
  const node=json.nodes[meshNode],skin=json.skins?.[node.skin],mesh=json.meshes?.[node.mesh];
  if(!skin?.joints?.length||skin.joints.length>MAX_JOINTS||!mesh?.primitives?.length)return null;
- const primitive=mesh.primitives.find(p=>(p.mode??4)===4&&p.attributes?.POSITION!==undefined&&p.attributes?.JOINTS_0!==undefined&&p.attributes?.WEIGHTS_0!==undefined);
- if(!primitive)return null;
- const vertices=accessor(primitive.attributes.POSITION),jointIndices=accessor(primitive.attributes.JOINTS_0),weights=accessor(primitive.attributes.WEIGHTS_0);
- if(vertices.length>MAX_VERTS||vertices.length!==weights.length||vertices.length!==jointIndices.length)return null;
- const triangles=primitive.indices!==undefined?accessor(primitive.indices).map(x=>x[0]):vertices.map((_,i)=>i);
- if(triangles.length<3||triangles.length/3>MAX_TRIS||triangles.length%3!==0)return null;
- if(triangles.some(i=>!Number.isInteger(i)||i<0||i>=vertices.length))return null;
+ const vertices=[],jointIndices=[],weights=[],triangles=[];
+ // Um mesh GLTF pode conter múltiplas primitives (roupa, pele, material etc.).
+ // Todas as primitives esqueléticas compatíveis compartilham a mesma skin.
+ for(const primitive of mesh.primitives){
+  if((primitive.mode??4)!==4||primitive.attributes?.POSITION===undefined||
+     primitive.attributes?.JOINTS_0===undefined||primitive.attributes?.WEIGHTS_0===undefined)continue;
+  const pp=accessor(primitive.attributes.POSITION),jj=accessor(primitive.attributes.JOINTS_0),ww=accessor(primitive.attributes.WEIGHTS_0);
+  if(pp.length!==jj.length||pp.length!==ww.length||pp.length+vertices.length>MAX_VERTS)return null;
+  const ind=primitive.indices!==undefined?accessor(primitive.indices).map(x=>x[0]):pp.map((_,i)=>i);
+  if(ind.length%3!==0||ind.length/3+triangles.length/3>MAX_TRIS||
+     ind.some(i=>!Number.isInteger(i)||i<0||i>=pp.length))return null;
+  const shift=vertices.length;
+  vertices.push(...pp);jointIndices.push(...jj);weights.push(...ww);
+  triangles.push(...ind.map(i=>i+shift));
+ }
+ if(triangles.length<3)return null;
  const parents=new Array(json.nodes.length).fill(-1);
  for(let i=0;i<json.nodes.length;i++)for(const child of json.nodes[i].children||[]){
   if(child<0||child>=json.nodes.length||parents[child]!==-1)return null;
