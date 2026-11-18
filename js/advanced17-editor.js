@@ -64,10 +64,10 @@ function render(){
  checkbox('graphics','fps','Monitor de FPS')+checkbox('graphics','shadows','Sombras (experimental)'));
  if(page==='imports'){
   const list=(p.assets||[]).filter(x=>x.gltf);
-  body=block('📦 GLB / GLTF / OBJ / ZIP','Importação local. GLTF externo deve incluir buffers e texturas em ZIP. Reprodução por ossos e materiais PBR ainda não estão integrados.',
+  body=block('📦 GLB / GLTF / OBJ / ZIP','Importação local. GLTF externo deve incluir buffers e texturas em ZIP. Modelos com skin, ossos e clips compatíveis animam no jogo e na prévia. Materiais PBR, texturas UV e alguns rigs complexos ainda não são suportados.',
   '<button data-ax17-action="import">＋ Escolher modelos e pacotes</button>')+
   block('🎞 Clips e articulações identificadas','Visualização dos metadados de modelos importados.',
-   list.length?list.map(m=>'<div class="ax17-asset"><b>'+esc(m.name)+'</b><small>'+m.gltf.triangles+' triângulos · '+m.gltf.joints+' ossos</small>'+
+   list.length?list.map(m=>'<div class="ax17-asset"><b>'+esc(m.name)+'</b><small>'+m.gltf.triangles+' triângulos · '+m.gltf.joints+' ossos • '+(m.gltfRig?'✓ Animação por ossos':'Somente geometria')+'</small>'+
     m.gltf.clips.map(c=>'<small>◆ '+esc(c.name)+' · '+Number(c.duration).toFixed(2)+'s</small>').join('')+'</div>').join(''):'Nenhum GLTF importado ainda.');
  }
  box.innerHTML='<div class="ax17-head"><h3>✦ WORLD & SYSTEMS</h3><small>100% local • Editor 2D/3D • Sem APIs, créditos ou IA integrada</small></div>'+
