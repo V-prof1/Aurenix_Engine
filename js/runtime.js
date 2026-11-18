@@ -192,7 +192,7 @@ class Renderer3D{
  const canvas=this.canvas,W=canvas.clientWidth||canvas.width||1,H=canvas.clientHeight||canvas.height||1,dpr=Math.min(devicePixelRatio||1,2);
  if(canvas.width!==Math.round(W*dpr)||canvas.height!==Math.round(H*dpr)){canvas.width=Math.round(W*dpr);canvas.height=Math.round(H*dpr);}
  ctx.setTransform(dpr,0,0,dpr,0,0);ctx.fillStyle=scene.background||'#101c31';ctx.fillRect(0,0,W,H);
- const eye=orbitPosition(camera),view=lookAt(eye,camera.target||[0,0,0]),proj=perspective(Math.PI/3,W/H,.1,500),vp=matMul(proj,view);
+ const eye=orbitPosition(camera),view=lookAt(eye,camera.target||[0,0,0]),proj=camera.projection==='orthographic'?orthographic(camera.distance||16,W/H):perspective(Math.PI/3,W/H,.1,500),vp=matMul(proj,view);
  this.vp=vp;this.canvasW=W;this.canvasH=H;
  const projectPoint=(x,y,z)=>{const w=vp[3]*x+vp[7]*y+vp[11]*z+vp[15];if(w<=0.08)return null;return {x:(1+(vp[0]*x+vp[4]*y+vp[8]*z+vp[12])/w)*W/2,y:(1-(vp[1]*x+vp[5]*y+vp[9]*z+vp[13])/w)*H/2,w};};
  if(opts.grid){ctx.lineWidth=1;ctx.strokeStyle='#ffffff18';ctx.beginPath();for(let i=-20;i<=20;i++){const a=projectPoint(-20,0,i),b=projectPoint(20,0,i),c=projectPoint(i,0,-20),d=projectPoint(i,0,20);for(const pair of [[a,b],[c,d]])if(pair[0]&&pair[1]){ctx.moveTo(pair[0].x,pair[0].y);ctx.lineTo(pair[1].x,pair[1].y);}}ctx.stroke();}
@@ -317,7 +317,7 @@ function startGame(scene){const canvas=document.getElementById('game');if(!canva
        if(impact.dead){target.visible=false;if(runState){runState.run.kills++;advanced.economy.coins+=3;}}}
      }
     }
-    if(c.type==='merchant'&&hit&&actionThisFrame&&!state.hit&&runState)gameShop(o);
+    if(c.type==='merchant'&&hit&&actionThisFrame&&runState)gameShop(o);
     if(c.type==='attack'&&hit){state.cooldown-=dt;if(state.cooldown<=0){setHealth(health-(Number(c.damage)||10));state.cooldown=clamp(c.cooldown||1,.1,30);}}
     if(c.type==='impulse'&&hit&&!state.hit&&player){
      const vel=velocities.get(player.id)||{vy:0,ground:false};
