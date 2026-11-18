@@ -182,10 +182,13 @@ function renderClips(){
  const box=$('clipEditor');
  if(!chosen){box.innerHTML='<p>Toque em <b>＋ Animação</b> ou selecione um movimento pronto no painel Peças.</p>';updateClock();renderMarkers();return;}
  box.innerHTML='<div class="group">'+field('clipName','Nome da animação',chosen.name,'text','maxlength="50"')+
- '<label>Duração (segundos)<input data-field="clipDuration" type="number" min=".1" max="120" step=".1" value="'+chosen.duration+'"></label>'+
+ '<label>Duração (segundos)<input data-field="clipDuration" type="number" min=".1" max="120" step=".1" value="'+chosen.duration+'"></label>'+ 
+  '<label>Quadros por segundo (FPS)<input data-field="clipFps" type="number" min="1" max="120" step="1" value="'+(chosen.fps||24)+'"></label>'+
  '<label>Velocidade<input data-field="clipSpeed" type="number" min=".1" max="4" step=".1" value="'+chosen.speed+'"></label>'+
  '<label>Suavização<select data-field="clipEase">'+[['smooth','Suave'],['linear','Linear'],['step','Quadros discretos']].map(([id,name])=>'<option value="'+id+'" '+(chosen.ease===id?'selected':'')+'>'+name+'</option>').join('')+'</select></label>'+
  '<label style="flex-direction:row;align-items:center"><input type="checkbox" data-field="clipLoop" '+(chosen.loop?'checked':'')+' style="width:21px;height:21px"> Repetir movimento</label>'+
+ '<button id="ax17AddAnimEvent" type="button">⚡ Evento no quadro atual</button>'+
+ '<div class="ax17-eventlist"><b>Eventos:</b>'+((chosen.events||[]).length?(chosen.events||[]).map((ev,i)=>'<button type="button" data-ax17-remove-event="'+i+'" title="Apagar evento">'+esc(ev.name)+' @ '+Number(ev.time||0).toFixed(2)+'s ✕</button>').join(''):'Nenhum')+'</div>'+
  '<button id="deleteClip" style="background:#593140">✕ Excluir animação</button></div>';
  updateClock();renderMarkers();
 }
@@ -230,7 +233,8 @@ function selectTrackFrame(channel,t){
 function trackCreate(channel=activeTrack){
  const c=clip();if(!c)return;
  switchTrack(channel);snapshot();
- Tracks.capture(model,c,channel,time,dataAtTrack(channel));selectedKey={channel,time};
+ const at=Tracks.snapTime(c,time);
+ Tracks.capture(model,c,channel,at,dataAtTrack(channel));selectedKey={channel,time:at};time=at;
  draftModified=false;mark();renderMarkers();notify('◆ Frame adicionado somente na trilha '+({body:'Corpo',face:'Rosto',objects:'Objetos'}[channel]));
 }
 function trackDelete(){
@@ -243,7 +247,7 @@ function trackCopy(){
  const c=clip(),selected=selectedKey;
  if(!c||!selected||selected.channel!==activeTrack)return;
  const item=Tracks.ensure(c)[activeTrack].find(f=>Math.abs(f.time-selected.time)<.004);if(!item)return;
- const next=Tracks.normalizedTime(c,Math.min(c.duration,item.time+.12));
+ const next=Tracks.snapTime(c,Math.min(c.duration,item.time+1/(c.fps||24)));
  if(Math.abs(next-item.time)<.01){notify('Sem espaço ao final da timeline');return;}
  snapshot();Tracks.capture(model,c,activeTrack,next,Object.fromEntries(Object.entries(item).filter(([k])=>k!=='time')));
  selectedKey={channel:activeTrack,time:next};applyFramePreview(next);mark();renderMarkers();
@@ -264,7 +268,7 @@ function trackSeek(e){
  }
  const area=e.target.closest('[data-track-area]');if(!area)return;
  const rect=area.getBoundingClientRect();
- const next=Tracks.normalizedTime(c,Math.max(0,Math.min(1,(e.clientX-rect.left)/Math.max(1,rect.width)))*c.duration);
+ const next=Tracks.snapTime(c,Math.max(0,Math.min(1,(e.clientX-rect.left)/Math.max(1,rect.width)))*c.duration);
  switchTrack(area.dataset.trackArea);selectedKey=null;
  playing=false;applyFramePreview(next);renderMarkers();
 }
@@ -278,7 +282,7 @@ function trackPointerMove(e){
  if(!drag.dragged&&Math.hypot(e.clientX-drag.x,e.clientY-drag.y)<6)return;
  drag.dragged=true;
  const area=drag.dot.closest('[data-track-area]'),rect=area.getBoundingClientRect(),c=clip();
- drag.to=Tracks.normalizedTime(c,(e.clientX-rect.left)/Math.max(1,rect.width)*c.duration);
+ drag.to=Tracks.snapTime(c,(e.clientX-rect.left)/Math.max(1,rect.width)*c.duration);
  drag.dot.style.left=(drag.to/c.duration*100)+'%';
 }
 function trackPointerUp(e){
@@ -411,8 +415,9 @@ function capturePose(){
 function captureAllTracks(){
  const c=clip();if(!c){notify('Crie uma animação primeiro');return;}
  snapshot();Tracks.ensure(c);
- for(const channel of Tracks.groups)Tracks.capture(model,c,channel,time,dataAtTrack(channel));
- selectedKey={channel:activeTrack,time};draftModified=false;mark();renderMarkers();
+ const at=Tracks.snapTime(c,time);
+ for(const channel of Tracks.groups)Tracks.capture(model,c,channel,at,dataAtTrack(channel));
+ time=at;selectedKey={channel:activeTrack,time:at};draftModified=false;mark();renderMarkers();
  notify('✓ Corpo, rosto e objetos gravados em '+time.toFixed(2)+'s!');
 }
 function removeFrame(){trackDelete();}
@@ -556,6 +561,7 @@ function editField(input,saveHistory=false){
   if(key==='clipName')c.name=String(input.value).slice(0,50);
   if(key==='clipDuration'){c.duration=clamp(input.value,.1,120);for(const f of c.frames)f.time=clamp(f.time,0,c.duration);for(const frames of Object.values(Tracks.ensure(c)))for(const f of frames)f.time=clamp(f.time,0,c.duration);selectedKey=null;time=clamp(time,0,c.duration);}
   if(key==='clipSpeed')c.speed=clamp(input.value,.1,4);
+   if(key==='clipFps')c.fps=clamp(Math.round(Number(input.value)||24),1,120);
   if(key==='clipEase')c.ease=input.value;
   if(key==='clipLoop')c.loop=input.checked;
   mark();renderClips();renderMarkers();return;
@@ -721,6 +727,18 @@ async function onAction(e){
   if(b.hasAttribute('data-track-copy')){trackCopy();return;}
   if(b.dataset.trackNav){trackNavigate(Number(b.dataset.trackNav));return;}
   if(id==='ax16CaptureAll'){captureAllTracks();return;}
+  if(id==='ax17AddAnimEvent'){
+   const c=clip();if(!c)return;
+   const name=prompt('Nome do evento de animação (ex.: ataque, passo, som-espada)','Ataque');
+   if(!name?.trim())return;
+   snapshot();Tracks.ensure(c);c.events.push({time:Tracks.snapTime(c,time),name:name.trim().slice(0,60)});
+   c.events.sort((a,b)=>a.time-b.time);mark();renderClips();notify('⚡ Evento adicionado ao frame');return;
+  }
+  if(b.hasAttribute('data-ax17-remove-event')){
+   const c=clip();if(!c)return;
+   const n=Number(b.dataset.ax17RemoveEvent);if(!Number.isInteger(n)||n<0||n>=(c.events||[]).length)return;
+   snapshot();c.events.splice(n,1);mark();renderClips();return;
+  }
   if(b.dataset.tool14){setTool(b.dataset.tool14);return;}
   if(id==='ax14Snap'){snapToGrid=!snapToGrid;b.classList.toggle('active',snapToGrid);b.setAttribute('aria-pressed',String(snapToGrid));notify(snapToGrid?'Encaixe ativado: 0,05 unidade e 5°':'Encaixe desativado');return;}
   if(id==='ax14Depth'){depthAxis=!depthAxis;b.classList.toggle('active',depthAxis);b.setAttribute('aria-pressed',String(depthAxis));notify(depthAxis?'Movimento/rotação no eixo Z':'Movimento na superfície XY');return;}
@@ -780,7 +798,7 @@ function init(){
  document.addEventListener('change',e=>{
   if(e.target.id!=='ax16FrameTime')return;
   const c=clip();if(!c)return;
-  const to=Tracks.normalizedTime(c,e.target.value);
+  const to=Tracks.snapTime(c,e.target.value);
   if(selectedKey&&selectedKey.channel===activeTrack){
    snapshot();
    if(!Tracks.move(c,activeTrack,selectedKey.time,to)){
