@@ -295,6 +295,30 @@ function startGame(scene){const canvas=document.getElementById('game');if(!canva
     else if(c.type==='hazard'){state.cooldown=Math.max(0,state.cooldown-dt);}
     if(c.type==='checkpoint'&&hit&&!state.hit){checkpointAt();showMessage('Checkpoint salvo!');}
     if(c.type==='portal'&&hit&&!state.hit&&c.sceneName)requestScene(c.sceneName);
+    if(c.type==='npcBrain'&&advanced?.combat?.enabled&&player&&o.health>0){
+     const limit=Math.max(1,Number(advanced.graphics.maxNpcs)||35);
+     const index=objects.filter(v=>v.visible!==false&&(v.components||[]).some(x=>x.type==='npcBrain')).indexOf(o);
+     const range=Math.hypot((o.x||0)-(player.x||0),is3d?(o.z||0)-(player.z||0):(o.y||0)-(player.y||0));
+     if(index<limit&&range<Math.max(35,(advanced.world.renderRadius||9)*(advanced.world.cell||2)*3)){
+      o.behavior??={state:'idle',origin:[o.x||0,is3d?o.z||0:o.y||0],iq:c.iq,submission:c.submission};
+      o.sight=c.sight;o.hearing=c.hearing;o.speed=c.speed;o.attackRange=c.range;
+      const decision=ADV.npcTick(o,player,dt,objects);
+      if(is3d&&advanced.world.enabled){const h=ADV.elevation(advanced.world,o.x,o.z);if(h!=null)o.y=h+(o.h||1)/2;}
+      state.cooldown-=dt;
+      if(decision.attack&&state.cooldown<=0){setHealth(health-(Number(c.attack)||7));state.cooldown=1.3;showMessage('⚠ '+o.name+' atacou',.7);}
+     }
+    }
+    if(c.type==='destructible'){if(o.maxHealth==null)o.maxHealth=Number(c.durability)||250;if(o.health==null)o.health=o.maxHealth;o.armor=Number(c.armor)||0;}
+    if(c.type==='turret'&&advanced?.combat?.enabled){
+     state.cooldown-=dt;if(state.cooldown<=0){
+      const enemies=objects.filter(x=>x.visible!==false&&x.health>0&&(x.components||[]).some(v=>v.type==='npcBrain'));
+      const target=enemies.find(x=>Math.hypot((x.x||0)-(o.x||0),is3d?(x.z||0)-(o.z||0):(x.y||0)-(o.y||0))<Number(c.range||14));
+      if(target){const impact=ADV.damage(target,c.damage||12);state.cooldown=clamp(c.cooldown||1,.1,30);o.ry=(o.ry||0)+24;
+       if(impact.dead){target.visible=false;if(runState){runState.run.kills++;advanced.economy.coins+=3;}}}
+     }
+    }
+    if(c.type==='merchant'&&hit&&controls.action&&!state.hit&&runState)gameShop(o);
+    if(c.type==='attack'&&hit){state.cooldown-=dt;if(state.cooldown<=0){setHealth(health-(Number(c.damage)||10));state.cooldown=clamp(c.cooldown||1,.1,30);}}
     if(c.type==='impulse'&&hit&&!state.hit&&player){
      const vel=velocities.get(player.id)||{vy:0,ground:false};
      vel.vy=is3d?Math.max(0,Number(c.strength)||430): -Math.max(0,Number(c.strength)||430);
