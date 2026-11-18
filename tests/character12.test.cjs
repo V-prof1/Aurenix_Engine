@@ -63,8 +63,8 @@ test('All authoring files are present in HTML and Android CI packaging',()=>{
  assert.ok(index.includes('menuModelStudio'));
  assert.ok(index.includes('tabModels'));
  assert.ok(editor.includes('characterSrc'));
- assert.ok(editor.includes("data:characterSrc+'\\n'+faceSrc+'\\n'+motionSrc+'\\n'+tracksSrc+'\\n'+symmetrySrc+'\\n'+advancedSrc+'\\n'+runtimeSrc"));
- assert.ok(editor.includes("inlineRuntime:characterSrc+'\\n'+faceSrc+'\\n'+motionSrc+'\\n'+tracksSrc+'\\n'+symmetrySrc+'\\n'+advancedSrc+'\\n'+runtimeSrc"));
+ assert.ok(editor.includes("data:characterSrc+'\\n'+faceSrc+'\\n'+motionSrc+'\\n'+tracksSrc+'\\n'+symmetrySrc+'\\n'+advancedSrc+'\\n'+rigSrc+'\\n'+runtimeSrc"));
+ assert.ok(editor.includes("inlineRuntime:characterSrc+'\\n'+faceSrc+'\\n'+motionSrc+'\\n'+tracksSrc+'\\n'+symmetrySrc+'\\n'+advancedSrc+'\\n'+rigSrc+'\\n'+runtimeSrc"));
  assert.ok(workflow.includes('cp index.html studio.html pixelstudio.html modelstudio.html'));
 });
 test('No paid service or executable code is needed in character assets',()=>{
