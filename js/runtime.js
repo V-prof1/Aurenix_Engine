@@ -269,7 +269,7 @@ class Renderer3D{
  const faces=[];
  for(const o of expandedSceneObjects(scene,camera)){if(!o.visible||!frustumVisible(vp,o))continue;let mesh=this.cpuMeshes[o.type]||this.cpuMeshes.cube;
  if(o.type==='model3d'&&o.assetId){
-  const asset=(scene.assets||[]).find(a=>a.id===o.assetId),rig=asset?.gltfRig,Rig=global.AurenixGLTFRig18;
+  const asset=(scene.assets||[]).find(a=>a.id===o.assetId),rig=asset?.gltfScene19||asset?.gltfRig,Rig=asset?.gltfScene19?global.AurenixGLTF19:global.AurenixGLTFRig18;
   if(rig&&Rig){
    const key='cpu-rig:'+o.id+':'+o.assetId,clock=Math.round((Number(o.gltfTime)||0)*24)/24,prior=this.customMeshes.get(key);
    if(!prior||prior.clock!==clock||prior.clip!==o.gltfClip){
@@ -283,13 +283,16 @@ class Renderer3D{
   }
  }
  let model=o._modelMatrix?new Float32Array(o._modelMatrix):matMove(o.x||0,o.y||0,o.z||0);if(!o._modelMatrix){model=matMul(model,matRotY((o.ry||0)*Math.PI/180));model=matMul(model,matRotX((o.rx||0)*Math.PI/180));model=matMul(model,matRotZ((o.rz||o.rotation||0)*Math.PI/180));model=matMul(model,matScale(o.w||1,o.h||1,o.d||1));}
+ const fallbackRig=(o.type==='model3d'&&o.assetId)?(scene.assets||[]).find(a=>a.id===o.assetId)?.gltfScene19:null;
  const base=rgbaNorm(o.color);
  for(let i=0;i<mesh.p.length;i+=9){const points=[];
  for(let j=0;j<9;j+=3){const x=mesh.p[i+j],y=mesh.p[i+j+1],z=mesh.p[i+j+2],wx=model[0]*x+model[4]*y+model[8]*z+model[12],wy=model[1]*x+model[5]*y+model[9]*z+model[13],wz=model[2]*x+model[6]*y+model[10]*z+model[14],pp=projectPoint(wx,wy,wz);if(!pp){points.length=0;break;}points.push(pp);}
  if(points.length!==3)continue;
  const nx=mesh.n[i],ny=mesh.n[i+1],nz=mesh.n[i+2],N=vnorm([model[0]*nx+model[4]*ny+model[8]*nz,model[1]*nx+model[5]*ny+model[9]*nz,model[2]*nx+model[6]*ny+model[10]*nz]);
  const brightness=.45+Math.max(0,vdot(N,vnorm([-.55,.85,.45])))*.55;
- const r=Math.round(base[0]*brightness*255),g=Math.round(base[1]*brightness*255),b=Math.round(base[2]*brightness*255);
+ const group=mesh.groups?.find(x=>i/3>=x.start&&i/3<x.start+x.count);
+ const mat=group&&fallbackRig?.materials?.[group.material],tint=mat?.color||base;
+ const r=Math.round(tint[0]*brightness*255),g=Math.round(tint[1]*brightness*255),b=Math.round(tint[2]*brightness*255);
  faces.push({points,depth:points.reduce((a,p)=>a+p.w,0)/3,color:`rgb(${r},${g},${b})`,selected:o.id===opts.selectedId||o._parentId===opts.selectedId});
  }}
  faces.sort((a,b)=>b.depth-a.depth);
@@ -442,7 +445,7 @@ function startGame(scene){const canvas=document.getElementById('game');if(!canva
  }
  function animateObject(o,dt){
   if(o.type==='model3d'){
-   const asset=(scene.assets||[]).find(a=>a.id===o.assetId),rig=asset?.gltfRig;
+   const asset=(scene.assets||[]).find(a=>a.id===o.assetId),rig=asset?.gltfScene19||asset?.gltfRig;
    if(rig?.clips?.length){
     if(!rig.clips.some(c=>c.name===o.gltfClip))o.gltfClip=rig.clips[0].name;
     const c=rig.clips.find(c=>c.name===o.gltfClip),duration=Math.max(.001,c.duration||1);
@@ -690,7 +693,7 @@ function startGame(scene){const canvas=document.getElementById('game');if(!canva
  loadScene:name=>requestScene(name),nextScene:()=>nextScene(),
  getTile:(x,y)=>scene.tilemap?.cells?.[Math.floor(x)+','+Math.floor(y)]||null,
  setTile:(x,y,color='#5aa78b',solid=false)=>{scene.tilemap||={size:32,cells:{}};scene.tilemap.cells[Math.floor(x)+','+Math.floor(y)]={color,solid:!!solid};},
- playAnimation:(o,name)=>{const target=typeof o==='string'?objects.find(x=>x.id===o||x.name===o):o;if(!target)return false;if(target.type==='model3d'){const asset=(scene.assets||[]).find(a=>a.id===target.assetId);if(asset?.gltfRig?.clips?.some(c=>c.name===name)){target.gltfClip=name;target.gltfTime=0;target.gltfPlaying=true;return true;}}if(target.type==='character3d'){const doc=characterAsset((scene.assets||[]).find(a=>a.id===target.assetId));const rig=doc?.animations.find(c=>c.name===name||c.id===name);if(!rig)return false;if(target.rigClip===rig.id&&target.rigPlaying!==false)return true;target.rigClip=rig.id;target.rigTime=0;target.rigPlaying=true;return true;}const clip=(target.animations||[]).find(c=>c.id===name||c.name===name);if(!clip)return false;const current=animClocks.get(target.id);if(current?.playing&&current.clipId===clip.id)return true;target.activeAnimation=clip.id;animClocks.set(target.id,{clipId:clip.id,time:0,playing:true});return true;},
+ playAnimation:(o,name)=>{const target=typeof o==='string'?objects.find(x=>x.id===o||x.name===o):o;if(!target)return false;if(target.type==='model3d'){const asset=(scene.assets||[]).find(a=>a.id===target.assetId),rig=asset?.gltfScene19||asset?.gltfRig;if(rig?.clips?.some(c=>c.name===name)){target.gltfClip=name;target.gltfTime=0;target.gltfPlaying=true;return true;}}if(target.type==='character3d'){const doc=characterAsset((scene.assets||[]).find(a=>a.id===target.assetId));const rig=doc?.animations.find(c=>c.name===name||c.id===name);if(!rig)return false;if(target.rigClip===rig.id&&target.rigPlaying!==false)return true;target.rigClip=rig.id;target.rigTime=0;target.rigPlaying=true;return true;}const clip=(target.animations||[]).find(c=>c.id===name||c.name===name);if(!clip)return false;const current=animClocks.get(target.id);if(current?.playing&&current.clipId===clip.id)return true;target.activeAnimation=clip.id;animClocks.set(target.id,{clipId:clip.id,time:0,playing:true});return true;},
  stopAnimation:o=>{const target=typeof o==='string'?objects.find(x=>x.id===o||x.name===o):o;if(!target)return false;if(target.type==='character3d'){target.rigPlaying=false;return true;}if(target.type==='model3d'){target.gltfPlaying=false;return true;}const st=animClocks.get(target.id);if(st)st.playing=false;return true;},
  playSound:(name,options={})=>playAsset(name,options),stopMusic:()=>{bgMusic?.pause();bgMusic=null;},sound:(freq=440,duration=.1)=>{try{const ac=api.audio||(api.audio=new (window.AudioContext||window.webkitAudioContext)());const osc=ac.createOscillator(),gain=ac.createGain();osc.frequency.value=Number(freq)||440;osc.connect(gain);gain.connect(ac.destination);gain.gain.setValueAtTime(.06,ac.currentTime);gain.gain.exponentialRampToValueAtTime(.001,ac.currentTime+Math.max(.03,duration));osc.start();osc.stop(ac.currentTime+Math.max(.03,duration));}catch(e){}}};
  if(runState){
