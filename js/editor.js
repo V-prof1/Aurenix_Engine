@@ -61,7 +61,28 @@ function renderInspector(){const o=selected();if(project.mode==='html5'){$('insp
     checkbox('Reproduzir no jogo','gltfPlaying',o.gltfPlaying!==false)+
     '<button id="ax18PreviewRig" class="btn primary wide">'+(o.gltfPreview?'⏸ Pausar prévia':'▶ Ver animação no editor')+'</button>'+
     '<p class="section-description tiny">'+rig.joints.length+' ossos · '+rig.vertices.length+' vértices · '+rig.triangles.length/3+' triângulos. Prévia mostra o movimento na cena 3D.</p></div>';
-  }else if(asset?.gltf)html+='<div class="inspector-group"><h4>📦 GLTF ESTÁTICO</h4><p class="section-description">O arquivo foi importado como OBJ. Esta malha não tem rig compatível com o animador simplificado.</p></div>';
+  }else if(asset?.gltf)html+='<div class="inspector-group"><h4>📦 MALHA IMPORTADA</h4><p class="section-description">Modelos GLTF estáticos podem preservar materiais UV mesmo sem animações.</p></div>';
+  const sources=project.assets.filter(a=>a.id!==asset?.id&&(a.gltfScene19||a.gltfRig)?.clips?.length);
+  const retarget=window.AurenixGLTF19;
+  const skinCount=rig?.skins?.reduce((s,x)=>s+(x?.joints?.length||0),0)||(rig?.joints?.length||0);
+  if(rig&&retarget&&sources.length&&skinCount){
+   const source=sources.find(x=>x.id===o.ax19TransferSource)||sources[0],srcRig=source.gltfScene19||source.gltfRig,
+     chosen=srcRig.clips.find(cl=>cl.name===o.ax19TransferClip)||srcRig.clips[0],mapping=retarget.boneMap(srcRig,rig,o.ax19Mappings||{});
+   html+='<div class="inspector-group"><h4>🔁 TRANSFERIR ANIMAÇÃO</h4>'+
+    '<p class="section-description">Use outro personagem GLTF como origem. A animação será adaptada aos ossos correspondentes, localmente.</p>'+
+    '<label>Personagem de origem<select id="ax19TransferSource">'+sources.map(x=>
+     '<option value="'+esc(x.id)+'" '+(x.id===source.id?'selected':'')+'>'+esc(x.name)+'</option>').join('')+'</select></label>'+
+    '<label>Clip de origem<select id="ax19TransferClip">'+srcRig.clips.map(cl=>
+     '<option value="'+esc(cl.name)+'" '+(cl.name===chosen.name?'selected':'')+'>'+esc(cl.name)+'</option>').join('')+'</select></label>'+
+    '<p class="section-description">Ossos e nós correspondentes: '+Object.keys(mapping).length+'</p>'+
+    '<details><summary>🦴 Mapear ossos manualmente</summary><p class="section-description">Ajuste quando os esqueletos tiverem nomes diferentes.</p>'+
+    [...new Set(chosen.channels.map(ch=>ch.node))].slice(0,96).map(id=>
+      '<label class="field">'+esc(srcRig.nodes[id]?.name||'Osso '+id)+
+      '<select data-ax19-map="'+id+'"><option value="">Automático / ignorar</option>'+
+      rig.nodes.map((bone,i)=>'<option value="'+i+'" '+((o.ax19Mappings||{})[id]===i?'selected':'')+'>'+esc(bone.name)+'</option>').join('')+
+      '</select></label>').join('')+'</details>'+
+    '<button id="ax19Transfer" class="btn primary wide">🔁 Aplicar animação ao personagem</button></div>';
+  }
  }
  $('inspector').innerHTML=html;}
 function round(x){return Math.round((Number(x)||0)*100)/100;}
@@ -367,8 +388,31 @@ function wireEvents(){
  const exp=e.target.closest('[data-exportasset]');if(exp){const a=project.assets.find(x=>x.id===exp.dataset.exportasset);if(a){const type=a.type||'application/octet-stream';const name=a.name||'asset';const bytes=dataURLBytes(a.data);download(new Blob([bytes],{type}),name);}return;}
  const del=e.target.closest('[data-removeasset]');if(del){if(confirm('Remover este arquivo? Objetos que usam esse arquivo ficarão sem imagem.')){historyPush();project.assets=project.assets.filter(a=>a.id!==del.dataset.removeasset);images=R.imgMap(project);touchProject();renderAssets();}return;}});
  $('savedProjects').addEventListener('click',e=>{const load=e.target.closest('[data-loadproject]'),del=e.target.closest('[data-deleteproject]');if(load)loadProject(load.dataset.loadproject);if(del)deleteProject(del.dataset.deleteproject);});
- $('inspector').addEventListener('change',e=>{const el=e.target.closest('[data-prop]'),o=selected();if(!el||!o)return;historyPush();const key=el.dataset.prop;let value=el.type==='checkbox'?el.checked:el.type==='number'?Number(el.value):el.value;if(el.type==='number'&&!Number.isFinite(value))value=0;if(['w','h','d'].includes(key))value=Math.max(.01,value);if(key==='opacity')value=R.clamp(value,0,1);if(['health','maxHealth'].includes(key))value=Math.max(1,Math.round(value));if(key==='modelScale')value=R.clamp(value,.1,20);if(key==='rigClip')o.rigTime=0;if(key==='gltfClip')o.gltfTime=0;if(key==='gltfSpeed')value=R.clamp(value,.1,4);if(key==='gltfTime')value=Math.max(0,value);if(key==='tags')value=String(value).slice(0,220);o[key]=value;touchProject();updateScriptUI();S?.renderAnimations();E?.scriptDiagnostics();});
- $('inspector').addEventListener('click',e=>{if(e.target.closest('#emptyAdd'))showAddModal();if(e.target.closest('#openCodeHtml')){selectTab('code');openPanel('left');}if(e.target.closest('#ax18PreviewRig')){const o=selected();if(o?.type==='model3d'){o.gltfPreview=!o.gltfPreview;renderInspector();toast(o.gltfPreview?'▶ Prévia GLTF iniciada':'⏸ Prévia pausada');}return;}if(e.target.closest('#openCharacterModeler')){if(projectDirty&&!confirm('Salve o projeto antes de sair. Continuar?'))return;location.href='modelstudio.html';}if(e.target.closest('#editSelectedBehavior')){selectTab('components');openPanel('left');}if(e.target.closest('#editSelectedCode')){selectTab('code');openPanel('left');}if(e.target.closest('#duplicateBtn')){const o=selected();if(!o)return;historyPush();const n={...JSON.parse(JSON.stringify(o)),id:R.uid(),editorLocked:false,name:o.name+' (cópia)',x:o.x+(project.mode==='3d'?1:32)};project.objects.push(n);selectObj(n.id);touchProject();toast('Objeto duplicado');}if(e.target.closest('#deleteBtn')){const o=selected();if(!o)return;historyPush();project.objects=project.objects.filter(x=>x.id!==o.id);selectObj('');touchProject();toast('Objeto excluído');}});
+ $('inspector').addEventListener('change',e=>{
+  const o=selected();if(!o)return;
+  if(e.target.id==='ax19TransferSource'||e.target.id==='ax19TransferClip'){
+   if(e.target.id==='ax19TransferSource'){o.ax19TransferSource=e.target.value;o.ax19TransferClip='';o.ax19Mappings={};}
+   else o.ax19TransferClip=e.target.value;
+   markDirty();renderInspector();return;
+  }
+  if(e.target.hasAttribute('data-ax19-map')){
+   const id=e.target.dataset.ax19Map;o.ax19Mappings??={};
+   if(e.target.value==='')delete o.ax19Mappings[id];else o.ax19Mappings[id]=Number(e.target.value);
+   markDirty();return;
+  }
+  const el=e.target.closest('[data-prop]');if(!el)return;historyPush();const key=el.dataset.prop;let value=el.type==='checkbox'?el.checked:el.type==='number'?Number(el.value):el.value;if(el.type==='number'&&!Number.isFinite(value))value=0;if(['w','h','d'].includes(key))value=Math.max(.01,value);if(key==='opacity')value=R.clamp(value,0,1);if(['health','maxHealth'].includes(key))value=Math.max(1,Math.round(value));if(key==='modelScale')value=R.clamp(value,.1,20);if(key==='rigClip')o.rigTime=0;if(key==='gltfClip')o.gltfTime=0;if(key==='gltfSpeed')value=R.clamp(value,.1,4);if(key==='gltfTime')value=Math.max(0,value);if(key==='tags')value=String(value).slice(0,220);o[key]=value;touchProject();updateScriptUI();S?.renderAnimations();E?.scriptDiagnostics();});
+ $('inspector').addEventListener('click',e=>{
+  if(e.target.closest('#ax19Transfer')){
+   const o=selected(),targetAsset=project.assets.find(a=>a.id===o?.assetId),target=targetAsset?.gltfScene19||targetAsset?.gltfRig;
+   const source=project.assets.find(a=>a.id===(o?.ax19TransferSource||$('ax19TransferSource')?.value)),rig=source?.gltfScene19||source?.gltfRig;
+   if(!target||!rig){toast('Importe dois personagens GLTF com ossos');return;}
+   const name=o.ax19TransferClip||$('ax19TransferClip')?.value||rig.clips[0]?.name;
+   historyPush();const result=window.AurenixGLTF19.retarget(rig,target,name,o.ax19Mappings||{});
+   if(!result.ok){toast(result.error);return;}
+   o.gltfClip=result.name;o.gltfTime=0;o.gltfPreview=true;o.gltfPlaying=true;
+   touchProject();toast('✓ '+result.channels+' trilhas transferidas; '+result.skipped+' ignoradas');return;
+  }
+  if(e.target.closest('#emptyAdd'))showAddModal();if(e.target.closest('#openCodeHtml')){selectTab('code');openPanel('left');}if(e.target.closest('#ax18PreviewRig')){const o=selected();if(o?.type==='model3d'){o.gltfPreview=!o.gltfPreview;renderInspector();toast(o.gltfPreview?'▶ Prévia GLTF iniciada':'⏸ Prévia pausada');}return;}if(e.target.closest('#openCharacterModeler')){if(projectDirty&&!confirm('Salve o projeto antes de sair. Continuar?'))return;location.href='modelstudio.html';}if(e.target.closest('#editSelectedBehavior')){selectTab('components');openPanel('left');}if(e.target.closest('#editSelectedCode')){selectTab('code');openPanel('left');}if(e.target.closest('#duplicateBtn')){const o=selected();if(!o)return;historyPush();const n={...JSON.parse(JSON.stringify(o)),id:R.uid(),editorLocked:false,name:o.name+' (cópia)',x:o.x+(project.mode==='3d'?1:32)};project.objects.push(n);selectObj(n.id);touchProject();toast('Objeto duplicado');}if(e.target.closest('#deleteBtn')){const o=selected();if(!o)return;historyPush();project.objects=project.objects.filter(x=>x.id!==o.id);selectObj('');touchProject();toast('Objeto excluído');}});
  $('externalFileSelect').onchange=e=>{if(project.external){project.external.selectedFile=e.target.value;updateScriptUI();}};
  $('applyScriptBtn').onclick=()=>{historyPush();if(project.mode==='html5'){const s=$('scriptEditor').value;if(!project.external)return;const key=project.external.selectedFile||project.external.entry;project.external.files[key]=Z.asDataURL(new TextEncoder().encode(s),Z.mime(key));externalHash='';markDirty();refreshExternal();toast('Arquivo atualizado');}else{const o=selected();if(o)o.script=$('scriptEditor').value;else project.script=$('scriptEditor').value;markDirty();toast('JavaScript aplicado');E?.scriptDiagnostics();}};$('apiHelpBtn').onclick=showDocs;
  $('projectName').onchange=e=>{historyPush();project.name=e.target.value.trim()||'Meu jogo';markDirty();};
