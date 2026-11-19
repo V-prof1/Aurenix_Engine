@@ -101,7 +101,7 @@ test('Aplicativo 0.14 entrega interface, 3 trilhas, modo facial e exportação o
  assert.ok(modeler.includes('js/character-motion14.js'));
  assert.ok(editor.includes("fetch('js/character-motion14.js')"));
  assert.ok(editor.includes("data:characterSrc+'\\n'+faceSrc+'\\n'+motionSrc+'\\n'+tracksSrc+'\\n'+symmetrySrc+'\\n'+advancedSrc+'\\n'+rigSrc+'\\n'+gltf19Src+'\\n'+runtimeSrc"));
- assert.ok(home.includes('ALPHA 0.18'));
+ assert.ok(home.includes('ALPHA 0.19'));
  assert.ok(html.includes('js/character-motion14.js'));
  assert.equal(JSON.parse(read('capacitor.config.json')).appId,'com.aurenix.engine.alpha014');
 });
